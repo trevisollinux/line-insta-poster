@@ -9,18 +9,27 @@ painel.
 
 ## 1. Confirmar a PPA da Página
 
-**Page Publishing Authorization.** Não há como detectar por API: se estiver
-pendente, a publicação falha com erro de permissão e nenhum código resolve.
+**Page Publishing Authorization.** Provavelmente **não se aplica** a esta Página
+— e não achar a opção é o resultado esperado, não busca mal feita.
 
-1. Abra a Página no [Meta Business Suite](https://business.facebook.com/).
-2. Busque por **Page Publishing Authorization** (ou *Autorização de publicação
-   da Página*) na busca de configurações.
-3. Se aparecer como pendente, complete: exige confirmar identidade com documento
-   e **leva alguns dias** para sair. Comece por aqui justamente por isso.
-4. Se não existir essa entrada, a Página não está sujeita à exigência. Siga.
+A exigência vale para Páginas de grande alcance: veículos de notícia e quem
+publica sobre temas sociais, eleições ou política. Página de loja não entra no
+critério, e nesse caso a opção simplesmente não existe nas configurações.
 
-Sinal de alerta paralelo: banner na Página avisando que a publicação está
-restrita. Resolva antes de continuar.
+Como confirmar sem caçar menu:
+
+1. **A Meta avisaria.** Quando é exigida, os admins recebem notificação e a
+   Página exibe aviso; ficando pendente, a publicação é restringida. Sem aviso e
+   sem a entrada em Configurações da Página = não é exigida.
+2. **O primeiro post de teste é a prova definitiva.** Com PPA pendente, a
+   publicação falha com erro de permissão citando a autorização. O teste do
+   passo 5 (um `STORIES`, que some em 24h) já cobre isso — verificação de graça.
+
+Referência da Meta, se algum dia a Página mudar de categoria:
+[Get authorized to post or interact as your Page](https://www.facebook.com/help/1939753742723975).
+
+Por que isto continua sendo o item 1: *se* aplicasse, bloquearia tudo e levaria
+dias para resolver. Verificar custa um minuto; descobrir tarde custa a semana.
 
 ---
 

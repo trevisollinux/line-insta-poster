@@ -50,8 +50,8 @@ automação de queimar confiança no DM — e ele é humano, não automatizável
 - [ ] Conta Business/Creator (o id vai no secret `IG_USER_ID`)
 - [ ] Vinculada à Página do Facebook
 - [ ] Usuário com tarefa `MANAGE` ou `CREATE_CONTENT` na Página
-- [ ] **PPA (Page Publishing Authorization) da Página concluída** — não dá para
-      detectar por API; se estiver pendente, a publicação falha. Confirme antes.
+- [ ] PPA (Page Publishing Authorization) — só vale para Páginas de grande
+      alcance; Página de loja normalmente não é exigida. Ver `docs/SETUP.md`
 - [ ] App Meta tipo Business com o produto Instagram / Facebook Login for Business
 - [ ] Permissões: `instagram_basic`, `instagram_content_publish`,
       `pages_read_engagement` (+ `instagram_manage_insights` para a curadoria)
