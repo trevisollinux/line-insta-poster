@@ -135,10 +135,12 @@ colocaria em posição mediana. Isto resolve **frequência de publicação**; n�
 Por isso o pipeline gera candidatos, e o PR tem checklist: o preço e o "essa peça
 ainda existe?" são decisão humana.
 
-## Operação
+## Documentação
 
-Runbook (o que fazer quando falha, limites da API, migração para resumable):
-[`docs/OPERACAO.md`](docs/OPERACAO.md).
+- [`docs/SETUP.md`](docs/SETUP.md) — do zero ao primeiro post: PPA, app Meta,
+  token, secrets e o teste sem plateia.
+- [`docs/OPERACAO.md`](docs/OPERACAO.md) — runbook: o que fazer quando falha,
+  limites da API, migração para resumable.
 
 ## Testes
 
