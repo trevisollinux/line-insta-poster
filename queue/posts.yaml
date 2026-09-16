@@ -1,0 +1,10 @@
+# Fila de publicação — curada à mão.
+#
+# Item só é publicado se `reviewed_price: true`. A flag não é decoração: o acervo
+# tem post com preço pré-reajuste, e publicar um deles queima confiança no DM.
+# Quem marca a flag é quem conferiu o preço, não o script.
+#
+# Formato completo e comentado: instagram/queue/posts.example.yaml
+# Documentação: docs/INSTAGRAM_PUBLISHER.md
+#
+# Fila vazia = o job roda, avisa no Summary e sai sem publicar.

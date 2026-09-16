@@ -1,0 +1,40 @@
+# Exemplo comentado do formato da fila. Copie o que precisar para posts.yaml.
+
+# Foto única.
+- id: satchel-pockets-conhaque-2024
+  media_type: IMAGE                 # IMAGE | REELS | STORIES | CAROUSEL
+  url: https://media.exemplo.com/pockets_conhaque.jpg
+  caption: |
+    Satchel Pockets em couro conhaque.
+    Feito por pessoas, para pessoas.
+  reviewed_price: true              # obrigatório — preço conferido pós-reajuste
+  weight: 3                         # peso no sorteio (padrão 1)
+
+# Reels: precisa de vídeo .mp4/.mov.
+- id: bolsa-tiracolo-processo
+  media_type: REELS
+  url: https://media.exemplo.com/tiracolo_processo.mp4
+  cover_url: https://media.exemplo.com/tiracolo_capa.jpg   # opcional, só REELS
+  share_to_feed: true               # padrão true
+  caption: |
+    O corte que vira bolsa.
+  reviewed_price: true
+  weight: 2
+  repeat_after_days: 120            # sem isto, item publicado nunca repete
+
+# Carrossel: de 2 a 10 urls, na ordem em que aparecem.
+- id: carteira-linha-completa
+  media_type: CAROUSEL
+  urls:
+    - https://media.exemplo.com/carteira_01.jpg
+    - https://media.exemplo.com/carteira_02.jpg
+    - https://media.exemplo.com/carteira_03.jpg
+  caption: A linha inteira, lado a lado.
+  reviewed_price: true
+
+# Stories: não aceita caption.
+- id: bastidor-oficina-setembro
+  media_type: STORIES
+  url: https://media.exemplo.com/oficina.jpg
+  reviewed_price: true
+  notes: rodar junto com a campanha de setembro

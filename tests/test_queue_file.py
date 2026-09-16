@@ -1,0 +1,113 @@
+"""A fila é o portão de qualidade: item incompleto não pode virar post."""
+import unittest
+
+from tests.support import item
+
+from poster.queue_file import QueueError, parse_queue
+
+
+class QueueValidationTest(unittest.TestCase):
+    def test_item_valido_vira_queue_item(self):
+        [parsed] = parse_queue([item(weight=3, repeat_after_days=30)])
+
+        self.assertEqual(parsed.id, "item-1")
+        self.assertEqual(parsed.media_type, "IMAGE")
+        self.assertEqual(parsed.urls, ("https://media.example/foto.jpg",))
+        self.assertEqual(parsed.weight, 3.0)
+        self.assertEqual(parsed.repeat_after_days, 30)
+        self.assertTrue(parsed.reviewed_price)
+
+    def test_sem_reviewed_price_a_fila_inteira_falha(self):
+        with self.assertRaises(QueueError) as ctx:
+            parse_queue([item(reviewed_price=False)])
+
+        self.assertIn("reviewed_price", str(ctx.exception))
+
+    def test_reviewed_price_ausente_tambem_falha(self):
+        payload = item()
+        payload.pop("reviewed_price")
+
+        with self.assertRaises(QueueError):
+            parse_queue([payload])
+
+    def test_url_precisa_ser_https(self):
+        with self.assertRaises(QueueError) as ctx:
+            parse_queue([item(url="http://media.example/foto.jpg")])
+
+        self.assertIn("https", str(ctx.exception))
+
+    def test_reels_exige_video(self):
+        with self.assertRaises(QueueError) as ctx:
+            parse_queue([item(media_type="REELS", url="https://media.example/a.jpg")])
+
+        self.assertIn("REELS precisa de vídeo", str(ctx.exception))
+
+    def test_image_recusa_arquivo_de_video(self):
+        with self.assertRaises(QueueError):
+            parse_queue([item(url="https://media.example/a.mp4")])
+
+    def test_stories_nao_aceita_caption(self):
+        with self.assertRaises(QueueError) as ctx:
+            parse_queue([item(media_type="STORIES", caption="oi")])
+
+        self.assertIn("STORIES não aceita caption", str(ctx.exception))
+
+    def test_carrossel_precisa_de_duas_a_dez_midias(self):
+        uma_so = item(media_type="CAROUSEL", urls=["https://media.example/1.jpg"])
+        uma_so.pop("url")
+
+        with self.assertRaises(QueueError) as ctx:
+            parse_queue([uma_so])
+
+        self.assertIn("CAROUSEL precisa de 2 a 10 urls", str(ctx.exception))
+
+    def test_carrossel_aceita_imagens_e_videos(self):
+        payload = item(
+            media_type="CAROUSEL",
+            urls=["https://media.example/1.jpg", "https://media.example/2.mp4"],
+        )
+        payload.pop("url")
+
+        [parsed] = parse_queue([payload])
+
+        self.assertEqual(len(parsed.urls), 2)
+
+    def test_id_duplicado_e_erro(self):
+        with self.assertRaises(QueueError) as ctx:
+            parse_queue([item(), item()])
+
+        self.assertIn("id duplicado", str(ctx.exception))
+
+    def test_caption_longa_demais(self):
+        with self.assertRaises(QueueError) as ctx:
+            parse_queue([item(caption="x" * 2201)])
+
+        self.assertIn("2200", str(ctx.exception))
+
+    def test_limite_de_hashtags(self):
+        caption = " ".join(f"#tag{i}" for i in range(31))
+
+        with self.assertRaises(QueueError) as ctx:
+            parse_queue([item(caption=caption)])
+
+        self.assertIn("hashtags", str(ctx.exception))
+
+    def test_weight_precisa_ser_positivo(self):
+        with self.assertRaises(QueueError):
+            parse_queue([item(weight=0)])
+
+    def test_erro_lista_todos_os_problemas_de_uma_vez(self):
+        with self.assertRaises(QueueError) as ctx:
+            parse_queue([item(id="a", reviewed_price=False, url="http://x/a.jpg")])
+
+        mensagem = str(ctx.exception)
+        self.assertIn("reviewed_price", mensagem)
+        self.assertIn("https", mensagem)
+
+    def test_fila_vazia_e_valida(self):
+        self.assertEqual(parse_queue([]), [])
+        self.assertEqual(parse_queue({"posts": []}), [])
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,0 +1,4 @@
+# A automação roda com a stdlib (urllib para HTTP). As duas dependências abaixo
+# são o mínimo indispensável.
+PyYAML>=6.0          # fila e candidatos em YAML
+PyNaCl>=1.5          # sealed box exigido pela API de secrets do GitHub
