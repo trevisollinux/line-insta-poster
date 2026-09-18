@@ -88,7 +88,11 @@ def carousel_child_params(url: str, is_video: bool) -> dict[str, Any]:
 
 
 def publishing_limit(client: GraphClient, ig_user_id: str) -> tuple[int | None, int | None]:
-    """Consumo do limite de 25 posts/24h. Vale logar em toda execução."""
+    """Consumo do limite de publicação/24h — a conta observada devolve 100.
+
+    O número varia por conta, então nada aqui é fixo: o job lê `quota_total` da
+    própria API antes de criar container.
+    """
     try:
         payload = client.get(
             f"{ig_user_id}/content_publishing_limit",

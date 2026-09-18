@@ -11,7 +11,7 @@ Opcionais:
 - IG_POLL_TIMEOUT       teto do polling em segundos (padrão 300)
 - IG_GRAPH_VERSION      versão da Graph API (padrão v21.0)
 - IG_ALERT_WEBHOOK      URL que recebe POST JSON quando algo falha
-- IG_MIN_QUOTA_LEFT     margem do limite de 25 posts/24h (padrão 1)
+- IG_MIN_QUOTA_LEFT     margem do limite de publicação/24h lido da API (padrão 1)
 """
 from __future__ import annotations
 

@@ -23,11 +23,22 @@ sorteado sozinho no próximo disparo. Não existe estado pela metade.
 a URL: precisa ser pública, `https`, sem redirecionamento e com o tipo certo
 (JPEG para imagem; MP4/MOV para vídeo). Teste com `curl -I <url>`.
 
+Um caso já visto: **link do CDN da Meta não serve como origem**. Usar o
+`source_media_url` de um post existente falha com `2207076` — aquele link é de
+entrega para player, assinado e com parâmetros de streaming, não um arquivo
+servido para ingestão. Ele serve para **baixar** a mídia original na hora da
+revisão; a fila precisa da cópia rehospedada.
+
+Outras causas de `2207076`, quando a URL está certa: bitrate de vídeo acima de
+25 Mbps, áudio fora de AAC 128 kbps, ou vídeo em HDR (exporte em SDR).
+
 **`container ... ainda em IN_PROGRESS após 300s`.** Vídeo pesado. Suba
 `IG_POLL_TIMEOUT`. Nada foi publicado — reexecutar é seguro.
 
-**`limite de publicação quase estourado`.** São 25 posts/24h por conta. O job lê
-`content_publishing_limit` antes de criar qualquer container e desiste cedo.
+**`limite de publicação quase estourado`.** O job lê `content_publishing_limit`
+antes de criar qualquer container e desiste cedo. O teto varia por conta — a
+documentação da Meta cita 25, e a conta da loja devolveu **100**. Por isso o
+código nunca assume um número: usa o `quota_total` que a API responde.
 
 **`token do Instagram: token INVÁLIDO`.** Renove à mão
 (`python -m poster.cli refresh-token`) e confira se `GH_SECRETS_TOKEN` não
@@ -49,7 +60,8 @@ pendente. Não há como detectar por API; confirme no Business Suite.
 
 ## Limites e depreciações da API
 
-- **25 publicações por 24h** por conta (`content_publishing_limit`).
+- **Limite de publicações por 24h** lido de `content_publishing_limit`. A Meta
+  documenta 25; a conta da loja devolve 100. Confie no valor da API, não no doc.
 - **Container expira em 24h** — por isso nada é criado adiantado para publicar
   depois. Cada execução cria e publica no mesmo run.
 - **Carrossel**: 2 a 10 itens.
