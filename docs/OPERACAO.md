@@ -73,6 +73,28 @@ pendente. Não há como detectar por API; confirme no Business Suite.
 - Posts com tag de produto do Instagram Shopping não aparecem em
   `ads_get_ig_media` (conector de anúncios), mesmo sendo do próprio perfil.
 
+## Onde a mídia pode morar
+
+A Graph API busca a URL que você informa. Nem todo host serve — e o erro que ela
+devolve não diz qual é o problema. O que já foi testado nesta conta:
+
+| Origem | Funciona | Observação |
+|---|---|---|
+| `cdn.jsdelivr.net/gh/<owner>/<repo>@<branch>/<caminho>` | ✅ | espelha o repositório público e serve com o tipo declarado; foi assim que o primeiro story saiu |
+| `raw.githubusercontent.com` | ❌ | serve `.mp4` como `application/octet-stream` com `nosniff` |
+| `source_media_url` da própria API | ❌ | entrega para player, assinada; falha com `2207076` e expira em horas |
+| Bucket (R2, S3) | ✅ | destino de operação — o repositório guarda histórico para sempre |
+| GitHub Pages | ✅ esperado | serve com o tipo certo; exige ligar em Settings → Pages |
+
+Antes de culpar o arquivo, confira o tipo que o host devolve:
+
+```bash
+curl -sI <url> | grep -i content-type
+```
+
+`video/mp4` ou `image/jpeg` é o que se espera. `application/octet-stream` com
+`nosniff` é motivo suficiente para a recusa.
+
 ## Backfill do acervo
 
 São milhares de posts: não saem numa execução. `curate` pagina com cursor persistido

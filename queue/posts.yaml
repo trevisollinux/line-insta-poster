@@ -8,9 +8,3 @@
 # Documentação: docs/INSTAGRAM_PUBLISHER.md
 #
 # Fila vazia = o job roda, avisa no Summary e sai sem publicar.
-
-- id: teste-stories-line-baguete
-  media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/teste-line-baguete.mp4
-  reviewed_price: true
-  notes: Teste de ponta a ponta com a mídia rehospedada. Remover da fila depois.

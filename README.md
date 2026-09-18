@@ -83,6 +83,7 @@ python -m poster.cli publish               # publica de verdade
 python -m poster.cli token                 # dias restantes do token
 python -m poster.cli refresh-token         # renova o long-lived token
 python -m poster.cli curate --insights     # ranqueia o acervo e gera candidatos
+python -m poster.cli rehost --media-id X   # baixa a mídia de um post para media/
 ```
 
 Pelo celular: aba **Actions** → *Publicar no Instagram* → *Run workflow*.
