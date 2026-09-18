@@ -24,6 +24,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from statistics import median
@@ -39,7 +41,7 @@ CANDIDATES_PATH = os.path.join(REPO_ROOT, "queue", "candidates.yaml")
 
 MEDIA_FIELDS = (
     "id,timestamp,media_type,media_product_type,permalink,caption,"
-    "like_count,comments_count"
+    "like_count,comments_count,media_url,thumbnail_url"
 )
 INSIGHT_METRICS = ("views", "reach", "saved", "shares", "total_interactions")
 # Mídia criada a partir desta data tem insights novos; antes disso, a API
@@ -48,6 +50,24 @@ INSIGHTS_CUTOFF = datetime(2024, 7, 2, tzinfo=timezone.utc)
 
 COMMENT_WEIGHT = 7.0  # comentário custa muito mais que curtida (faixa útil: 5–10)
 WINDOW_DAYS = 45
+
+EXCLUSIONS_PATH = os.path.join(REPO_ROOT, "queue", "exclusoes.yaml")
+# Campanha de urgência não é post ruim — é post irrepetível. A lista completa e
+# editável está em queue/exclusoes.yaml; estes são os termos de fallback.
+DEFAULT_EXCLUSIONS = (
+    "reajuste",
+    "promo",
+    "promoçã*",
+    "desconto*",
+    "cupom",
+    "liquidaçã*",
+    "black friday",
+    "última peça",
+    "últimas peças",
+    "esgotad*",
+    "último dia",
+    "por tempo limitado",
+)
 
 
 @dataclass
@@ -60,6 +80,8 @@ class MediaPost:
     caption: str = ""
     like_count: int = 0
     comments_count: int = 0
+    media_url: str = ""
+    thumbnail_url: str = ""
     insights: dict[str, int] = field(default_factory=dict)
 
     @property
@@ -76,6 +98,8 @@ class MediaPost:
             "caption": self.caption,
             "like_count": self.like_count,
             "comments_count": self.comments_count,
+            "media_url": self.media_url,
+            "thumbnail_url": self.thumbnail_url,
             "insights": self.insights,
         }
 
@@ -106,6 +130,8 @@ def parse_media(row: dict[str, Any]) -> MediaPost:
         caption=str(row.get("caption") or ""),
         like_count=int(row.get("like_count") or 0),
         comments_count=int(row.get("comments_count") or 0),
+        media_url=str(row.get("media_url") or ""),
+        thumbnail_url=str(row.get("thumbnail_url") or ""),
         insights={k: int(v) for k, v in (insights or {}).items()},
     )
 
@@ -237,6 +263,75 @@ def merge_catalog(atual: list[MediaPost], novos: list[MediaPost]) -> list[MediaP
     return sorted(indice.values(), key=lambda p: p.timestamp)
 
 
+def strip_accents(text: str) -> str:
+    decomposto = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in decomposto if not unicodedata.combining(c))
+
+
+def normalize(text: str) -> str:
+    """Minúsculas e sem acento — "PROMOÇÃO" e "promocao" viram a mesma coisa."""
+    return strip_accents(text).lower()
+
+
+def compile_exclusions(terms: Iterable[str]) -> list[tuple[str, re.Pattern[str]]]:
+    """Cada termo vira regex de palavra inteira; `*` no fim vira prefixo."""
+    compilados: list[tuple[str, re.Pattern[str]]] = []
+    for termo in terms:
+        limpo = str(termo).strip()
+        if not limpo:
+            continue
+        alvo = normalize(limpo)
+        prefixo = alvo.endswith("*")
+        alvo = alvo.rstrip("*")
+        if not alvo:
+            continue
+        corpo = re.escape(alvo).replace(r"\ ", r"\s+")
+        sufixo = r"\w*" if prefixo else ""
+        compilados.append(
+            (limpo, re.compile(rf"(?<!\w){corpo}{sufixo}(?!\w)"))
+        )
+    return compilados
+
+
+def load_exclusions(path: str = EXCLUSIONS_PATH) -> list[str]:
+    if not os.path.exists(path):
+        return list(DEFAULT_EXCLUSIONS)
+    with open(path, "r", encoding="utf-8") as handle:
+        data = yaml.safe_load(handle) or []
+    if isinstance(data, dict):
+        data = data.get("exclusoes") or data.get("termos") or []
+    return [str(t) for t in data] if isinstance(data, list) else list(DEFAULT_EXCLUSIONS)
+
+
+def excluded_by(caption: str, patterns: list[tuple[str, re.Pattern[str]]]) -> str | None:
+    """Devolve o termo que barrou a legenda, ou None se ela é reciclável."""
+    texto = normalize(caption or "")
+    for termo, padrao in patterns:
+        if padrao.search(texto):
+            return termo
+    return None
+
+
+def split_recyclable(
+    scored: list[ScoredPost], patterns: list[tuple[str, re.Pattern[str]]]
+) -> tuple[list[ScoredPost], list[tuple[ScoredPost, str]]]:
+    """Separa o que pode ser republicado do que é campanha com data.
+
+    O excluído sai dos candidatos mas **continua na mediana da janela**: ele fez
+    parte da realidade daquela época, e tirá-lo da base de comparação inflaria o
+    score de todo o resto.
+    """
+    reciclaveis: list[ScoredPost] = []
+    excluidos: list[tuple[ScoredPost, str]] = []
+    for item in scored:
+        termo = excluded_by(item.post.caption, patterns)
+        if termo:
+            excluidos.append((item, termo))
+        else:
+            reciclaveis.append(item)
+    return reciclaveis, excluidos
+
+
 def candidates_document(scored: list[ScoredPost], *, top_n: int = 20) -> list[dict[str, Any]]:
     """Itens prontos para revisão humana — `reviewed_price` fica false de propósito."""
     documento: list[dict[str, Any]] = []
@@ -250,6 +345,9 @@ def candidates_document(scored: list[ScoredPost], *, top_n: int = 20) -> list[di
                 "published_at": post.timestamp.date().isoformat(),
                 "media_type": "REELS" if post.media_product_type == "REELS" else "IMAGE",
                 "url": "",  # preencher com a mídia rehospedada no bucket
+                # Link assinado da Meta: serve para baixar o original agora, expira em
+                # algumas horas e por isso nunca pode ir para `url`.
+                "source_media_url": post.media_url,
                 "caption": post.caption,
                 "reviewed_price": False,  # revisão humana obrigatória
                 "weight": round(min(5.0, max(1.0, item.score)), 2),
@@ -268,11 +366,17 @@ def candidates_document(scored: list[ScoredPost], *, top_n: int = 20) -> list[di
 
 HEADER = """# Candidatos gerados por poster/curadoria.py — NÃO é a fila.
 #
+# Campanhas de urgência (reajuste, promoção, últimas peças) já foram removidas
+# daqui: elas funcionam porque têm data, e republicar depois vira mentira. Os
+# termos ficam em queue/exclusoes.yaml. Elas continuam contando na mediana da
+# época — só não entram como candidatas.
+#
 # Antes de mover para posts.yaml, a revisão humana precisa:
 #   1. conferir o preço da peça (score alto não sabe que a bolsa reajustou);
 #   2. descartar modelo fora de linha (post campeão de peça que não se produz
 #      mais gera DM que termina em não);
-#   3. rehospedar a mídia e preencher `url`;
+#   3. baixar a mídia de `source_media_url` (link da Meta, expira em horas),
+#      rehospedar e preencher `url`;
 #   4. marcar reviewed_price: true.
 """
 

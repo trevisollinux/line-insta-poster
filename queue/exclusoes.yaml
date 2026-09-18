@@ -1,0 +1,39 @@
+# Termos que tiram um post da lista de candidatos a republicação.
+#
+# Não é uma lista de "posts ruins" — é uma lista de posts **irrepetíveis**.
+# Campanha de urgência funciona porque tem data: republicar "últimas peças" três
+# meses depois, com a peça em estoque, é mentira, e quem responde no DM descobre.
+#
+# Os posts excluídos continuam contando na mediana da época. Eles fizeram parte
+# da realidade daquele mês; tirá-los da base de comparação rebaixaria o
+# denominador e inflaria o score de todo o resto.
+#
+# Regras de escrita:
+#   - acento e maiúscula não importam ("promoção" acha "PROMOÇÃO" e "promocao")
+#   - o termo casa como palavra inteira ("off" não acha "office")
+#   - `*` no fim vira prefixo: `esgotad*` acha esgotado, esgotada, esgotadas
+#   - termo com espaço casa a expressão ("última peça")
+
+- reajuste
+- reajustad*
+- promo
+- promoçã*
+- promocional
+- desconto*
+- cupom
+- cupons
+- liquidaçã*
+- queima de estoque
+- black friday
+- cyber monday
+- última peça
+- últimas peças
+- última unidade
+- últimas unidades
+- esgotad*
+- últimas horas
+- último dia
+- por tempo limitado
+- só até
+- válido até
+- frete grátis

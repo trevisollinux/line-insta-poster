@@ -132,8 +132,23 @@ de reajuste — urgência, não estética —, e um ranking por curtidas provave
 colocaria em posição mediana. Isto resolve **frequência de publicação**; não resolve
 **gatilho comercial**. São problemas diferentes, e o segundo é o que move receita.
 
+**Campanha com data não entra nos candidatos.** Post de reajuste, promoção ou
+"últimas peças" costuma performar bem justamente porque cria urgência — mas
+urgência vence. Republicar "últimas peças" três meses depois, com a peça em
+estoque, é falso, e quem responde no DM descobre. Esses posts não são ruins, são
+**irrepetíveis**: `queue/exclusoes.yaml` lista os termos (sem depender de acento
+ou caixa, com `*` para flexões) e é editável pelo celular.
+
+Eles continuam contando na **mediana da época**, de propósito: fizeram parte
+daquele mês, e tirá-los da base de comparação rebaixaria o denominador e
+inflaria o score de todo o resto.
+
 Por isso o pipeline gera candidatos, e o PR tem checklist: o preço e o "essa peça
 ainda existe?" são decisão humana.
+
+Cada candidato traz `source_media_url` — o link da Meta para baixar a mídia
+original. Ele expira em algumas horas, então serve para rehospedar na hora da
+revisão, nunca como `url` da fila.
 
 ## Documentação
 

@@ -216,14 +216,33 @@ def cmd_curate(args: argparse.Namespace) -> int:
     curadoria.save_catalog(acervo, proximo, args.catalog)
 
     ranking = curadoria.score_catalog(acervo, comment_weight=args.comment_weight)
-    caminho = curadoria.write_candidates(ranking, path=args.candidates, top_n=args.top)
+
+    # Campanha de urgência sai dos candidatos, mas fica na mediana da época:
+    # ela fez parte daquele mês, e removê-la da base inflaria o resto.
+    if args.no_exclusions:
+        reciclaveis, excluidos = ranking, []
+    else:
+        termos = curadoria.load_exclusions(args.exclusions)
+        reciclaveis, excluidos = curadoria.split_recyclable(
+            ranking, curadoria.compile_exclusions(termos)
+        )
+
+    caminho = curadoria.write_candidates(
+        reciclaveis, path=args.candidates, top_n=args.top
+    )
     print(f"{len(acervo)} posts no catálogo; top {args.top} escrito em {caminho}")
+    if excluidos:
+        print(f"{len(excluidos)} posts fora por serem campanha com data:")
+        for item, termo in excluidos[:5]:
+            print(f"  {item.post.timestamp.date()} score {item.score:.2f} — '{termo}'")
+
     restante = "backfill continua na próxima execução" if proximo else "backfill completo"
     write_summary(
         "### Curadoria\n\n"
         f"- posts no catálogo: {len(acervo)}\n"
         f"- coletados agora: {len(novos)}\n"
-        f"- candidatos: `{caminho}` (top {args.top})\n"
+        f"- candidatos: `{caminho}` (top {args.top} de {len(reciclaveis)} recicláveis)\n"
+        f"- fora por campanha com data: {len(excluidos)}\n"
         f"- {restante}\n"
     )
     return EXIT_OK
@@ -283,6 +302,16 @@ def build_parser() -> argparse.ArgumentParser:
     curate.add_argument("--comment-weight", type=float, default=curadoria.COMMENT_WEIGHT)
     curate.add_argument("--insights", action="store_true", help="busca insights (pós-jul/2024)")
     curate.add_argument("--catalog", default=curadoria.CATALOG_PATH)
+    curate.add_argument(
+        "--exclusions",
+        default=curadoria.EXCLUSIONS_PATH,
+        help="lista de termos que tiram o post dos candidatos",
+    )
+    curate.add_argument(
+        "--no-exclusions",
+        action="store_true",
+        help="ranqueia tudo, inclusive campanha com data",
+    )
     curate.add_argument("--candidates", default=curadoria.CANDIDATES_PATH)
     curate.set_defaults(func=cmd_curate)
     return parser

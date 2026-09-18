@@ -9,16 +9,22 @@ import yaml
 from tests.support import FakeClient
 
 from poster.curadoria import (
+    DEFAULT_EXCLUSIONS,
+    EXCLUSIONS_PATH,
     INSIGHTS_CUTOFF,
     MediaPost,
     candidates_document,
     collect_media,
+    compile_exclusions,
+    excluded_by,
     fetch_insights,
     load_catalog,
+    load_exclusions,
     merge_catalog,
     raw_score,
     save_catalog,
     score_catalog,
+    split_recyclable,
     write_candidates,
 )
 
@@ -210,3 +216,107 @@ class CandidatesTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExclusionTest(unittest.TestCase):
+    """Campanha de urgência é irrepetível: republicar depois vira mentira."""
+
+    def setUp(self):
+        self.pats = compile_exclusions(load_exclusions(EXCLUSIONS_PATH))
+
+    def test_post_de_acervo_passa(self):
+        self.assertIsNone(
+            excluded_by("Satchel Pockets em couro conhaque.", self.pats)
+        )
+
+    def test_reajuste_e_barrado(self):
+        self.assertEqual(excluded_by("REAJUSTE a partir de segunda", self.pats), "reajuste")
+
+    def test_acento_e_caixa_nao_importam(self):
+        self.assertIsNotNone(excluded_by("PROMOÇÃO de inverno", self.pats))
+        self.assertIsNotNone(excluded_by("promocao de inverno", self.pats))
+
+    def test_expressao_com_espaco_casa_sem_acento(self):
+        self.assertEqual(
+            excluded_by("ultimas pecas disponiveis", self.pats), "últimas peças"
+        )
+
+    def test_curinga_cobre_as_flexoes(self):
+        for legenda in ("peça esgotada", "peças esgotadas", "modelo esgotado"):
+            self.assertIsNotNone(excluded_by(legenda, self.pats), legenda)
+
+    def test_termo_nao_casa_dentro_de_outra_palavra(self):
+        """'promo' não pode barrar 'promovido'... mas 'promoçã*' sim, por desenho."""
+        pats = compile_exclusions(["promo", "off"])
+
+        self.assertIsNone(excluded_by("office bag em couro", pats))
+        self.assertIsNone(excluded_by("promovido pela revista", pats))
+        self.assertIsNotNone(excluded_by("promo de julho", pats))
+
+    def test_legenda_vazia_passa(self):
+        self.assertIsNone(excluded_by("", self.pats))
+
+    def test_arquivo_ausente_cai_no_padrao(self):
+        self.assertEqual(load_exclusions("/nao/existe.yaml"), list(DEFAULT_EXCLUSIONS))
+
+    def test_arquivo_versionado_e_legivel(self):
+        termos = load_exclusions(EXCLUSIONS_PATH)
+
+        self.assertIn("reajuste", termos)
+        self.assertGreater(len(termos), 10)
+
+
+class SplitRecyclableTest(unittest.TestCase):
+    def setUp(self):
+        self.pats = compile_exclusions(["reajuste"])
+
+    def test_separa_reciclaveis_de_campanha(self):
+        acervo = post("acervo", 0, likes=100)
+        acervo.caption = "Bolsa em couro conhaque"
+        campanha = post("campanha", 1, likes=900)
+        campanha.caption = "REAJUSTE na segunda"
+        ranking = score_catalog([acervo, campanha])
+
+        reciclaveis, excluidos = split_recyclable(ranking, self.pats)
+
+        self.assertEqual([r.post.id for r in reciclaveis], ["acervo"])
+        self.assertEqual([(e.post.id, termo) for e, termo in excluidos], [("campanha", "reajuste")])
+
+    def test_excluido_continua_na_mediana_da_janela(self):
+        """O filtro é de candidatura, não de base de comparação."""
+        acervo = [post(f"a{i}", i, likes=100) for i in range(5)]
+        campanha = post("campanha", 2, likes=100000)
+        campanha.caption = "REAJUSTE"
+        ranking = score_catalog(acervo + [campanha])
+        mediana_com_campanha = {s.post.id: s.window_median for s in ranking}
+
+        reciclaveis, _ = split_recyclable(ranking, self.pats)
+
+        for item in reciclaveis:
+            self.assertEqual(item.window_median, mediana_com_campanha[item.post.id])
+            self.assertEqual(item.window_size, 6)  # os 6 posts da época, não 5
+
+    def test_candidatos_saem_sem_a_campanha(self):
+        acervo = post("acervo", 0, likes=100)
+        acervo.caption = "Bolsa"
+        campanha = post("campanha", 1, likes=900)
+        campanha.caption = "Últimas peças"
+        ranking = score_catalog([acervo, campanha])
+
+        reciclaveis, _ = split_recyclable(
+            ranking, compile_exclusions(load_exclusions(EXCLUSIONS_PATH))
+        )
+        documento = candidates_document(reciclaveis, top_n=10)
+
+        self.assertEqual([linha["source_media_id"] for linha in documento], ["acervo"])
+
+
+class SourceMediaUrlTest(unittest.TestCase):
+    def test_candidato_traz_o_link_para_baixar_o_original(self):
+        item = post("1", 0, likes=10)
+        item.media_url = "https://scontent.example/original.jpg"
+
+        [linha] = candidates_document(score_catalog([item]), top_n=1)
+
+        self.assertEqual(linha["source_media_url"], "https://scontent.example/original.jpg")
+        self.assertEqual(linha["url"], "", "url só é preenchida com a mídia rehospedada")
