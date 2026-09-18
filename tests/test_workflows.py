@@ -52,3 +52,37 @@ class WorkflowTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CommitGuardTest(unittest.TestCase):
+    """`git diff` não enxerga arquivo novo — e o job sai verde sem gravar nada.
+
+    Aconteceu de verdade: a primeira curadoria coletou 135 posts, escreveu os
+    candidatos e descartou tudo porque os arquivos ainda eram untracked.
+    """
+
+    def test_todo_gate_de_commit_compara_o_indice(self):
+        for caminho in WORKFLOWS:
+            with open(caminho, encoding="utf-8") as handle:
+                conteudo = handle.read()
+            for linha in conteudo.splitlines():
+                if "git diff" in linha and "--quiet" in linha:
+                    with self.subTest(workflow=os.path.basename(caminho), linha=linha):
+                        self.assertIn(
+                            "--cached",
+                            linha,
+                            "compare o índice (git add antes), senão arquivo novo passa batido",
+                        )
+
+    def test_quem_compara_o_indice_estagia_antes(self):
+        for caminho in WORKFLOWS:
+            with open(caminho, encoding="utf-8") as handle:
+                conteudo = handle.read()
+            if "git diff --cached" in conteudo:
+                with self.subTest(workflow=os.path.basename(caminho)):
+                    self.assertIn("git add", conteudo)
+                    self.assertLess(
+                        conteudo.index("git add"),
+                        conteudo.index("git diff --cached"),
+                        "o git add precisa vir antes da comparação",
+                    )

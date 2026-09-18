@@ -63,12 +63,13 @@ jobs:
       - name: Commitar estado
         if: steps.publicar.outputs.codigo == '0'
         run: |
-          if git diff --quiet -- state/published.json; then
+          # Estagia antes de comparar: `git diff` não enxerga arquivo novo.
+          git add -- state/published.json
+          if git diff --cached --quiet; then
             echo "nada mudou em state/published.json"
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add state/published.json
           git commit -m 'chore: registra publicação no Instagram'
           git push
