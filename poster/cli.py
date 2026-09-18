@@ -16,7 +16,7 @@ import random
 import sys
 from datetime import datetime, timedelta, timezone
 
-from . import curadoria, queue_file, state
+from . import curadoria, queue_file, rehost as rehost_mod, state
 from .alerts import alert, write_summary
 from .config import PublishConfig, env_str
 from .graph import GRAPH_VERSION, GraphClient, GraphError
@@ -189,6 +189,40 @@ def cmd_refresh_token(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_rehost(args: argparse.Namespace) -> int:
+    """Traz a mídia de um post para um endereço que a Graph API aceite ingerir."""
+    access_token = env_str("IG_ACCESS_TOKEN")
+    if not access_token:
+        print("IG_ACCESS_TOKEN é obrigatório", file=sys.stderr)
+        return EXIT_FAIL
+
+    client = GraphClient(access_token, version=env_str("IG_GRAPH_VERSION", GRAPH_VERSION))
+    try:
+        caminho, url, tamanho = rehost_mod.rehost(
+            client,
+            args.media_id,
+            nome=args.name,
+            diretorio=args.dir,
+            repo=args.repo or env_str("GITHUB_REPOSITORY"),
+            branch=args.branch,
+        )
+    except rehost_mod.RehostError as exc:
+        alert(str(exc), webhook=env_str("IG_ALERT_WEBHOOK"))
+        return EXIT_FAIL
+
+    print(f"mídia salva em {caminho} ({tamanho // 1024} KB)")
+    if url:
+        print(f"url pública: {url}")
+    write_summary(
+        "### Mídia rehospedada\n\n"
+        f"- arquivo: `{caminho}` ({tamanho // 1024} KB)\n"
+        f"- url: {url or '—'}\n\n"
+        "Use essa url no item da fila. Lembre: o arquivo fica no histórico do "
+        "repositório mesmo depois de apagado.\n"
+    )
+    return EXIT_OK
+
+
 def cmd_curate(args: argparse.Namespace) -> int:
     access_token, ig_user_id = env_str("IG_ACCESS_TOKEN"), env_str("IG_USER_ID")
     if not (access_token and ig_user_id):
@@ -306,6 +340,14 @@ def build_parser() -> argparse.ArgumentParser:
     refresh.add_argument("--secret-repo", default="", help="owner/repo do secret")
     refresh.add_argument("--secret-name", default="IG_ACCESS_TOKEN")
     refresh.set_defaults(func=cmd_refresh_token)
+
+    rehost = sub.add_parser("rehost", help="baixa a mídia de um post para o repositório")
+    rehost.add_argument("--media-id", required=True, help="id da mídia no Instagram")
+    rehost.add_argument("--name", default="", help="nome do arquivo (sem extensão)")
+    rehost.add_argument("--dir", default=rehost_mod.MEDIA_DIR)
+    rehost.add_argument("--repo", default="", help="owner/repo para montar a url pública")
+    rehost.add_argument("--branch", default="main")
+    rehost.set_defaults(func=cmd_rehost)
 
     curate = sub.add_parser("curate", help="ranqueia o acervo e gera candidatos")
     curate.add_argument("--max-pages", type=int, default=10, help="lotes por execução")

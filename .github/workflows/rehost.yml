@@ -1,0 +1,67 @@
+name: Rehospedar mídia
+
+# Baixa a mídia de um post do próprio perfil e commita em media/, servida por
+# raw.githubusercontent.com. Resolve o problema de origem: o link do CDN da Meta
+# é entrega para player e a API recusa (2207076), além de expirar em horas.
+#
+# O runner busca a media_url fresca pela API na hora do download, então não há
+# janela de expiração entre coletar e publicar.
+#
+# Atenção: o arquivo permanece no histórico do git mesmo depois de apagado.
+# Para operação contínua, o lugar da mídia é um bucket.
+
+on:
+  workflow_dispatch:
+    inputs:
+      media_id:
+        description: 'id da mídia (source_media_id do candidates.yaml)'
+        required: true
+      name:
+        description: 'nome do arquivo, sem extensão (vazio = o próprio id)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram-rehost
+  cancel-in-progress: false
+
+jobs:
+  rehospedar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Instalar dependências
+        run: pip install --quiet -r requirements.txt
+
+      - name: Baixar mídia
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_ALERT_WEBHOOK: ${{ secrets.IG_ALERT_WEBHOOK }}
+        run: |
+          python -m poster.cli rehost \
+            --media-id "${{ inputs.media_id }}" \
+            --name "${{ inputs.name }}" \
+            --repo "${{ github.repository }}" \
+            --branch "${{ github.ref_name }}"
+
+      - name: Commitar mídia
+        run: |
+          git add -- media/
+          if git diff --cached --quiet; then
+            echo "nenhuma mídia nova"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "chore: rehospeda mídia ${{ inputs.media_id }}"
+          git push
