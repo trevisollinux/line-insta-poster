@@ -22,6 +22,45 @@ def publicado(item_id: str, quando: datetime) -> PublishedEntry:
     )
 
 
+class MediaTypeFilterTest(unittest.TestCase):
+    """O filtro por formato é o que dá três workflows sem três cópias da lógica."""
+
+    def fila(self):
+        reels = item(id="reels", media_type="REELS", url="https://x/v.mp4")
+        stories = item(id="stories", media_type="STORIES", caption="")
+        imagem = item(id="imagem")
+        return parse_queue([reels, stories, imagem])
+
+    def test_publica_so_o_formato_pedido(self):
+        selecao = select_next(self.fila(), [], mode="order", media_types=("REELS",))
+
+        self.assertEqual(selecao.item.id, "reels")
+        self.assertEqual([i.id for i in selecao.eligible], ["reels"])
+
+    def test_formato_aceita_mais_de_um(self):
+        selecao = select_next(
+            self.fila(), [], mode="order", media_types=("STORIES", "IMAGE")
+        )
+
+        self.assertEqual([i.id for i in selecao.eligible], ["stories", "imagem"])
+
+    def test_descartado_por_formato_aparece_no_relato(self):
+        selecao = select_next(self.fila(), [], mode="order", media_types=("REELS",))
+
+        motivos = {s.item_id: s.reason for s in selecao.skipped}
+        self.assertIn("fora do formato pedido", motivos["stories"])
+
+    def test_sem_filtro_tudo_continua_elegivel(self):
+        selecao = select_next(self.fila(), [], mode="order")
+
+        self.assertEqual(len(selecao.eligible), 3)
+
+    def test_formato_sem_item_nao_publica_nada(self):
+        selecao = select_next(self.fila(), [], mode="order", media_types=("CAROUSEL",))
+
+        self.assertIsNone(selecao.item)
+
+
 class SelectionTest(unittest.TestCase):
     def test_item_ja_publicado_nao_volta(self):
         items = parse_queue([item(id="a"), item(id="b")])

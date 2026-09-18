@@ -7,6 +7,7 @@ import unittest
 from tests.support import FakeClient
 
 from poster.rehost import (
+    rehost_candidates,
     RehostError,
     download,
     media_source,
@@ -167,3 +168,57 @@ class RehostTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RehostCandidatesTest(unittest.TestCase):
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.dir.cleanup)
+
+    def candidatos(self):
+        return [
+            {"id": "2026-05-23-abc", "source_media_id": "111", "url": ""},
+            {"id": "2026-01-13-def", "source_media_id": "222", "url": ""},
+        ]
+
+    def test_preenche_url_de_cada_candidato(self):
+        client = FakeClient(
+            {
+                ("GET", "111"): {"media_url": "https://cdn/1.mp4", "media_type": "VIDEO"},
+                ("GET", "222"): {"media_url": "https://cdn/2.jpg", "media_type": "IMAGE"},
+            }
+        )
+
+        prontos, falhas = rehost_candidates(
+            client,
+            self.candidatos(),
+            diretorio=self.dir.name,
+            repo="dono/repo",
+            opener=opener_com(b"bytes"),
+        )
+
+        self.assertEqual(falhas, [])
+        self.assertTrue(prontos[0]["url"].endswith("2026-05-23-abc.mp4"))
+        self.assertTrue(prontos[1]["url"].endswith("2026-01-13-def.jpg"))
+
+    def test_falha_de_um_nao_derruba_os_outros(self):
+        """Post de Shopping não expõe media_url — 1 faltando é melhor que 15 perdidos."""
+        client = FakeClient(
+            {
+                ("GET", "111"): {"media_type": "IMAGE"},  # sem media_url
+                ("GET", "222"): {"media_url": "https://cdn/2.jpg", "media_type": "IMAGE"},
+            }
+        )
+
+        prontos, falhas = rehost_candidates(
+            client,
+            self.candidatos(),
+            diretorio=self.dir.name,
+            repo="dono/repo",
+            opener=opener_com(b"bytes"),
+        )
+
+        self.assertEqual(len(prontos), 2)
+        self.assertEqual(prontos[0]["url"], "", "o que falhou fica sem url, não com url errada")
+        self.assertTrue(prontos[1]["url"])
+        self.assertEqual([f[0] for f in falhas], ["111"])

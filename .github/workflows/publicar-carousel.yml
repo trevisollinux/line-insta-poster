@@ -1,0 +1,32 @@
+name: Publicar carrossel
+
+# Publica um carrossel da fila (2 a 10 mídias), com legenda.
+#
+# Só escolhe itens com media_type: CAROUSEL. A lógica de publicação é a do
+# workflow "Publicar no Instagram" — este aqui só fixa o formato.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'escolher o item sem publicar'
+        type: choice
+        options: ['false', 'true']
+        default: 'false'
+      selection:
+        description: 'weighted (sorteio) ou order (primeiro da fila)'
+        type: choice
+        options: ['weighted', 'order']
+        default: 'weighted'
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
+    with:
+      media_type: CAROUSEL
+      dry_run: ${{ inputs.dry_run || 'false' }}
+      selection: ${{ inputs.selection || 'weighted' }}

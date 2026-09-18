@@ -9,6 +9,7 @@ import yaml
 from tests.support import FakeClient
 
 from poster.curadoria import (
+    candidates_markdown,
     DEFAULT_EXCLUSIONS,
     EXCLUSIONS_PATH,
     INSIGHTS_CUTOFF,
@@ -393,3 +394,39 @@ class SinceTest(unittest.TestCase):
 
         self.assertEqual([p.id for p in posts], ["a", "b"])
         self.assertEqual(cursor, "CUR", "lote acabou por max_pages, não por data")
+
+
+class MarkdownReportTest(unittest.TestCase):
+    """O relatório é o que chega por e-mail — precisa dos dois links."""
+
+    def documento(self, url="https://cdn.example/a.mp4"):
+        return [
+            {
+                "id": "2026-05-23-abc",
+                "permalink": "https://instagram.com/reel/ABC/",
+                "published_at": "2026-05-23",
+                "media_type": "REELS",
+                "url": url,
+                "metrics": {"score": 4.76, "saved": 52},
+            }
+        ]
+
+    def test_traz_post_original_e_midia_pronta(self):
+        texto = candidates_markdown(self.documento())
+
+        self.assertIn("https://instagram.com/reel/ABC/", texto)
+        self.assertIn("https://cdn.example/a.mp4", texto)
+        self.assertIn("4.76", texto)
+
+    def test_marca_o_que_nao_rehospedou(self):
+        texto = candidates_markdown(self.documento(url=""))
+
+        self.assertIn("não rehospedada", texto)
+
+    def test_explica_que_stories_nao_leva_legenda(self):
+        texto = candidates_markdown(self.documento())
+
+        self.assertIn("não aceita legenda", texto)
+
+    def test_lembra_do_reviewed_price(self):
+        self.assertIn("reviewed_price", candidates_markdown(self.documento()))

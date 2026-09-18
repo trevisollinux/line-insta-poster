@@ -17,7 +17,7 @@ on:
         default: '10'
       top:
         description: 'quantidade de candidatos no arquivo'
-        default: '20'
+        default: '15'
       since_days:
         description: 'coletar só os últimos N dias (0 = acervo inteiro)'
         default: '0'
@@ -30,6 +30,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 concurrency:
   group: instagram-curate
@@ -58,7 +59,11 @@ jobs:
         run: |
           python -m poster.cli curate \
             --max-pages "${{ inputs.max_pages || '10' }}" \
-            --top "${{ inputs.top || '20' }}" \
+            --top "${{ inputs.top || '15' }}" \
+            --rehost \
+            --repo "${{ github.repository }}" \
+            --branch "${{ github.ref_name }}" \
+            --report "$RUNNER_TEMP/curadoria.md" \
             --since-days "${{ inputs.since_days || '0' }}" \
             ${{ (inputs.insights == 'true') && '--insights' || '' }}
 
@@ -69,7 +74,7 @@ jobs:
           # Preciso do `git add` antes: candidates.yaml e catalog.json nascem
           # nesta execução, e `git diff` sozinho não enxerga arquivo novo — o
           # job sairia verde tendo jogado o resultado fora.
-          git add -- queue/candidates.yaml state/catalog.json
+          git add -- queue/candidates.yaml state/catalog.json media/
           if git diff --cached --quiet; then
             echo "nenhuma mudança no ranking"
             exit 0
@@ -80,8 +85,29 @@ jobs:
           git checkout -b "$branch"
           git commit -m 'curadoria: atualiza candidatos e catálogo'
           git push -u origin "$branch"
-          gh pr create \
+          # Abrir PR exige "Allow GitHub Actions to create and approve pull
+          # requests" em Settings → Actions. Sem isso, a branch já está no ar e a
+          # issue avisa — não é motivo para derrubar a rodada inteira.
+          if ! gh pr create \
             --title "Curadoria: candidatos de $(date -u +%d/%m/%Y)" \
             --body-file .github/CURADORIA_PR.md \
             --base main \
-            --head "$branch"
+            --head "$branch"; then
+            echo "::warning::PR não criado (falta permissão em Settings → Actions)."
+            echo "Abra manualmente: ${{ github.server_url }}/${{ github.repository }}/compare/$branch?expand=1"
+          fi
+
+      - name: Avisar por e-mail (issue)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # O GitHub só manda e-mail de run que falha. Issue em repositório seu
+          # gera e-mail e ainda serve de lugar para marcar o que foi aprovado.
+          if [ ! -s "$RUNNER_TEMP/curadoria.md" ]; then
+            echo "sem relatório para enviar"
+            exit 0
+          fi
+          gh issue create \
+            --title "Curadoria: candidatos de $(date -u +%d/%m/%Y)" \
+            --body-file "$RUNNER_TEMP/curadoria.md"

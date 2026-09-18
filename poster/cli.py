@@ -36,7 +36,8 @@ def cmd_validate(args: argparse.Namespace) -> int:
         print(str(exc), file=sys.stderr)
         return EXIT_FAIL
     published = state.load_state(args.state)
-    selection = select_next(items, published, mode="order")
+    formatos = tuple(t for t in (args.media_type or "").upper().split(",") if t)
+    selection = select_next(items, published, mode="order", media_types=formatos or None)
     print(f"fila válida: {len(items)} itens, {len(selection.eligible)} elegíveis")
     for item in selection.eligible:
         print(f"  elegível  {item.id} ({item.media_type}, peso {item.weight:g})")
@@ -60,14 +61,17 @@ def cmd_publish(args: argparse.Namespace) -> int:
 
     published = state.load_state(args.state)
     seed = env_str("IG_SELECTION_SEED")
+    formatos = tuple(t for t in (args.media_type or "").upper().split(",") if t)
     selection = select_next(
         items,
         published,
         mode=config.selection_mode,
         rng=random.Random(seed) if seed else None,
+        media_types=formatos or None,
     )
 
-    print(f"fila: {len(items)} itens, {len(selection.eligible)} elegíveis")
+    escopo = f" ({args.media_type.upper()})" if args.media_type else ""
+    print(f"fila{escopo}: {len(items)} itens, {len(selection.eligible)} elegíveis")
     for pulado in selection.skipped:
         print(f"  pulado {pulado.item_id}: {pulado.reason}")
 
@@ -272,9 +276,27 @@ def cmd_curate(args: argparse.Namespace) -> int:
             ranking, curadoria.compile_exclusions(termos)
         )
 
-    caminho = curadoria.write_candidates(
-        reciclaveis, path=args.candidates, top_n=args.top
-    )
+    documento = curadoria.candidates_document(reciclaveis, top_n=args.top)
+    falhas: list[tuple[str, str]] = []
+    if args.rehost:
+        documento, falhas = rehost_mod.rehost_candidates(
+            client,
+            documento,
+            repo=args.repo or env_str("GITHUB_REPOSITORY"),
+            branch=args.branch,
+        )
+        for media_id, motivo in falhas:
+            print(f"  mídia {media_id} não rehospedada: {motivo}")
+
+    caminho = curadoria.write_candidates_document(documento, path=args.candidates)
+    if args.report:
+        with open(args.report, "w", encoding="utf-8") as handle:
+            handle.write(
+                curadoria.candidates_markdown(
+                    documento, titulo=f"Top {len(documento)} do acervo"
+                )
+            )
+        print(f"relatório escrito em {args.report}")
     print(f"{len(acervo)} posts no catálogo; top {args.top} escrito em {caminho}")
     if excluidos:
         print(f"{len(excluidos)} posts fora por serem campanha com data:")
@@ -324,11 +346,17 @@ def build_parser() -> argparse.ArgumentParser:
         return p
 
     validate = com_arquivos(sub.add_parser("validate", help="valida a fila"))
+    validate.add_argument("--media-type", default="", help="filtra por formato")
     validate.set_defaults(func=cmd_validate)
 
     publish = com_arquivos(sub.add_parser("publish", help="publica o próximo item"))
     publish.add_argument(
         "--dry-run", action="store_true", help="escolhe o item sem chamar a API"
+    )
+    publish.add_argument(
+        "--media-type",
+        default="",
+        help="publica só este formato (REELS, STORIES, CAROUSEL, IMAGE)",
     )
     publish.set_defaults(func=cmd_publish)
 
@@ -372,6 +400,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="ranqueia tudo, inclusive campanha com data",
     )
     curate.add_argument("--candidates", default=curadoria.CANDIDATES_PATH)
+    curate.add_argument(
+        "--rehost",
+        action="store_true",
+        help="baixa a mídia dos candidatos e preenche url com o endereço público",
+    )
+    curate.add_argument("--repo", default="", help="owner/repo para a url pública")
+    curate.add_argument(
+        "--report", default="", help="escreve um relatório markdown neste caminho"
+    )
+    curate.add_argument("--branch", default="main")
     curate.set_defaults(func=cmd_curate)
     return parser
 

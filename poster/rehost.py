@@ -135,3 +135,43 @@ def rehost(
 
     relativo = os.path.relpath(destino, REPO_ROOT).replace(os.sep, "/")
     return relativo, (raw_url(repo, branch, relativo) if repo else ""), tamanho
+
+
+def rehost_candidates(
+    client: GraphClient,
+    candidatos: list[dict],
+    *,
+    diretorio: str = MEDIA_DIR,
+    repo: str = "",
+    branch: str = "main",
+    opener=urllib.request.urlopen,
+) -> tuple[list[dict], list[tuple[str, str]]]:
+    """Baixa a mídia de cada candidato e preenche `url` com o endereço público.
+
+    Devolve (candidatos atualizados, falhas). Falha em um não derruba os outros:
+    post de Shopping e áudio licenciado não expõem `media_url`, e é melhor
+    entregar 14 prontos e dizer qual faltou do que perder a rodada inteira.
+    """
+    atualizados: list[dict] = []
+    falhas: list[tuple[str, str]] = []
+    for candidato in candidatos:
+        media_id = str(candidato.get("source_media_id") or "")
+        try:
+            caminho, url, _ = rehost(
+                client,
+                media_id,
+                nome=str(candidato.get("id") or media_id),
+                diretorio=diretorio,
+                repo=repo,
+                branch=branch,
+                opener=opener,
+            )
+        except RehostError as exc:
+            falhas.append((media_id, str(exc)))
+            atualizados.append(candidato)
+            continue
+        copia = dict(candidato)
+        copia["url"] = url
+        copia["media_path"] = caminho
+        atualizados.append(copia)
+    return atualizados, falhas

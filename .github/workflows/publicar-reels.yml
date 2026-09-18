@@ -1,0 +1,32 @@
+name: Publicar Reels
+
+# Publica um Reel da fila: vai para o feed e para a aba Reels, com legenda.
+#
+# Só escolhe itens com media_type: REELS. A lógica de publicação é a do
+# workflow "Publicar no Instagram" — este aqui só fixa o formato.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'escolher o item sem publicar'
+        type: choice
+        options: ['false', 'true']
+        default: 'false'
+      selection:
+        description: 'weighted (sorteio) ou order (primeiro da fila)'
+        type: choice
+        options: ['weighted', 'order']
+        default: 'weighted'
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
+    with:
+      media_type: REELS
+      dry_run: ${{ inputs.dry_run || 'false' }}
+      selection: ${{ inputs.selection || 'weighted' }}

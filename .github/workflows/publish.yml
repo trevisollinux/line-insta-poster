@@ -1,7 +1,10 @@
 name: Publicar no Instagram
 
 # Publica o próximo item de queue/posts.yaml e commita o estado.
-# Dispare pela aba Actions (funciona do celular) ou espere o cron.
+#
+# É o motor único: os workflows por formato (Reels, Stories, carrossel) chamam
+# este aqui via workflow_call. Três cópias divergiriam na primeira correção que
+# alguém esquecesse de replicar nas outras duas.
 
 on:
   schedule:
@@ -18,6 +21,22 @@ on:
         type: choice
         options: ['weighted', 'order']
         default: 'weighted'
+      media_type:
+        description: 'formato (vazio = qualquer)'
+        type: choice
+        options: ['', 'REELS', 'STORIES', 'CAROUSEL', 'IMAGE']
+        default: ''
+  workflow_call:
+    inputs:
+      dry_run:
+        type: string
+        default: 'false'
+      selection:
+        type: string
+        default: 'weighted'
+      media_type:
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -53,7 +72,7 @@ jobs:
           IG_SELECTION: ${{ inputs.selection || 'weighted' }}
         run: |
           set +e
-          python -m poster.cli publish
+          python -m poster.cli publish --media-type "${{ inputs.media_type || '' }}"
           codigo=$?
           echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
           # 2 = fila sem item elegível: é aviso, não falha do job.

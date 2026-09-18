@@ -397,16 +397,65 @@ HEADER = """# Candidatos gerados por poster/curadoria.py — NÃO é a fila.
 """
 
 
-def write_candidates(
-    scored: list[ScoredPost], *, path: str = CANDIDATES_PATH, top_n: int = 20
+def write_candidates_document(
+    documento: list[dict[str, Any]], *, path: str = CANDIDATES_PATH
 ) -> str:
+    """Grava um documento de candidatos já montado (e possivelmente rehospedado)."""
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    corpo = yaml.safe_dump(
-        candidates_document(scored, top_n=top_n),
-        allow_unicode=True,
-        sort_keys=False,
-        width=100,
-    )
+    corpo = yaml.safe_dump(documento, allow_unicode=True, sort_keys=False, width=100)
     with open(path, "w", encoding="utf-8") as handle:
         handle.write(HEADER + "\n" + corpo)
     return path
+
+
+def write_candidates(
+    scored: list[ScoredPost], *, path: str = CANDIDATES_PATH, top_n: int = 20
+) -> str:
+    return write_candidates_document(
+        candidates_document(scored, top_n=top_n), path=path
+    )
+
+
+def candidates_markdown(documento: list[dict[str, Any]], *, titulo: str = "") -> str:
+    """Relatório legível dos candidatos — vira o corpo da issue de aprovação.
+
+    Traz os dois links que a revisão precisa: o post original (para ver o que é)
+    e a mídia rehospedada (que vai virar `url` na fila).
+    """
+    linhas: list[str] = []
+    if titulo:
+        linhas += [f"## {titulo}", ""]
+    linhas += [
+        "Score é o desempenho do post dividido pela mediana da própria época "
+        "(±45 dias) — 3,0 significa três vezes o mediano daquele mês. Campanha "
+        "com data já foi removida da lista.",
+        "",
+        "| # | Post | Formato | Score | Salvos | Mídia pronta |",
+        "|---|---|---|---|---|---|",
+    ]
+    for posicao, linha in enumerate(documento, start=1):
+        metricas = linha.get("metrics") or {}
+        midia = linha.get("url") or ""
+        linhas.append(
+            f"| {posicao} "
+            f"| [{linha.get('published_at', '')}]({linha.get('permalink', '')}) "
+            f"| {linha.get('media_type', '')} "
+            f"| {metricas.get('score', '—')} "
+            f"| {metricas.get('saved', '—')} "
+            f"| {'[baixada](' + midia + ')' if midia else '⚠️ não rehospedada'} |"
+        )
+    linhas += [
+        "",
+        "### Para aprovar",
+        "",
+        "1. Abra `queue/candidates.yaml` e apague os itens que não devem sair.",
+        "2. Reescreva a legenda de cada um que ficar — repetir a legenda original "
+        "é o que derruba alcance em conteúdo reciclado.",
+        "3. Escolha o formato: `REELS` leva legenda e entra no feed; `STORIES` "
+        "some em 24h e **não aceita legenda**; `CAROUSEL` precisa de 2 a 10 mídias.",
+        "4. Confira o preço da peça e marque `reviewed_price: true`.",
+        "5. Mova os aprovados para `queue/posts.yaml`.",
+        "",
+        "Item sem `reviewed_price: true` é recusado na validação — de propósito.",
+    ]
+    return "\n".join(linhas) + "\n"

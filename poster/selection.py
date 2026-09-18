@@ -37,7 +37,10 @@ def select_next(
     mode: str = "weighted",
     now: datetime | None = None,
     rng: random.Random | None = None,
+    media_types: tuple[str, ...] | None = None,
 ) -> Selection:
+    """`media_types` limita a escolha a um formato — é o que separa os workflows
+    de Reels, Stories e carrossel sem duplicar a lógica de publicação."""
     if mode not in MODES:
         raise ValueError(f"modo de seleção inválido: {mode} (use {', '.join(MODES)})")
     now = now or datetime.now(timezone.utc)
@@ -46,7 +49,14 @@ def select_next(
     eligible: list[QueueItem] = []
     skipped: list[Skipped] = []
 
+    permitidos = {t.upper() for t in media_types} if media_types else None
+
     for item in items:
+        if permitidos and item.media_type not in permitidos:
+            skipped.append(
+                Skipped(item.id, f"{item.media_type} fora do formato pedido")
+            )
+            continue
         published_at = last_published_at(published, item.id) or item.last_published
         if published_at is None:
             eligible.append(item)
