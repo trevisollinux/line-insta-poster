@@ -35,6 +35,26 @@ dias para resolver. Verificar custa um minuto; descobrir tarde custa a semana.
 
 ## 2. Criar o app Meta e obter o token
 
+### 2.0. Registrar-se como desenvolvedor (uma vez só)
+
+`developers.facebook.com/apps` é área logada: sem cadastro de desenvolvedor, a
+Meta **redireciona para a raiz do site** em vez de mostrar erro. O sintoma é o
+canto superior direito dizer **Começar** em vez de **Meus apps** — e nenhum
+botão "Criar app" existir em lugar nenhum.
+
+1. Clique em **Começar**, no canto superior direito (o "Começar" do meio da
+   página é outra coisa: índice de navegação).
+2. Faça login com a **conta do Facebook que administra a Página da loja**. Com
+   outra conta, o app não enxerga a conta do Instagram e o erro só aparece lá no
+   passo 2.3, com o `me/accounts` voltando vazio.
+3. Confirme e-mail ou telefone, aceite os termos, escolha a ocupação.
+
+Cadastro gratuito, um ou dois minutos. Feito isso, o canto vira **Meus apps** e
+`/apps` abre de verdade.
+
+Se o botão estiver cortado na borda da tela: **Win + ↑** para maximizar a janela
+e **Ctrl + −** para reduzir o zoom. O site não é responsivo nessa faixa.
+
 ### 2.1. O app
 
 1. [developers.facebook.com](https://developers.facebook.com/apps/) → **Criar
