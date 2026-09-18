@@ -1,0 +1,345 @@
+# Candidatos gerados por poster/curadoria.py — NÃO é a fila.
+#
+# Campanhas de urgência (reajuste, promoção, últimas peças) já foram removidas
+# daqui: elas funcionam porque têm data, e republicar depois vira mentira. Os
+# termos ficam em queue/exclusoes.yaml. Elas continuam contando na mediana da
+# época — só não entram como candidatas.
+#
+# Antes de mover para posts.yaml, a revisão humana precisa:
+#   1. conferir o preço da peça (score alto não sabe que a bolsa reajustou);
+#   2. descartar modelo fora de linha (post campeão de peça que não se produz
+#      mais gera DM que termina em não);
+#   3. baixar a mídia de `source_media_url` (link da Meta, expira em horas),
+#      rehospedar e preencher `url`;
+#   4. marcar reviewed_price: true.
+
+- id: 2026-01-13-18123504487536253
+  source_media_id: '18123504487536253'
+  permalink: https://www.instagram.com/reel/DTeA95rjZlB/
+  published_at: '2026-01-13'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-01-13-18123504487536253.mp4
+  source_media_url: https://scontent-sjc6-1.cdninstagram.com/o1/v/t2/f2/m86/AQMdWjuAo1NVbxDtwA894nZspK_IPQ5UC7RWSmoAlnhlAu_28KCRNDxgk4rWrOautskicC8yQ0TeE0-BDiq1-wGdclCBbjPywkq_8z4.mp4?_nc_cat=107&_nc_sid=5e9851&_nc_ht=scontent-sjc6-1.cdninstagram.com&_nc_ohc=ax6UcphFIq0Q7kNvwFp0omo&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MTM0OTU4NDQ4MDI3NzUyMiwiYXNzZXRfYWdlX2RheXMiOjI0NywidmlfdXNlY2FzZV9pZCI6MTIzNzQsImR1cmF0aW9uX3MiOjQ5LCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=961c877ca62815a9&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC81QzRGQzE0Q0JFQTcxMkFBNzg4NDY2MzM2RDBERDZCMV92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HTy1RcmlTaHN1WG1rNFlGQUVvUnNhOUxmNnA2YnN0VEFRQUYVAgLIARIAKAAYABsCiAd1c2Vfb2lsATEScHJvZ3Jlc3NpdmVfcmVjaXBlATEVAAAmpNDU-JPc5QQVAigCQzMsF0BIqp--dsi0GBJkYXNoX2Jhc2VsaW5lXzFfdjERAHX-B2WswQEA&_nc_gid=KzuWvgx90VU7J64vD6mdvQ&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeFPdKFf7Z_LyzY6b7Oa2qgqCeawNdTi-c4J5rA11OL5zuEGGYGfNOJgLh2TG8Q5d4WvtTHcb8tXYbnRKUyhthvo&oh=00_AQKPK3tbS3NYYCecR_awPsozP6yXD2SZ4Pk1I09ra4Axew&oe=6AAF3660
+  caption: Juniper 3 em 1 🥰
+  reviewed_price: false
+  weight: 5.0
+  metrics:
+    score: 11.26
+    like_count: 270
+    comments_count: 29
+    window_median: 42.0
+    window_size: 35
+    views: 6356
+    reach: 4165
+    saved: 328
+    shares: 78
+    total_interactions: 709
+  media_path: media/2026-01-13-18123504487536253.mp4
+- id: 2026-05-23-18152138197469599
+  source_media_id: '18152138197469599'
+  permalink: https://www.instagram.com/reel/DYqWPpfNeLT/
+  published_at: '2026-05-23'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-05-23-18152138197469599.mp4
+  source_media_url: https://scontent-sjc3-1.cdninstagram.com/o1/v/t2/f2/m86/AQNogcfTdx3hdZHixQxd-jfvloO4NlWhmY0pUUvl2Vjp9UFbBJ0-hvTc1yFG7p960ONfRrLzHq-zT6wq3aRZJtCP3KCAc3-a9x0KShM.mp4?_nc_cat=103&_nc_sid=5e9851&_nc_ht=scontent-sjc3-1.cdninstagram.com&_nc_ohc=QLsMEjZ7k08Q7kNvwHn4UB6&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MjA4NzA3NTUyODg3NjEyOCwiYXNzZXRfYWdlX2RheXMiOjExOCwidmlfdXNlY2FzZV9pZCI6MTIzNzQsImR1cmF0aW9uX3MiOjEyLCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=6944afd1bf81d950&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC9CNDQzRTYzM0ZBQ0UwMzVGNTBEMzcwMEIxM0U1QTc5Nl92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyL0NBNEFEQkNDODJFOEY0MkVFNjU3MDJGNkYzNzBDQ0E2X2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACbAgaW45Iu1BxUCKAJDMywXQCjMzMzMzM0YEmRhc2hfYmFzZWxpbmVfMV92MREAdf4HZazBAQA&_nc_gid=MKVZYeSC3jOFcG5SbUaCWQ&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeFl1ZBC6Ak-B-WKOLp1RrvT-8roAQDW2hT7yugBANbaFMMod8auImyQZkLNNfUEYclqS7HOHyAtR6WNoGm-egX-&oh=00_AQILwO6JbI6rL6lIvqJnUmQuEHaBJcoieLpsvuzcoPZ58A&oe=6AAF43F4
+  caption: Line 🥖🥖🥖
+  reviewed_price: false
+  weight: 4.79
+  metrics:
+    score: 4.79
+    like_count: 104
+    comments_count: 5
+    window_median: 29.0
+    window_size: 33
+    views: 3123
+    reach: 2427
+    saved: 52
+    shares: 9
+    total_interactions: 173
+  media_path: media/2026-05-23-18152138197469599.mp4
+- id: 2025-10-08-18289568185284202
+  source_media_id: '18289568185284202'
+  permalink: https://www.instagram.com/p/DPjRQ6QDQe1/
+  published_at: '2025-10-08'
+  media_type: IMAGE
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2025-10-08-18289568185284202.jpg
+  source_media_url: https://scontent-sjc3-1.cdninstagram.com/v/t51.82787-15/561411704_18536848369043967_6740850055273637446_n.webp?stp=dst-jpg_e35_tt6&_nc_cat=105&ccb=7-5&_nc_sid=18de74&efg=eyJlZmdfdGFnIjoiQ0FST1VTRUxfSVRFTS5iZXN0X2ltYWdlX3VybGdlbi5DMyJ9&_nc_eui2=AeFkyUsdOTHl1eMlUbzFBV_SkR2CIbzWtdiRHYIhvNa12DLY-q9xQkLWIV6aZApiqHJTwGQvgQGhxurLEGnnq6MH&_nc_ohc=Rh_PaoWXJyMQ7kNvwFaZ7qx&_nc_oc=AdoCWpqkW5WCusKxfOdKjMEbZonIOf77flAIc8LlRMskjVpc7Om7gIUv1NVyC3fwUII&_nc_zt=23&_nc_ht=scontent-sjc3-1.cdninstagram.com&edm=AM6HXa8EAAAA&_nc_gid=zjupKPT0UmKOVhCPI8MXxg&oh=00_AQKt2Ijj-a2CAkJOA1GH2Ei3dBnYiuWC9Z90_u8D7BWhGw&oe=6AB32836
+  caption: Qual cor combina mais com nossa Baguette?
+  reviewed_price: false
+  weight: 4.43
+  metrics:
+    score: 4.43
+    like_count: 116
+    comments_count: 4
+    window_median: 32.5
+    window_size: 28
+    views: 9651
+    reach: 2959
+    saved: 80
+    shares: 19
+    total_interactions: 219
+  media_path: media/2025-10-08-18289568185284202.jpg
+- id: 2026-04-02-17967722625023047
+  source_media_id: '17967722625023047'
+  permalink: https://www.instagram.com/reel/DWol-0QjYuC/
+  published_at: '2026-04-02'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-04-02-17967722625023047.mp4
+  source_media_url: https://scontent-sjc6-1.cdninstagram.com/o1/v/t2/f2/m86/AQMkw-ytFE0YRSweIu1AyYbl5yT9BO58Nw4bW6_tbZZYpWA2Csh3r9_NfEBeDosNDgLpxNtBPCAsCmG_6txHWksqJfMhN2NSW5fRt30.mp4?_nc_cat=108&_nc_sid=5e9851&_nc_ht=scontent-sjc6-1.cdninstagram.com&_nc_ohc=vnQ_ZgZhqGAQ7kNvwEWA05A&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MTg1ODEzNzI0NjQwNDM5NjcsImFzc2V0X2FnZV9kYXlzIjoxNjksInZpX3VzZWNhc2VfaWQiOjEwMDk5LCJkdXJhdGlvbl9zIjoxMSwidXJsZ2VuX3NvdXJjZSI6Ind3dyJ9&ccb=17-1&vs=5ee0181cbaa6f985&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC81NjRDMDQyM0ZCRUQyNTY4NUJGQjY0OEI4M0YyRDlBN192aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyL0Q3NDczQzFBQ0YyNDBDNzE5QTFBQzc2NTY5QzA5NDhEX2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACb-3sSSneqBQhUCKAJDMywXQCeZmZmZmZoYEmRhc2hfYmFzZWxpbmVfMV92MREAdf4HZeadAQA&_nc_gid=KzuWvgx90VU7J64vD6mdvQ&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeGLnE-1H5cc0MTUVrME02vniQTAd8rzJQaJBMB3yvMlBlOQfOJPVl2aoknWeCdq2mkOiRYWYSxPsH9UKjQYRQsK&oh=00_AQK-h8eSFf2ik_oK5-WdBX5EDfVWRDqg47ryEfO1_LtPXw&oe=6AAF31DD
+  caption: 💞❤️💞
+  reviewed_price: false
+  weight: 4.27
+  metrics:
+    score: 4.27
+    like_count: 88
+    comments_count: 10
+    window_median: 37.0
+    window_size: 45
+    views: 2005
+    reach: 1670
+    saved: 67
+    shares: 5
+    total_interactions: 170
+  media_path: media/2026-04-02-17967722625023047.mp4
+- id: 2026-04-16-18095410487172963
+  source_media_id: '18095410487172963'
+  permalink: https://www.instagram.com/reel/DXMqF7OjbqI/
+  published_at: '2026-04-16'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-04-16-18095410487172963.mp4
+  source_media_url: https://scontent-sjc6-1.cdninstagram.com/o1/v/t2/f2/m86/AQNGArppF_6eik0GO_aFevp_-rW2Mymgf6bST5QZQZuIHgknDFmgOaXKAqxKmDKU_1zken42mtHgwsFYCgtMXZhns102os6v1c3QMN0.mp4?_nc_cat=104&_nc_sid=5e9851&_nc_ht=scontent-sjc6-1.cdninstagram.com&_nc_ohc=DpLH1qFhj8QQ7kNvwGPl818&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MTg1ODQ4NzE4ODYwNDM5NjcsImFzc2V0X2FnZV9kYXlzIjoxNTUsInZpX3VzZWNhc2VfaWQiOjEwMDk5LCJkdXJhdGlvbl9zIjoyNiwidXJsZ2VuX3NvdXJjZSI6Ind3dyJ9&ccb=17-1&vs=ddfe931159a08ca8&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC9CMDRCMUM2RDYyQjE2RkEwRkMyRTRFRTBFNUIzNkNBOV92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyLzU1NERGQkFFQjU4RUQ4QkZFOEE2RjU3NkE1QkUzOUE0X2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACb-7LXv9bWDQhUCKAJDMywXQDru2RaHKwIYEmRhc2hfYmFzZWxpbmVfMV92MREAdf4HZeadAQA&_nc_gid=MKVZYeSC3jOFcG5SbUaCWQ&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeEjbA44asLnOiCP9kgmujIK7643784EHObvrjfvzgQc5g6bE6cApSeOKuiWzZ4zT03TBccmF2yprmArpkQRUiHW&oh=00_AQIF__LfKxQsNT0oVBe1S2EX0CoAA94fJzq7hyjZBD6A4g&oe=6AAF572D
+  caption: 3 em 1 ❤️
+  reviewed_price: false
+  weight: 3.51
+  metrics:
+    score: 3.51
+    like_count: 67
+    comments_count: 10
+    window_median: 39.0
+    window_size: 45
+    views: 1915
+    reach: 1522
+    saved: 50
+    shares: 14
+    total_interactions: 143
+  media_path: media/2026-04-16-18095410487172963.mp4
+- id: 2026-08-06-18136510072526110
+  source_media_id: '18136510072526110'
+  permalink: https://www.instagram.com/reel/DbrcdycBQXK/
+  published_at: '2026-08-06'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-08-06-18136510072526110.mp4
+  source_media_url: https://scontent-sjc6-1.cdninstagram.com/o1/v/t2/f2/m86/AQOXSdN5pPsoYzF9Vb6PgQ0Q_dDpMWBIOucu32JfOWQwDiMbqXPWq3JIlNDEAXULk_WaTQL5qdtGckfyO3rDNcIIGDf4Sj910dO4jOo.mp4?_nc_cat=102&_nc_sid=5e9851&_nc_ht=scontent-sjc6-1.cdninstagram.com&_nc_ohc=id8ubwJ5ry8Q7kNvwHN4D7X&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MjgzNDQ3Njg0NzUxMDkxMzAsImFzc2V0X2FnZV9kYXlzIjo0MywidmlfdXNlY2FzZV9pZCI6MTIzNzQsImR1cmF0aW9uX3MiOjU4LCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=b0cd01a7042feab5&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC81RjRFQjdGMUJDNTREMERGMDcyNTREQkRFRjE4MzM4Rl92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyLzM5NEE2MzMxRUE4QzNGMTNBRUM4RkQzNUREMURGMThBX2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACaU3JiD1trZZBUCKAJDMywXQE1mZmZmZmYYEmRhc2hfYmFzZWxpbmVfMV92MREAdf4HZazBAQA&_nc_gid=MKVZYeSC3jOFcG5SbUaCWQ&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeGwL07b_tNX3AFPylca4USbIlJXErG0cvoiUlcSsbRy-p9aGFX_I3a5lCdC6KqUPFPCLBNcPuxN8qgi9cVhDdjz&oh=00_AQIxFufs8QXQoXzOTwXBf-tpQJv3ZuQZoD62a25FEeuBqw&oe=6AAF3A07
+  caption: ❤️❤️❤️
+  reviewed_price: false
+  weight: 3.4
+  metrics:
+    score: 3.4
+    like_count: 60
+    comments_count: 6
+    window_median: 30.0
+    window_size: 17
+    views: 1667
+    reach: 1408
+    saved: 28
+    shares: 2
+    total_interactions: 96
+  media_path: media/2026-08-06-18136510072526110.mp4
+- id: 2026-01-13-18053268716393906
+  source_media_id: '18053268716393906'
+  permalink: https://www.instagram.com/reel/DTblfg1ja2C/
+  published_at: '2026-01-13'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-01-13-18053268716393906.mp4
+  source_media_url: https://scontent-sjc3-1.cdninstagram.com/o1/v/t2/f2/m86/AQPHMZzP9bqJ9vGWqLfiMIAWbjCDA6wenfV9W-zfEsjAE5oYFZZ5uHY1eySPjIdGTLPlpngeZbtA08kQupOUVQW-AymwChOZVvYT0YU.mp4?_nc_cat=103&_nc_sid=5e9851&_nc_ht=scontent-sjc3-1.cdninstagram.com&_nc_ohc=DydbFMVqJz8Q7kNvwGGzGbd&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6ODk4NDE5MzA5NTI5NTY1LCJhc3NldF9hZ2VfZGF5cyI6MjQ4LCJ2aV91c2VjYXNlX2lkIjoxMDgyNywiZHVyYXRpb25fcyI6ODQsInVybGdlbl9zb3VyY2UiOiJ3d3cifQ%3D%3D&ccb=17-1&vs=6f04f5b7a376b858&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC9FRTQzMDkwNEVCRjIzQUYwN0FGQTNBQjM2MEE5NTlBOF92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HTmMwYUNSLVVnNGx0Z3NEQU94S2ZmMEh5aTlmYnN0VEFRQUYVAgLIARIAKAAYABsCiAd1c2Vfb2lsATEScHJvZ3Jlc3NpdmVfcmVjaXBlATEVAAAmuqfuvPHGmAMVAigCQzMsF0BVKIMSbpeNGBJkYXNoX2Jhc2VsaW5lXzFfdjERAHX-B2WWqQEA&_nc_gid=KzuWvgx90VU7J64vD6mdvQ&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeEKIl9JwlTZ2UqxyvQykmsnt9dz5md6VEK313PmZ3pUQkof8dwqJD-4MuchUSOVDNJVN0ZTuksE55_qaqodvLzc&oh=00_AQK0cooRnRtuK9bbEeMBuCbrcl39gQOeywfn8DIH4VMDgw&oe=6AAF4DA4
+  caption: '#readytogo bolsa Juniper 3 em 1 🩷'
+  reviewed_price: false
+  weight: 3.24
+  metrics:
+    score: 3.24
+    like_count: 66
+    comments_count: 10
+    window_median: 42.0
+    window_size: 35
+    views: 2077
+    reach: 1586
+    saved: 31
+    shares: 12
+    total_interactions: 121
+  media_path: media/2026-01-13-18053268716393906.mp4
+- id: 2025-09-30-18043590506391625
+  source_media_id: '18043590506391625'
+  permalink: https://www.instagram.com/reel/DPOeoJbDdzc/
+  published_at: '2025-09-30'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2025-09-30-18043590506391625.mp4
+  source_media_url: https://scontent-sjc6-1.cdninstagram.com/o1/v/t2/f2/m86/AQOJJL5Kx57pinXpkv3YrLzmrIgJ9bppKBGLaDlSx9JovkHiw_eD4ePi9xZ6npyOw38SYzLGf38M1QYJy7pLNKwH3RZG-pcYaJrTV1Q.mp4?_nc_cat=107&_nc_sid=5e9851&_nc_ht=scontent-sjc6-1.cdninstagram.com&_nc_ohc=fjPh8u3s9kUQ7kNvwFA3Vhh&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6NzA1NjExMjg1ODg2NDgxLCJhc3NldF9hZ2VfZGF5cyI6MzUzLCJ2aV91c2VjYXNlX2lkIjoxMDA5OSwiZHVyYXRpb25fcyI6NjAsInVybGdlbl9zb3VyY2UiOiJ3d3cifQ%3D%3D&ccb=17-1&vs=5de3c7c159ab12d6&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC80QTREQkUwODA2NzA5MUI0RjU2RUZGQUEzRTUxMkVCN192aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYR2lnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC8xODA3MDE1NTc0MDI1NDQ3XzgxNTc4ODg2MTMwMzA4Njg0NzQubXA0FQICyAESACgAGAAbAogHdXNlX29pbAExEnByb2dyZXNzaXZlX3JlY2lwZQExFQAAJqLY2-D978ACFQIoAkMzLBdATgAAAAAAABgSZGFzaF9iYXNlbGluZV8xX3YxEQB1_gdl5p0BAA&_nc_gid=zjupKPT0UmKOVhCPI8MXxg&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeHSKDxR3VOhAf-9S0Y0EZ0drDoNjBY4lKCsOg2MFjiUoHgTdiw8Kzxk3roK_L4ZCqcPWo7YC9Fk4HE2tY-n3AdY&oh=00_AQJirp0aYtJ_QorqYGsKjaYtI8a6TCF2UfiwO12mvn4OSw&oe=6AAF31D8
+  caption: O que cabe em nossa Juniper Bag?
+  reviewed_price: false
+  weight: 3.17
+  metrics:
+    score: 3.17
+    like_count: 61
+    comments_count: 6
+    window_median: 32.5
+    window_size: 28
+    views: 1610
+    reach: 1155
+    saved: 42
+    shares: 7
+    total_interactions: 116
+  media_path: media/2025-09-30-18043590506391625.mp4
+- id: 2025-12-10-17970344816984137
+  source_media_id: '17970344816984137'
+  permalink: https://www.instagram.com/reel/DSFtZsMjfFE/
+  published_at: '2025-12-10'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2025-12-10-17970344816984137.mp4
+  source_media_url: https://scontent-sjc6-1.cdninstagram.com/o1/v/t2/f2/m86/AQNa1fvSKqbeXVT2Xdv2KWM25B0id57Lms1AUIHzM-E42thus2SxU0UrYCLN6CE5GMHQuklN0jHf8BYgsZbjJ8yXI_gsoxANs90sEp0.mp4?_nc_cat=102&_nc_sid=5e9851&_nc_ht=scontent-sjc6-1.cdninstagram.com&_nc_ohc=IuaJblIyrPsQ7kNvwEXUqW_&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MTY5NTYzMDA5ODQ0MzQ0NywiYXNzZXRfYWdlX2RheXMiOjI4MiwidmlfdXNlY2FzZV9pZCI6MTAwOTksImR1cmF0aW9uX3MiOjY4LCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=385ed50731b2cc74&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC80MzQ1NjhBMUQyQUFCM0JDOUE3REU4QTE5MEEwNURBRF92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYR2lnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC8xOTg4OTU3OTY1MDA0OTA2XzY3MzM0NDEwNDU0MDg0MTI5MjIubXA0FQICyAESACgAGAAbAogHdXNlX29pbAExEnByb2dyZXNzaXZlX3JlY2lwZQExFQAAJu6ygdvUioMGFQIoAkMzLBdAUSqfvnbItBgSZGFzaF9iYXNlbGluZV8xX3YxEQB1_gdl5p0BAA&_nc_gid=zjupKPT0UmKOVhCPI8MXxg&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeEsoKNfW2u-fQOWyD7U1XzOu8tZEnHDJsG7y1kSccMmwc8pENr5VTAyM4VetgbkX4zUA3VrTHrigHcC8SemQTNe&oh=00_AQItfU59MapGLjj_mseqrlO3dsYj92wurwAx776WAbBQCA&oe=6AAF5323
+  caption: '#readytogo'
+  reviewed_price: false
+  weight: 3.04
+  metrics:
+    score: 3.04
+    like_count: 133
+    comments_count: 1
+    window_median: 46.0
+    window_size: 33
+    views: 3990
+    reach: 3989
+    saved: 126
+    shares: 11
+    total_interactions: 274
+  media_path: media/2025-12-10-17970344816984137.mp4
+- id: 2026-05-27-18117649594749573
+  source_media_id: '18117649594749573'
+  permalink: https://www.instagram.com/p/DY3GJ1sDRTK/
+  published_at: '2026-05-27'
+  media_type: IMAGE
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-05-27-18117649594749573.jpg
+  source_media_url: https://scontent-sjc6-1.cdninstagram.com/v/t51.82787-15/708049346_18596677879043967_4874876614511755689_n.webp?stp=dst-jpg_e35_tt6&_nc_cat=104&ccb=7-5&_nc_sid=18de74&efg=eyJlZmdfdGFnIjoiQ0FST1VTRUxfSVRFTS5iZXN0X2ltYWdlX3VybGdlbi5DMyJ9&_nc_eui2=AeGlAZhMShUJUPryLiSqn_BF8OYR_t5kSD3w5hH-3mRIPVe4jLdegoyrYLHZpLlVnPSyOTDzrBuAUGkEwqvRoFSS&_nc_ohc=Ev1WwF0M7v0Q7kNvwGmMyC6&_nc_oc=Ado3MgKQkdbegBdv5YRda3JpgNiN1gvHTA3IcWItm4PaH4HU7E_tCUU0AE97yBJZ5ug&_nc_zt=23&_nc_ht=scontent-sjc6-1.cdninstagram.com&edm=AM6HXa8EAAAA&_nc_gid=MKVZYeSC3jOFcG5SbUaCWQ&oh=00_AQI02_Oxg5nw6FrVkEFCK99VNaqv8XqRGCYnydPyKKWp-Q&oe=6AB32810
+  caption: Qual é a sua cor favorita? 🎒🎒🎒
+  reviewed_price: false
+  weight: 2.78
+  metrics:
+    score: 2.78
+    like_count: 47
+    comments_count: 5
+    window_median: 29.5
+    window_size: 32
+    views: 1998
+    reach: 1223
+    saved: 23
+    shares: 5
+    total_interactions: 80
+  media_path: media/2026-05-27-18117649594749573.jpg
+- id: 2026-02-15-17909394315165598
+  source_media_id: '17909394315165598'
+  permalink: https://www.instagram.com/reel/DUwgfc5DbXq/
+  published_at: '2026-02-15'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-02-15-17909394315165598.mp4
+  source_media_url: https://scontent-sjc6-1.cdninstagram.com/o1/v/t16/f2/m69/AQNTVOC7miHq7ys5MnQ_I9_PB9KHddL9uXWSlnOX7_a36n7yMlCFE7--LgbO0i_HfZRbghNN3hE-5p5Nrnlt3Eue.mp4?strext=1&_nc_cat=100&_nc_sid=5e9851&_nc_ht=scontent-sjc6-1.cdninstagram.com&_nc_ohc=Q_uNSNJPmckQ7kNvwFGT6Bo&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MTc5MjQ3Mjk1MDgyMjkxNzAsImFzc2V0X2FnZV9kYXlzIjoyMTUsInZpX3VzZWNhc2VfaWQiOjEwMDk5LCJkdXJhdGlvbl9zIjoyMCwidXJsZ2VuX3NvdXJjZSI6Ind3dyJ9&ccb=17-1&vs=bb4feef6d921c691&_nc_vs=HBksFQIYOnBhc3N0aHJvdWdoX2V2ZXJzdG9yZS9HSkZveWlVazBxaGZFYU1FQUZYeVExRG5TRFEwYnNwVEFRQUYVAALIARIAFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyLzBENDIyRUUzQTA2RTQ2MTM0RjU5MDE3MkMxRTg0QUI5X2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACbkwMPwyZzXPxUCKAJDMywXQDTmZmZmZmYYEmRhc2hfYmFzZWxpbmVfMV92MREAdf4HZeadAQA&_nc_gid=KzuWvgx90VU7J64vD6mdvQ&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeFzoU-KvyRDmx4Xl7dta7MujpEREciUHFiOkRERyJQcWGYK4zqXYEewpTnl_IUsvAA5QlqpKr_F-lbqeH1TOqmJ&oh=00_AQIGpfl2kLmRjj1ytaROMeY0h2zhE97f7ACO3cwcA9Tp-w&oe=6AB31AE0
+  caption: '#readytogo Juniper ♥️'
+  reviewed_price: false
+  weight: 2.71
+  metrics:
+    score: 2.71
+    like_count: 87
+    comments_count: 5
+    window_median: 45.0
+    window_size: 42
+    views: 2751
+    reach: 1784
+    saved: 51
+    shares: 8
+    total_interactions: 151
+  media_path: media/2026-02-15-17909394315165598.mp4
+- id: 2026-07-30-18098400167573568
+  source_media_id: '18098400167573568'
+  permalink: https://www.instagram.com/reel/DbZcRJvNQ1E/
+  published_at: '2026-07-30'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-07-30-18098400167573568.mp4
+  source_media_url: https://scontent-sjc6-1.cdninstagram.com/o1/v/t2/f2/m86/AQMUYiJ0sUpc67Uw7SXC3IqJI9R6WgL7ebsNbpOtom-7blgSMFgVCwg8BuMaQDrNnwMBWuT7yqsdKTVcGVw3UaJkSAFhHKYKXkNSXb0.mp4?_nc_cat=107&_nc_sid=5e9851&_nc_ht=scontent-sjc6-1.cdninstagram.com&_nc_ohc=O_ZxO6cmB2sQ7kNvwHamz6s&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MTA0OTQ1MDkyNDI0NjEzMiwiYXNzZXRfYWdlX2RheXMiOjUwLCJ2aV91c2VjYXNlX2lkIjoxMDA5OSwiZHVyYXRpb25fcyI6MTMsInVybGdlbl9zb3VyY2UiOiJ3d3cifQ%3D%3D&ccb=17-1&vs=44462c01cf9dc86d&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC8xRjRFNjIwMUU5NzIwNzA4Nzg3NUZCRjlEMTkzRDc5M192aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyLzlENEYzRjlERDJCQkMxRUQxMDc5OURBQUFDNzA3Q0JCX2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACbokeTYip7dAxUCKAJDMywXQCp3S8an754YEmRhc2hfYmFzZWxpbmVfMV92MREAdf4HZeadAQA&_nc_gid=MKVZYeSC3jOFcG5SbUaCWQ&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeGl4x5RuAniPYtjf_t1AOZeC0a9UhK72goLRr1SErvaCiUMmkS5WAO3PJY22LIq6WSlHicELVD_xgDZ-d-9aUDU&oh=00_AQLf7Hkj667mOeGdEzAfI290-aB5WsOI1HmxhdBXUnudlA&oe=6AAF376C
+  caption: Mini 🫶
+  reviewed_price: false
+  weight: 2.57
+  metrics:
+    score: 2.57
+    like_count: 49
+    comments_count: 4
+    window_median: 30.0
+    window_size: 19
+    views: 3537
+    reach: 2707
+    saved: 10
+    shares: 1
+    total_interactions: 64
+  media_path: media/2026-07-30-18098400167573568.mp4
+- id: 2026-04-27-17889622725354532
+  source_media_id: '17889622725354532'
+  permalink: https://www.instagram.com/reel/DXp4WXADTGx/
+  published_at: '2026-04-27'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-04-27-17889622725354532.mp4
+  source_media_url: https://scontent-sjc3-1.cdninstagram.com/o1/v/t2/f2/m86/AQNx8zToiwgnpkg65P08vDnJ4MgHkgXr6L9LGafSinxts6W4z4h1uLDD98SnOWwasqv8dQY96u2gKTshzG5bkVXVYC8W-VyEzLkmi8Y.mp4?_nc_cat=103&_nc_sid=5e9851&_nc_ht=scontent-sjc3-1.cdninstagram.com&_nc_ohc=JCZtJMpPN6EQ7kNvwHEngL6&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MTg1ODc4ODA3NzUwNDM5NjcsImFzc2V0X2FnZV9kYXlzIjoxNDMsInZpX3VzZWNhc2VfaWQiOjEwMDk5LCJkdXJhdGlvbl9zIjozMCwidXJsZ2VuX3NvdXJjZSI6Ind3dyJ9&ccb=17-1&vs=325829a34a82da04&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC8xRjQwREVDOEQ0MjZBMDRCNzUwMkQxNkNCOEY1RjBBRF92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyLzNBNDAzOEQzM0YwN0YxMDBFRkFDODY3QjJCMjI0NTlCX2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACb-rcrrh-WEQhUCKAJDMywXQD6iDEm6XjUYEmRhc2hfYmFzZWxpbmVfMV92MREAdf4HZeadAQA&_nc_gid=MKVZYeSC3jOFcG5SbUaCWQ&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeHg62ILZuJKhU0iQcpHsfTPpLKc5EYW3wWkspzkRhbfBdRvR5hm8QnCH2zY8yTAM5dwyzMZw7LiPP83MMplufIM&oh=00_AQKcYeajTutbd4l-Hj7cy_k5Vm4GVNJVAlj_R4hw4VGUQQ&oe=6AAF54F0
+  caption: ❤️❤️❤️
+  reviewed_price: false
+  weight: 2.5
+  metrics:
+    score: 2.5
+    like_count: 43
+    comments_count: 6
+    window_median: 34.0
+    window_size: 41
+    views: 1788
+    reach: 1582
+    saved: 24
+    shares: 2
+    total_interactions: 75
+  media_path: media/2026-04-27-17889622725354532.mp4
+- id: 2026-06-08-17964600740937601
+  source_media_id: '17964600740937601'
+  permalink: https://www.instagram.com/reel/DZTgsQxhrIo/
+  published_at: '2026-06-08'
+  media_type: REELS
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-06-08-17964600740937601.mp4
+  source_media_url: https://scontent-sjc3-1.cdninstagram.com/o1/v/t2/f2/m86/AQPcl14sto7c8Cg-PyBe_eSbUyAeZKZvi3QytXQgmS_ueqW3Lty7q9CS6fry-N_yfR643nXv7MQ045_EwMZQIAZoR3IOn3rCkT46Ruk.mp4?_nc_cat=111&_nc_sid=5e9851&_nc_ht=scontent-sjc3-1.cdninstagram.com&_nc_ohc=rb70Fy8tMPUQ7kNvwGGQP4H&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6NDMwMDQ0OTgxMzUzOTk0OSwiYXNzZXRfYWdlX2RheXMiOjEwMiwidmlfdXNlY2FzZV9pZCI6MTIzNzQsImR1cmF0aW9uX3MiOjE1LCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=6c949aff7da0857b&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC80NjRCNDkwRjAwQTNDMjRGMDYxOTA4QkUzQzE3M0I5Q192aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyL0JENEEwODEzQ0IzMkY1MkVBNzA4QzEyOTgwNzY0RjgxX2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACbasZX4j8-jDxUCKAJDMywXQC3dsi0OVgQYEmRhc2hfYmFzZWxpbmVfMV92MREAdf4HZazBAQA&_nc_gid=MKVZYeSC3jOFcG5SbUaCWQ&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeGELUtl_tQ7hUicdC4uDl_bJiZCR75pBXUmJkJHvmkFdbCipYmvrv8K4U9B_2ejuZPYV8C4wdANDjTQLhnWUUWX&oh=00_AQINlXI2H1bd3pVPAFEZUqEOw90ADMVEMiPau0tgimagfg&oe=6AAF3EFC
+  caption: Mini Satchel ❤️
+  reviewed_price: false
+  weight: 2.47
+  metrics:
+    score: 2.47
+    like_count: 49
+    comments_count: 5
+    window_median: 34.0
+    window_size: 29
+    views: 1628
+    reach: 1351
+    saved: 15
+    shares: 4
+    total_interactions: 73
+  media_path: media/2026-06-08-17964600740937601.mp4
+- id: 2026-03-23-18404940394176605
+  source_media_id: '18404940394176605'
+  permalink: https://www.instagram.com/p/DWPGaQFERDH/
+  published_at: '2026-03-23'
+  media_type: IMAGE
+  url: https://raw.githubusercontent.com/trevisollinux/line-insta-poster/main/media/2026-03-23-18404940394176605.jpg
+  source_media_url: https://scontent-sjc3-1.cdninstagram.com/v/t51.82787-15/657204654_18578699641043967_6454512779005011706_n.webp?stp=dst-jpg_e35_tt6&_nc_cat=105&ccb=7-5&_nc_sid=18de74&efg=eyJlZmdfdGFnIjoiQ0FST1VTRUxfSVRFTS5iZXN0X2ltYWdlX3VybGdlbi5DMyJ9&_nc_eui2=AeH8OiGs0SMlJPcCAA6MHTOXwWRSKN_F17zBZFIo38XXvOK31-cJALPP1VEQ84gfIuPIj9yvyyyj4V6lhdAXLReC&_nc_ohc=-FKlJO_S06oQ7kNvwEe_Vdz&_nc_oc=AdpoCl2QDnZGZVqN8LFu-6r_v_mdFolujl_690EuSZ9kVwmrO30qnMqMAI2u60HCKDw&_nc_zt=23&_nc_ht=scontent-sjc3-1.cdninstagram.com&edm=AM6HXa8EAAAA&_nc_gid=KzuWvgx90VU7J64vD6mdvQ&oh=00_AQIs77cNadF5aDd_ZPsjqPhFy3iiym115WyZukK91sMUmA&oe=6AB34475
+  caption: Esse Marrom Floater...🤎🐻🟤👜
+  reviewed_price: false
+  weight: 2.37
+  metrics:
+    score: 2.37
+    like_count: 61
+    comments_count: 5
+    window_median: 40.5
+    window_size: 44
+    views: 2892
+    reach: 1593
+    saved: 43
+    shares: 8
+    total_interactions: 117
+  media_path: media/2026-03-23-18404940394176605.jpg
