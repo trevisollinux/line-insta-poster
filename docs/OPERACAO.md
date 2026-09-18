@@ -80,7 +80,7 @@ devolve não diz qual é o problema. O que já foi testado nesta conta:
 
 | Origem | Funciona | Observação |
 |---|---|---|
-| `cdn.jsdelivr.net/gh/<owner>/<repo>@<branch>/<caminho>` | ✅ | espelha o repositório público e serve com o tipo declarado; foi assim que o primeiro story saiu |
+| `cdn.jsdelivr.net/gh/<owner>/<repo>@<branch>/<caminho>` | ✅ | é o que `poster rehost` gera; espelha o repositório público e serve com o tipo declarado |
 | `raw.githubusercontent.com` | ❌ | serve `.mp4` como `application/octet-stream` com `nosniff` |
 | `source_media_url` da própria API | ❌ | entrega para player, assinada; falha com `2207076` e expira em horas |
 | Bucket (R2, S3) | ✅ | destino de operação — o repositório guarda histórico para sempre |

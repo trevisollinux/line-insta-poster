@@ -23,7 +23,10 @@ from . import REPO_ROOT
 from .graph import GraphClient, GraphError
 
 MEDIA_DIR = os.path.join(REPO_ROOT, "media")
-RAW_HOST = "https://raw.githubusercontent.com"
+# jsDelivr espelha o repositório público e serve com o tipo declarado.
+# raw.githubusercontent.com NÃO serve: entrega .mp4 como application/octet-stream
+# com nosniff, e a Meta recusa. Isso foi verificado publicando de verdade.
+CDN_HOST = "https://cdn.jsdelivr.net/gh"
 
 IMAGE_EXT = ".jpg"
 VIDEO_EXT = ".mp4"
@@ -110,9 +113,9 @@ def download(
             os.remove(parcial)
 
 
-def raw_url(repo: str, branch: str, caminho: str) -> str:
-    """URL pública do arquivo no repositório (serve para `image_url`/`video_url`)."""
-    return f"{RAW_HOST}/{repo.strip('/')}/{branch}/{caminho.lstrip('/')}"
+def public_url(repo: str, branch: str, caminho: str) -> str:
+    """URL que a Graph API aceita ingerir, para `image_url`/`video_url`."""
+    return f"{CDN_HOST}/{repo.strip('/')}@{branch}/{caminho.lstrip('/')}"
 
 
 def rehost(
@@ -134,7 +137,7 @@ def rehost(
     tamanho = download(origem.url, destino, opener=opener)
 
     relativo = os.path.relpath(destino, REPO_ROOT).replace(os.sep, "/")
-    return relativo, (raw_url(repo, branch, relativo) if repo else ""), tamanho
+    return relativo, (public_url(repo, branch, relativo) if repo else ""), tamanho
 
 
 def rehost_candidates(

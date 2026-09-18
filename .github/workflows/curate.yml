@@ -29,7 +29,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
   issues: write
 
 concurrency:
@@ -67,35 +66,21 @@ jobs:
             --since-days "${{ inputs.since_days || '0' }}" \
             ${{ (inputs.insights == 'true') && '--insights' || '' }}
 
-      - name: Abrir PR com os candidatos
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Commitar candidatos e mídia
         run: |
-          # Preciso do `git add` antes: candidates.yaml e catalog.json nascem
-          # nesta execução, e `git diff` sozinho não enxerga arquivo novo — o
-          # job sairia verde tendo jogado o resultado fora.
+          # Tudo vai para main de propósito. A mídia é insumo, não proposta: se
+          # ela ficasse numa branch, os links do relatório apontariam para
+          # arquivos que só existem lá. A aprovação acontece na issue e na edição
+          # de queue/posts.yaml, não num diff de candidatos.
           git add -- queue/candidates.yaml state/catalog.json media/
           if git diff --cached --quiet; then
             echo "nenhuma mudança no ranking"
             exit 0
           fi
-          branch="curadoria/$(date -u +%Y-%m-%d-%H%M)"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout -b "$branch"
-          git commit -m 'curadoria: atualiza candidatos e catálogo'
-          git push -u origin "$branch"
-          # Abrir PR exige "Allow GitHub Actions to create and approve pull
-          # requests" em Settings → Actions. Sem isso, a branch já está no ar e a
-          # issue avisa — não é motivo para derrubar a rodada inteira.
-          if ! gh pr create \
-            --title "Curadoria: candidatos de $(date -u +%d/%m/%Y)" \
-            --body-file .github/CURADORIA_PR.md \
-            --base main \
-            --head "$branch"; then
-            echo "::warning::PR não criado (falta permissão em Settings → Actions)."
-            echo "Abra manualmente: ${{ github.server_url }}/${{ github.repository }}/compare/$branch?expand=1"
-          fi
+          git commit -m 'curadoria: atualiza candidatos, catálogo e mídia'
+          git push
 
       - name: Avisar por e-mail (issue)
         if: always()

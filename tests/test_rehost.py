@@ -11,7 +11,7 @@ from poster.rehost import (
     RehostError,
     download,
     media_source,
-    raw_url,
+    public_url,
     rehost,
 )
 
@@ -115,12 +115,13 @@ class DownloadTest(unittest.TestCase):
         self.assertIn("download falhou", str(ctx.exception))
 
 
-class RawUrlTest(unittest.TestCase):
-    def test_monta_url_publica(self):
-        self.assertEqual(
-            raw_url("dono/repo", "main", "media/foto.jpg"),
-            "https://raw.githubusercontent.com/dono/repo/main/media/foto.jpg",
-        )
+class PublicUrlTest(unittest.TestCase):
+    def test_usa_o_cdn_que_serve_com_o_tipo_certo(self):
+        """raw.githubusercontent serve octet-stream com nosniff e a Meta recusa."""
+        url = public_url("dono/repo", "main", "media/foto.jpg")
+
+        self.assertEqual(url, "https://cdn.jsdelivr.net/gh/dono/repo@main/media/foto.jpg")
+        self.assertNotIn("raw.githubusercontent", url)
 
 
 class RehostTest(unittest.TestCase):
@@ -148,7 +149,7 @@ class RehostTest(unittest.TestCase):
         )
 
         self.assertTrue(caminho.endswith("line-baguete.mp4"), caminho)
-        self.assertTrue(url.startswith("https://raw.githubusercontent.com/dono/repo/main/"))
+        self.assertTrue(url.startswith("https://cdn.jsdelivr.net/gh/dono/repo@main/"))
         self.assertEqual(tamanho, 5)
 
     def test_sem_nome_usa_o_id(self):

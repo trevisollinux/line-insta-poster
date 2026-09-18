@@ -43,11 +43,14 @@ class WorkflowTest(unittest.TestCase):
                             f"step #{indice + 1} sem uses nem run",
                         )
 
-    def test_arquivo_do_corpo_do_pr_de_curadoria_existe(self):
-        self.assertTrue(
-            os.path.exists(os.path.join(RAIZ, ".github", "CURADORIA_PR.md")),
-            "curate.yml usa --body-file .github/CURADORIA_PR.md",
-        )
+    def test_curadoria_commita_midia_junto_dos_candidatos(self):
+        """Mídia em branch separada deixaria os links do relatório apontando
+        para arquivos que não existem em main."""
+        with open(os.path.join(RAIZ, ".github", "workflows", "curate.yml"), encoding="utf-8") as h:
+            conteudo = h.read()
+
+        self.assertIn("git add -- queue/candidates.yaml state/catalog.json media/", conteudo)
+        self.assertNotIn("git checkout -b", conteudo)
 
 
 if __name__ == "__main__":
