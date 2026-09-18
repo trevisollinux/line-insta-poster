@@ -57,12 +57,22 @@ e **Ctrl + −** para reduzir o zoom. O site não é responsivo nessa faixa.
 
 ### 2.1. O app
 
-1. [developers.facebook.com](https://developers.facebook.com/apps/) → **Criar
-   app** → tipo **Business** (Negócios).
-2. Vincule ao portfólio comercial (Business Portfolio) que administra a Página.
-3. Adicione o produto **Instagram** → configuração **com Facebook Login**
-   (Facebook Login for Business).
-4. **Configurações → Básico**: `ID do aplicativo` e `Chave secreta` são os
+1. [developers.facebook.com/apps](https://developers.facebook.com/apps/) →
+   **Criar aplicativo**.
+2. **Nome**: a Meta recusa nomes com "insta", "instagram", "face", "fb" ou
+   "gram" — restrição de marca. O nome é interno e não aparece para quem vê o
+   post, então qualquer coisa serve (aqui: `line-poster`).
+3. **Caso de uso**: **Gerenciar mensagens e conteúdo no Instagram** (ícone do
+   Instagram; pode estar sob o filtro *Tudo*, não em *Em destaque*). Não use
+   *Outro* — a própria Meta marca essa opção como em remoção.
+4. Vincule ao **portfólio empresarial** que administra a Página.
+5. Configurando o produto Instagram, a Meta oferece dois caminhos. Escolha
+   **API do Instagram com Login do Facebook** (`graph.facebook.com`), não o
+   *Login empresarial do Instagram* (`graph.instagram.com`): é a decisão de
+   arquitetura do projeto, e no caminho do Instagram Login as permissões têm
+   outros nomes (`instagram_business_basic`) e este código não fala com aquele
+   host.
+6. **Configurações → Básico**: `ID do aplicativo` e `Chave secreta` são os
    secrets `META_APP_ID` e `META_APP_SECRET`.
 
 **App Review não é necessário** para publicar em conta própria administrada —
