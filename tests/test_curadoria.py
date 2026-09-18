@@ -320,3 +320,76 @@ class SourceMediaUrlTest(unittest.TestCase):
 
         self.assertEqual(linha["source_media_url"], "https://scontent.example/original.jpg")
         self.assertEqual(linha["url"], "", "url só é preenchida com a mídia rehospedada")
+
+
+class SinceTest(unittest.TestCase):
+    """Recorte por data: a API entrega do mais novo para o mais antigo."""
+
+    def pagina(self, ids_e_datas, tem_proxima=True):
+        return {
+            "data": [
+                {"id": i, "timestamp": d.isoformat()} for i, d in ids_e_datas
+            ],
+            "paging": (
+                {"cursors": {"after": "CUR"}, "next": "https://..."}
+                if tem_proxima
+                else {"cursors": {"after": "CUR"}}
+            ),
+        }
+
+    def test_para_ao_alcancar_post_mais_antigo_que_o_corte(self):
+        hoje = datetime(2026, 9, 18, tzinfo=timezone.utc)
+        corte = hoje - timedelta(days=365)
+        client = FakeClient(
+            {
+                ("GET", f"{IG}/media"): [
+                    self.pagina([("novo", hoje), ("recente", hoje - timedelta(days=100))]),
+                    self.pagina(
+                        [
+                            ("limite", hoje - timedelta(days=364)),
+                            ("velho", hoje - timedelta(days=400)),
+                        ]
+                    ),
+                    self.pagina([("nunca", hoje - timedelta(days=500))]),
+                ]
+            }
+        )
+
+        posts, cursor = collect_media(client, IG, max_pages=5, since=corte)
+
+        self.assertEqual([p.id for p in posts], ["novo", "recente", "limite"])
+        self.assertIsNone(cursor, "recorte por data recomeça do topo na próxima vez")
+        self.assertEqual(len(client.chamadas), 2, "não pagina além do corte")
+
+    def test_sem_corte_o_comportamento_nao_muda(self):
+        hoje = datetime(2026, 9, 18, tzinfo=timezone.utc)
+        client = FakeClient(
+            {
+                ("GET", f"{IG}/media"): [
+                    self.pagina([("a", hoje - timedelta(days=500))], tem_proxima=False)
+                ]
+            }
+        )
+
+        posts, cursor = collect_media(client, IG, max_pages=5)
+
+        self.assertEqual([p.id for p in posts], ["a"])
+        self.assertIsNone(cursor)
+
+    def test_lote_inteiro_dentro_do_corte_continua_paginando(self):
+        hoje = datetime(2026, 9, 18, tzinfo=timezone.utc)
+        client = FakeClient(
+            {
+                ("GET", f"{IG}/media"): [
+                    self.pagina([("a", hoje)]),
+                    self.pagina([("b", hoje - timedelta(days=1))]),
+                ]
+            }
+        )
+
+        posts, cursor = collect_media(
+            client, IG, max_pages=2, since=hoje - timedelta(days=365)
+        )
+
+        self.assertEqual([p.id for p in posts], ["a", "b"])
+        self.assertEqual(cursor, "CUR", "lote acabou por max_pages, não por data")

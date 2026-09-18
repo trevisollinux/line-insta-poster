@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import random
 import sys
+from datetime import datetime, timedelta, timezone
 
 from . import curadoria, queue_file, state
 from .alerts import alert, write_summary
@@ -198,9 +199,19 @@ def cmd_curate(args: argparse.Namespace) -> int:
     acervo, cursor = curadoria.load_catalog(args.catalog)
     print(f"catálogo local: {len(acervo)} posts (cursor: {cursor or 'início'})")
 
+    since = None
+    if args.since_days > 0:
+        since = datetime.now(timezone.utc) - timedelta(days=args.since_days)
+        cursor = None  # recorte por data sempre recomeça do post mais recente
+        print(f"coletando só o que é posterior a {since.date().isoformat()}")
+
     try:
         novos, proximo = curadoria.collect_media(
-            client, ig_user_id, max_pages=args.max_pages, cursor=cursor
+            client,
+            ig_user_id,
+            max_pages=args.max_pages,
+            cursor=cursor,
+            since=since,
         )
     except GraphError as exc:
         alert(f"coleta do acervo falhou: {exc}", webhook=env_str("IG_ALERT_WEBHOOK"))
@@ -299,6 +310,12 @@ def build_parser() -> argparse.ArgumentParser:
     curate = sub.add_parser("curate", help="ranqueia o acervo e gera candidatos")
     curate.add_argument("--max-pages", type=int, default=10, help="lotes por execução")
     curate.add_argument("--top", type=int, default=20, help="candidatos no arquivo")
+    curate.add_argument(
+        "--since-days",
+        type=int,
+        default=0,
+        help="coletar só os últimos N dias (0 = acervo inteiro, com cursor)",
+    )
     curate.add_argument("--comment-weight", type=float, default=curadoria.COMMENT_WEIGHT)
     curate.add_argument("--insights", action="store_true", help="busca insights (pós-jul/2024)")
     curate.add_argument("--catalog", default=curadoria.CATALOG_PATH)

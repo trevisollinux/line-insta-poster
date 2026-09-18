@@ -180,12 +180,19 @@ def collect_media(
     page_limit: int = 50,
     max_pages: int = 10,
     cursor: str | None = None,
+    since: datetime | None = None,
 ) -> tuple[list[MediaPost], str | None]:
     """Pagina `/{ig-user-id}/media`. Devolve (posts, cursor para o próximo lote).
 
     O backfill do acervo inteiro não sai numa execução — o rate limit da Graph API
     obriga lotes. Daí o cursor persistido: o job roda em partes ao longo de dias e
     depois disso só o incremental.
+
+    Com `since`, para ao alcançar post mais antigo que a data e devolve cursor
+    `None`: a API entrega do mais novo para o mais antigo, então dali para trás só
+    há post velho. Cursor nulo faz a próxima execução recomeçar do topo, que é o
+    que se quer num recorte por data — o que é novo entra, o resto já está no
+    catálogo.
     """
     posts: list[MediaPost] = []
     after = cursor
@@ -195,7 +202,16 @@ def collect_media(
             params["after"] = after
         payload = client.get(f"{ig_user_id}/media", params)
         rows = payload.get("data") or []
-        posts.extend(parse_media(row) for row in rows)
+        pagina = [parse_media(row) for row in rows]
+
+        if since is not None:
+            recentes = [post for post in pagina if post.timestamp >= since]
+            posts.extend(recentes)
+            if len(recentes) < len(pagina):
+                return posts, None
+        else:
+            posts.extend(pagina)
+
         after = ((payload.get("paging") or {}).get("cursors") or {}).get("after")
         if not rows or not (payload.get("paging") or {}).get("next"):
             after = None

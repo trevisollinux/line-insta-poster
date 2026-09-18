@@ -18,6 +18,9 @@ on:
       top:
         description: 'quantidade de candidatos no arquivo'
         default: '20'
+      since_days:
+        description: 'coletar só os últimos N dias (0 = acervo inteiro)'
+        default: '0'
       insights:
         description: 'buscar insights (só mídia pós-jul/2024)'
         type: choice
@@ -56,6 +59,7 @@ jobs:
           python -m poster.cli curate \
             --max-pages "${{ inputs.max_pages || '10' }}" \
             --top "${{ inputs.top || '20' }}" \
+            --since-days "${{ inputs.since_days || '0' }}" \
             ${{ (inputs.insights == 'true') && '--insights' || '' }}
 
       - name: Abrir PR com os candidatos
