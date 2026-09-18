@@ -11,6 +11,6 @@
 
 - id: teste-stories-line-baguete
   media_type: STORIES
-  url: https://scontent-ord5-2.cdninstagram.com/o1/v/t2/f2/m86/AQNogcfTdx3hdZHixQxd-jfvloO4NlWhmY0pUUvl2Vjp9UFbBJ0-hvTc1yFG7p960ONfRrLzHq-zT6wq3aRZJtCP3KCAc3-a9x0KShM.mp4?_nc_cat=103&_nc_sid=5e9851&_nc_ht=scontent-ord5-2.cdninstagram.com&_nc_ohc=QLsMEjZ7k08Q7kNvwFcNgCR&efg=eyJ2ZW5jb2RlX3RhZyI6Inhwdl9wcm9ncmVzc2l2ZS5JTlNUQUdSQU0uQ0xJUFMuQzMuNzIwLmRhc2hfYmFzZWxpbmVfMV92MSIsInhwdl9hc3NldF9pZCI6MjA4NzA3NTUyODg3NjEyOCwiYXNzZXRfYWdlX2RheXMiOjExOCwidmlfdXNlY2FzZV9pZCI6MTIzNzQsImR1cmF0aW9uX3MiOjEyLCJ1cmxnZW5fc291cmNlIjoid3d3In0%3D&ccb=17-1&vs=6944afd1bf81d950&_nc_vs=HBksFQIYUmlnX3hwdl9yZWVsc19wZXJtYW5lbnRfc3JfcHJvZC9CNDQzRTYzM0ZBQ0UwMzVGNTBEMzcwMEIxM0U1QTc5Nl92aWRlb19kYXNoaW5pdC5tcDQVAALIARIAFQIYUWlnX3hwdl9wbGFjZW1lbnRfcGVybWFuZW50X3YyL0NBNEFEQkNDODJFOEY0MkVFNjU3MDJGNkYzNzBDQ0E2X2F1ZGlvX2Rhc2hpbml0Lm1wNBUCAsgBEgAoABgAGwKIB3VzZV9vaWwBMRJwcm9ncmVzc2l2ZV9yZWNpcGUBMRUAACbAgaW45Iu1BxUCKAJDMywXQCjMzMzMzM0YEmRhc2hfYmFzZWxpbmVfMV92MREAdf4HZazBAQA&_nc_gid=DmA7GWcf6VW5xa0LkR5kNw&edm=AM6HXa8EAAAA&_nc_zt=28&_nc_eui2=AeFl1ZBC6Ak-B-WKOLp1RrvT-8roAQDW2hT7yugBANbaFMMod8auImyQZkLNNfUEYclqS7HOHyAtR6WNoGm-egX-&oh=00_AQJowXFIsTygeGmXNT06wfL3mS5o1uGeg7zKgnR-wLlGmg&oe=6AAF43F4
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/teste-line-baguete.mp4
   reviewed_price: true
-  notes: Teste de ponta a ponta. URL é o CDN da Meta e expira em horas — remover da fila depois da publicação.
+  notes: Teste de ponta a ponta com a mídia rehospedada. Remover da fila depois.
