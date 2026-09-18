@@ -37,6 +37,12 @@ class CliTest(unittest.TestCase):
             main(["validate", "--queue", caminho, "--state", self.state]), EXIT_FAIL
         )
 
+    def test_publish_dry_run_usa_a_fila_do_repositorio(self):
+        """Só exige que a fila versionada seja publicável — vazia ou não."""
+        codigo = main(["publish", "--dry-run", "--queue", FILA, "--state", self.state])
+
+        self.assertIn(codigo, (EXIT_OK, EXIT_NOTHING))
+
     def test_publish_dry_run_nao_precisa_de_credencial(self):
         codigo = main(["publish", "--dry-run", "--queue", EXEMPLO, "--state", self.state])
 
@@ -44,7 +50,12 @@ class CliTest(unittest.TestCase):
         self.assertFalse(os.path.exists(self.state), "dry run não grava estado")
 
     def test_publish_sem_item_elegivel_sai_com_codigo_proprio(self):
-        codigo = main(["publish", "--dry-run", "--queue", FILA, "--state", self.state])
+        """Fila própria, não a do repositório: ela tem conteúdo real e muda."""
+        vazia = os.path.join(self.dir.name, "vazia.yaml")
+        with open(vazia, "w", encoding="utf-8") as handle:
+            handle.write("# sem itens\n")
+
+        codigo = main(["publish", "--dry-run", "--queue", vazia, "--state", self.state])
 
         self.assertEqual(codigo, EXIT_NOTHING)
 
