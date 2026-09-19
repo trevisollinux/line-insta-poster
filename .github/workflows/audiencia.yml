@@ -1,0 +1,28 @@
+name: Seguidores online por hora
+
+# Consulta online_followers: quantos seguidores estavam online em cada hora.
+# Mede presença, não interesse — cruze com o desempenho real dos posts.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  consultar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Instalar dependências
+        run: pip install --quiet -r requirements.txt
+      - name: Consultar audiência
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+        run: python -m poster.cli audience

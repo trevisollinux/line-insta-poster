@@ -17,7 +17,7 @@ import random
 import sys
 from datetime import datetime, timedelta, timezone
 
-from . import curadoria, drive, inbox as inbox_mod, queue_file, rehost as rehost_mod, state
+from . import audiencia, curadoria, drive, inbox as inbox_mod, queue_file, rehost as rehost_mod, state
 from .alerts import alert, write_summary
 from .config import PublishConfig, env_str
 from .graph import GRAPH_VERSION, GraphClient, GraphError
@@ -191,6 +191,45 @@ def cmd_refresh_token(args: argparse.Namespace) -> int:
         print(f"secret {args.secret_name} atualizado em {args.secret_repo}")
 
     write_summary(f"### Token renovado\n\nVálido até **{validade}**.\n")
+    return EXIT_OK
+
+
+def cmd_audience(args: argparse.Namespace) -> int:
+    """Mostra em que horas os seguidores estão online."""
+    access_token, ig_user_id = env_str("IG_ACCESS_TOKEN"), env_str("IG_USER_ID")
+    if not (access_token and ig_user_id):
+        print("IG_ACCESS_TOKEN e IG_USER_ID são obrigatórios", file=sys.stderr)
+        return EXIT_FAIL
+
+    client = GraphClient(access_token, version=env_str("IG_GRAPH_VERSION", GRAPH_VERSION))
+    try:
+        serie = audiencia.online_followers(client, ig_user_id)
+    except GraphError as exc:
+        print(str(exc), file=sys.stderr)
+        return EXIT_FAIL
+
+    if not serie:
+        print("a API não devolveu dados de seguidores online")
+        return EXIT_NOTHING
+
+    por_hora = audiencia.por_hora_local(serie, offset=args.utc_offset)
+    pico = max(por_hora.values()) or 1
+    linhas = ["| hora | seguidores online (mediana) |", "|---|---|"]
+    print(f"{len(serie)} dias de dados | fuso UTC{args.utc_offset:+d}\n")
+    for hora, valor in por_hora.items():
+        barra = "█" * int(valor / pico * 30)
+        print(f"{hora:02d}h | {valor:8.0f} {barra}")
+        linhas.append(f"| {hora:02d}h | {valor:.0f} |")
+
+    melhores = audiencia.melhores_horas(por_hora)
+    resumo = ", ".join(f"{h:02d}h ({v:.0f})" for h, v in melhores)
+    print(f"\nmaior audiência: {resumo}")
+    write_summary(
+        "### Seguidores online por hora\n\n"
+        + "\n".join(linhas)
+        + f"\n\n**Maior audiência:** {resumo}\n\n"
+        "Isto mede presença, não interesse: diz onde há gente, não o que rende.\n"
+    )
     return EXIT_OK
 
 
@@ -454,6 +493,10 @@ def build_parser() -> argparse.ArgumentParser:
     refresh.add_argument("--secret-repo", default="", help="owner/repo do secret")
     refresh.add_argument("--secret-name", default="IG_ACCESS_TOKEN")
     refresh.set_defaults(func=cmd_refresh_token)
+
+    audience = sub.add_parser("audience", help="horas com mais seguidores online")
+    audience.add_argument("--utc-offset", type=int, default=audiencia.BRT_OFFSET)
+    audience.set_defaults(func=cmd_audience)
 
     inbox = sub.add_parser("inbox", help="importa fotos novas da pasta do Drive")
     inbox.add_argument("--folder-id", default="", help="pasta do Drive (ou GDRIVE_FOLDER_ID)")
