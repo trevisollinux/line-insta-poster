@@ -4,14 +4,21 @@ name: Capturar métricas dos stories
 # o que está publicado agora. O que não for lido enquanto está no ar está
 # perdido — não existe como buscar depois.
 #
-# Daí a cadência de 4 em 4 horas. Não é para "ficar de olho": é para garantir
-# que a última leitura de cada story caia perto das 20h de vida dele, que é
-# quando o número já parou de subir. Rodando uma vez por dia, metade dos
-# stories expiraria antes de ser lida.
+# Daí uma leitura por hora, cobrindo as 24h de vida de cada story. Duas razões,
+# e a segunda é a que justifica a frequência:
+#
+# 1. Garante uma leitura por volta das 23h de vida, perto do número final.
+# 2. Monta a curva de acumulação — *quando* as visualizações chegam, não só
+#    quantas foram. É isso que separa "o horário importa" de "o horário não
+#    importa": se um story das 21h junta quase tudo nas duas primeiras horas,
+#    o horário decide; se pinga ao longo do dia seguinte, quase não decide.
+#
+# De 4 em 4 horas dava o item 1 e não dava o item 2, e esse dado não é
+# recuperável depois.
 
 on:
   schedule:
-    - cron: '0 */4 * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -53,7 +60,7 @@ jobs:
 
       - name: Commitar o histórico
         run: |
-          git add -- state/stories_metrics.csv
+          git add -- state/stories_metrics.csv state/stories_curva.csv
           if git diff --cached --quiet; then
             echo "nada novo para registrar"
             exit 0
@@ -61,7 +68,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'chore: métricas dos stories'
-          # Este job roda seis vezes por dia e divide o branch com os de
+          # Este job roda de hora em hora e divide o branch com os de
           # publicação: sem rebase, uma corrida normal viraria push rejeitado.
           for tentativa in 1 2 3; do
             git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && exit 0

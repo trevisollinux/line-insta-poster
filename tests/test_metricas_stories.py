@@ -267,3 +267,98 @@ class ResumoTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CurvaTest(unittest.TestCase):
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.dir.cleanup)
+        self.path = os.path.join(self.dir.name, "curva.csv")
+
+    def ponto(self, media_id, publicado, horas_depois, **medidas):
+        publicado_dt = datetime.strptime(publicado, "%Y-%m-%dT%H:%M:%S%z")
+        agora = publicado_dt.replace(tzinfo=timezone.utc)
+        agora = agora.fromtimestamp(
+            agora.timestamp() + horas_depois * 3600, tz=timezone.utc
+        )
+        return ms.montar_ponto(story(media_id, publicado), medidas, agora=agora)
+
+    def test_calcula_a_idade_do_story(self):
+        ponto = self.ponto("a", "2026-09-19T19:40:00+0000", 3, views=80)
+
+        self.assertEqual(ponto["idade_horas"], "3")
+        self.assertEqual(ponto["views"], "80")
+
+    def test_arredonda_a_idade(self):
+        # O runner do Actions atrasa alguns minutos; sem arredondar, cada story
+        # cairia numa idade diferente e a curva não seria comparável.
+        ponto = self.ponto("a", "2026-09-19T19:40:00+0000", 3.1, views=80)
+
+        self.assertEqual(ponto["idade_horas"], "3")
+
+    def test_acumula_pontos_ao_longo_das_horas(self):
+        curva = []
+        for hora, views in ((1, 60), (2, 95), (6, 120)):
+            curva = ms.anexar_curva(
+                curva, [self.ponto("a", "2026-09-19T19:40:00+0000", hora, views=views)]
+            )
+
+        self.assertEqual([p["idade_horas"] for p in ms.gravar_curva(curva, self.path)],
+                         ["1", "2", "6"])
+        self.assertEqual([p["views"] for p in ms.gravar_curva(curva, self.path)],
+                         ["60", "95", "120"])
+
+    def test_nao_duplica_a_mesma_idade(self):
+        primeiro = self.ponto("a", "2026-09-19T19:40:00+0000", 2, views=95)
+        repetido = self.ponto("a", "2026-09-19T19:40:00+0000", 2.2, views=97)
+
+        curva = ms.anexar_curva([primeiro], [repetido])
+
+        self.assertEqual(len(curva), 1)
+        self.assertEqual(curva[0]["views"], "97")
+
+    def test_colisao_de_idade_fica_com_o_maior(self):
+        primeiro = self.ponto("a", "2026-09-19T19:40:00+0000", 2, views=95)
+        repetido = self.ponto("a", "2026-09-19T19:40:00+0000", 2.2, views=4)
+
+        curva = ms.anexar_curva([primeiro], [repetido])
+
+        self.assertEqual(curva[0]["views"], "95")
+
+    def test_stories_diferentes_na_mesma_idade_convivem(self):
+        a = self.ponto("a", "2026-09-19T19:40:00+0000", 2, views=95)
+        b = self.ponto("b", "2026-09-19T23:00:00+0000", 2, views=40)
+
+        self.assertEqual(len(ms.anexar_curva([a], [b])), 2)
+
+    def test_ida_e_volta_pelo_arquivo(self):
+        ms.gravar_curva([self.ponto("a", "2026-09-19T19:40:00+0000", 2, views=95)], self.path)
+
+        lidos = ms.carregar_curva(self.path)
+
+        self.assertEqual(lidos[0]["media_id"], "a")
+        self.assertEqual(lidos[0]["idade_horas"], "2")
+
+    def test_posicao_do_historico_chega_na_curva(self):
+        # A posição só se sabe depois de ordenar o dia inteiro, e um story pode
+        # virar "2º" horas depois de ter sido capturado como 1º.
+        linhas = ms.gravar(
+            [
+                ms.montar_linha(story("a", "2026-09-19T19:40:00+0000"), {}),
+                ms.montar_linha(story("b", "2026-09-19T23:00:00+0000"), {}),
+            ],
+            os.path.join(self.dir.name, "hist.csv"),
+        )
+        pontos = [
+            self.ponto("a", "2026-09-19T19:40:00+0000", 1, views=50),
+            self.ponto("b", "2026-09-19T23:00:00+0000", 1, views=30),
+        ]
+
+        aplicados = ms.aplicar_posicao(pontos, linhas)
+
+        self.assertEqual([p["posicao_dia"] for p in aplicados], ["1", "2"])
+
+    def test_timestamp_invalido_deixa_a_idade_vazia(self):
+        ponto = ms.montar_ponto(story("a", "sem data"), {"views": 5})
+
+        self.assertEqual(ponto["idade_horas"], "")

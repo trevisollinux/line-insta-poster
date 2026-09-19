@@ -25,6 +25,7 @@ from .graph import GraphClient, GraphError
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CSV_PATH = os.path.join(REPO_ROOT, "state", "stories_metrics.csv")
+CURVA_PATH = os.path.join(REPO_ROOT, "state", "stories_curva.csv")
 
 BRT_OFFSET = -3  # America/Sao_Paulo
 
@@ -56,6 +57,24 @@ CAMPOS = (
     *METRICAS,
     "permalink",
     "capturado_em",
+)
+
+# A curva é o motivo de coletar de hora em hora em vez de guardar só o total: o
+# total diz quantos viram, a curva diz *quando* viram. Se as visualizações de um
+# story das 21h chegam quase todas nas duas primeiras horas, o horário importa;
+# se pingam ao longo do dia seguinte, não importa quase nada. Essa diferença não
+# é recuperável depois — ou se mede enquanto acontece, ou não se mede.
+CAMPOS_CURVA = (
+    "media_id",
+    "data_local",
+    "hora_local",
+    "posicao_dia",
+    "idade_horas",
+    "capturado_em",
+    "views",
+    "reach",
+    "profile_visits",
+    "navigation",
 )
 
 
@@ -280,3 +299,101 @@ def resumo(linhas: list[dict[str, str]], *, metrica: str = "views") -> str:
             "horário, diferença aqui não distingue efeito de acaso.",
         ]
     return "\n".join(partes) + "\n"
+
+
+def montar_ponto(
+    story: dict,
+    medidas: dict[str, int],
+    *,
+    offset: int = BRT_OFFSET,
+    agora: datetime | None = None,
+) -> dict[str, str]:
+    """Um ponto da curva: o estado das métricas na idade X do story.
+
+    `idade_horas` é arredondada para inteiro de propósito. O coletor roda no
+    minuto 0, mas o runner atrasa alguns minutos e isso deslocaria cada ponto
+    para uma idade ligeiramente diferente, impedindo comparar story com story.
+    """
+    linha = montar_linha(story, medidas, offset=offset, agora=agora)
+    publicado = _parse_timestamp(str(story.get("timestamp") or ""))
+    captura = (agora or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    idade = ""
+    if publicado:
+        idade = str(round((captura - publicado).total_seconds() / 3600))
+    ponto = {campo: linha.get(campo, "") for campo in CAMPOS_CURVA}
+    ponto["idade_horas"] = idade
+    return ponto
+
+
+def carregar_curva(path: str = CURVA_PATH) -> list[dict[str, str]]:
+    return carregar(path)
+
+
+def anexar_curva(
+    existentes: list[dict[str, str]], pontos: list[dict[str, str]]
+) -> list[dict[str, str]]:
+    """Acrescenta pontos novos sem duplicar (story, idade).
+
+    Duas capturas podem cair na mesma idade arredondada — um run atrasado
+    seguido de um no horário. Guardar as duas inflaria o número de medições sem
+    acrescentar informação, então a colisão vira uma linha só com o maior valor.
+    """
+    por_chave: dict[tuple[str, str], dict[str, str]] = {
+        (linha.get("media_id", ""), linha.get("idade_horas", "")): dict(linha)
+        for linha in existentes
+    }
+    for ponto in pontos:
+        chave = (ponto.get("media_id", ""), ponto.get("idade_horas", ""))
+        if not chave[0]:
+            continue
+        anterior = por_chave.get(chave)
+        if anterior is None:
+            por_chave[chave] = dict(ponto)
+            continue
+        combinado = dict(anterior)
+        combinado.update({k: v for k, v in ponto.items() if v not in ("", None)})
+        for metrica in ("views", "reach", "profile_visits", "navigation"):
+            combinado[metrica] = _maior(anterior.get(metrica), ponto.get(metrica))
+        por_chave[chave] = combinado
+    return list(por_chave.values())
+
+
+def gravar_curva(
+    pontos: list[dict[str, str]], path: str = CURVA_PATH
+) -> list[dict[str, str]]:
+    def chave(linha: dict[str, str]) -> tuple:
+        idade = linha.get("idade_horas", "")
+        return (
+            linha.get("data_local", ""),
+            linha.get("hora_local", ""),
+            linha.get("media_id", ""),
+            int(idade) if idade.lstrip("-").isdigit() else 0,
+        )
+
+    ordenados = sorted(pontos, key=chave)
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(CAMPOS_CURVA))
+        writer.writeheader()
+        for ponto in ordenados:
+            writer.writerow({campo: ponto.get(campo, "") for campo in CAMPOS_CURVA})
+    return ordenados
+
+
+def aplicar_posicao(
+    pontos: list[dict[str, str]], linhas: list[dict[str, str]]
+) -> list[dict[str, str]]:
+    """Copia `posicao_dia` do histórico para a curva.
+
+    A posição só é conhecida depois de ordenar o dia inteiro, e um story pode
+    virar "2º do dia" horas depois de ter sido capturado como 1º. Recopiar a
+    cada gravação mantém os dois arquivos contando a mesma história.
+    """
+    posicoes = {
+        linha.get("media_id", ""): linha.get("posicao_dia", "") for linha in linhas
+    }
+    for ponto in pontos:
+        posicao = posicoes.get(ponto.get("media_id", ""))
+        if posicao:
+            ponto["posicao_dia"] = posicao
+    return pontos

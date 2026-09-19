@@ -274,6 +274,7 @@ def cmd_story_metrics(args: argparse.Namespace) -> int:
         return EXIT_FAIL
 
     novas: list[dict[str, str]] = []
+    pontos: list[dict[str, str]] = []
     falhas: list[str] = []
     for story in ativos:
         media_id = str(story.get("id") or "")
@@ -283,13 +284,25 @@ def cmd_story_metrics(args: argparse.Namespace) -> int:
             falhas.append(f"{media_id}: {exc}")
             medidas = {}
         novas.append(metricas_stories.montar_linha(story, medidas, offset=args.utc_offset))
+        pontos.append(metricas_stories.montar_ponto(story, medidas, offset=args.utc_offset))
 
     existentes = metricas_stories.carregar(args.csv)
     linhas = metricas_stories.gravar(
         metricas_stories.mesclar(existentes, novas), args.csv
     )
 
-    print(f"{len(ativos)} stories no ar | {len(linhas)} no histórico → {args.csv}")
+    # A curva guarda cada leitura; o histórico guarda só o total de cada story.
+    curva = metricas_stories.anexar_curva(
+        metricas_stories.carregar_curva(args.curva), pontos
+    )
+    metricas_stories.gravar_curva(
+        metricas_stories.aplicar_posicao(curva, linhas), args.curva
+    )
+
+    print(
+        f"{len(ativos)} stories no ar | {len(linhas)} no histórico | "
+        f"{len(curva)} pontos de curva"
+    )
     for falha in falhas:
         print(f"  sem insights  {falha}", file=sys.stderr)
 
@@ -579,6 +592,7 @@ def build_parser() -> argparse.ArgumentParser:
         "story-metrics", help="captura as métricas dos stories no ar"
     )
     story_metrics.add_argument("--csv", default=metricas_stories.CSV_PATH)
+    story_metrics.add_argument("--curva", default=metricas_stories.CURVA_PATH)
     story_metrics.add_argument("--utc-offset", type=int, default=metricas_stories.BRT_OFFSET)
     story_metrics.add_argument("--metric", default="views", help="métrica do resumo")
     story_metrics.add_argument("--report", default="", help="resumo markdown neste caminho")

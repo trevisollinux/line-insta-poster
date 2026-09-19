@@ -7,7 +7,7 @@
 | Publicar no Instagram | diário, 10h BRT | publica um item e commita o estado |
 | Renovar token | dia 1, 6h BRT | renova o long-lived token e regrava o secret |
 | Curadoria do acervo | dia 1, 8h BRT | ranqueia o acervo e abre PR com candidatos |
-| Capturar métricas dos stories | de 4 em 4 horas | lê os stories no ar e grava em `state/stories_metrics.csv` |
+| Capturar métricas dos stories | de hora em hora | lê os stories no ar e grava em `state/stories_metrics.csv` e `state/stories_curva.csv` |
 | Testes | push e PR | suíte + validação da fila versionada |
 
 Códigos de saída da CLI: `0` sucesso, `1` falha (com alerta), `2` nada a fazer.
@@ -18,8 +18,22 @@ erro, mas aparece no Summary do run.
 
 Story expira em 24h e a Graph API não guarda nada depois disso: `/stories`
 devolve só o que está no ar agora. Métrica não capturada é métrica perdida, sem
-recuperação possível. A cada 4 horas, a última leitura de cada story cai por
-volta das 20h de vida dele — perto do número final, ainda dentro da janela.
+recuperação possível.
+
+A leitura é de hora em hora, cobrindo as 24h de vida de cada story. Isso gera
+dois arquivos com papéis diferentes:
+
+- `state/stories_metrics.csv` — uma linha por story, com o total de cada
+  métrica. Responde "quanto rendeu".
+- `state/stories_curva.csv` — uma linha por leitura, com a idade do story em
+  horas. Responde "quando rendeu", que é a pergunta que decide se horário de
+  publicação importa: se um story das 21h junta quase todas as visualizações
+  nas duas primeiras horas, o horário decide; se elas pingam ao longo do dia
+  seguinte, quase não decide.
+
+Foi a curva que justificou sair de 4 em 4 horas para de hora em hora. Com o
+intervalo maior dava para saber o total, mas não o formato da subida — e esse
+dado não é recuperável depois.
 
 O arquivo guarda uma linha por story e as métricas ficam com o maior valor já
 lido, não com o mais recente: são contadores que só sobem, então número menor
