@@ -11,7 +11,9 @@ name: Publicar Stories (automático)
 
 on:
   schedule:
-    - cron: '0 14 * * *'   # 11h no horário de Brasília
+    # Dois horários por dia, para comparar. UTC-3 → some 3h para chegar no UTC.
+    - cron: '40 19 * * *'  # 16h40 em Brasília
+    - cron: '0 0 * * *'    # 21h00 em Brasília (já é o dia seguinte em UTC)
   workflow_dispatch:
     inputs:
       dry_run:
