@@ -150,7 +150,8 @@ def report_markdown(
     linhas = ["## Fotos novas na pasta do Drive", ""]
     if importados:
         linhas += [
-            f"{len(importados)} mídia(s) importada(s) e já hospedada(s):",
+            f"{len(importados)} mídia(s) importada(s) e já hospedada(s). "
+            "PNG e WebP são convertidos para JPEG na importação:",
             "",
             "| Arquivo | Tipo | Mídia |",
             "|---|---|---|",
@@ -158,11 +159,6 @@ def report_markdown(
         for arquivo, url in importados:
             tipo = "vídeo" if arquivo.mime_type.startswith("video/") else "foto"
             linhas.append(f"| {arquivo.name} | {tipo} | [ver]({url}) |")
-        linhas += [
-            "",
-            "Os rascunhos estão em `queue/drafts.yaml`, com `reviewed_price: false` "
-            "— nenhum deles pode ir ao ar por acidente.",
-        ]
     else:
         linhas.append("Nenhuma mídia nova nesta rodada.")
 
@@ -181,11 +177,13 @@ def report_markdown(
 
     linhas += [
         "",
-        "### Para publicar",
+        "### O que acontece agora",
         "",
-        "1. Abra `queue/drafts.yaml` e escreva a legenda de cada um "
-        "(`STORIES` não aceita legenda).",
-        "2. Confira o preço da peça.",
-        "3. Marque `reviewed_price: true` e mova para `queue/posts.yaml`.",
+        "Estas mídias entram em `queue/stories.yaml` e **publicam sozinhas** como "
+        "story, uma por execução, sem repetir.",
+        "",
+        "Para tirar alguma da fila, apague o item do arquivo. Para mandar ao feed, "
+        "copie para `queue/posts.yaml`, troque o `media_type`, escreva a legenda e "
+        "marque `reviewed_price: true`.",
     ]
     return "\n".join(linhas) + "\n"

@@ -4,3 +4,4 @@ PyYAML>=6.0          # fila e candidatos em YAML
 PyNaCl>=1.5          # sealed box exigido pela API de secrets do GitHub
 google-auth>=2.30    # assina o JWT da conta de serviço do Drive (RSA, fora da stdlib)
 requests>=2.31       # transporte que o google-auth usa; não vem junto com ele
+Pillow>=10.0        # converte PNG/WebP em JPEG, único formato de imagem que a API aceita

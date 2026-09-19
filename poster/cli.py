@@ -208,11 +208,22 @@ def cmd_audience(args: argparse.Namespace) -> int:
         print(str(exc), file=sys.stderr)
         return EXIT_FAIL
 
-    if not serie:
-        print("a API não devolveu dados de seguidores online")
+    por_hora = audiencia.por_hora_local(serie, offset=args.utc_offset)
+    if not por_hora:
+        # A API responde 200 com a série vazia quando não há dado suficiente —
+        # conta pequena, ou a métrica descontinuada devolvendo casca vazia.
+        print(
+            "a API respondeu sem dados de seguidores online. Acontece com conta "
+            "abaixo do mínimo de seguidores que a Meta exige para essa métrica, e "
+            "com contas onde ela já foi descontinuada. O histórico dos próprios "
+            "posts continua sendo a fonte utilizável."
+        )
+        write_summary(
+            "### Seguidores online por hora\n\n"
+            "A API respondeu sem dados. Use o histórico dos posts.\n"
+        )
         return EXIT_NOTHING
 
-    por_hora = audiencia.por_hora_local(serie, offset=args.utc_offset)
     pico = max(por_hora.values()) or 1
     linhas = ["| hora | seguidores online (mediana) |", "|---|---|"]
     print(f"{len(serie)} dias de dados | fuso UTC{args.utc_offset:+d}\n")
@@ -272,8 +283,12 @@ def cmd_inbox(args: argparse.Namespace) -> int:
 
     for arquivo in novos:
         nome = inbox_mod.media_filename(arquivo)
+        destino = os.path.join(destino_midia, nome)
         try:
-            drive.download(token, arquivo, os.path.join(destino_midia, nome))
+            drive.download(token, arquivo, destino)
+            if arquivo.precisa_converter:
+                drive.converter_para_jpeg(destino)
+                print(f"  convertido para JPEG: {arquivo.name}")
         except drive.DriveError as exc:
             falhas.append((arquivo.name, str(exc)))
             continue

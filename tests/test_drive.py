@@ -1,4 +1,5 @@
 """Caixa de entrada do Drive — sem rede e sem SDK nos testes."""
+import importlib.util
 import io
 import json
 import os
@@ -6,7 +7,14 @@ import tempfile
 import unittest
 import urllib.error
 
-from poster.drive import DriveError, DriveFile, download, folder_name, list_files
+from poster.drive import (
+    DriveError,
+    DriveFile,
+    converter_para_jpeg,
+    download,
+    folder_name,
+    list_files,
+)
 
 PASTA = "1V5F60XSyFesdYiwSo_7JCgIV1Jiv22r_"
 
@@ -95,11 +103,22 @@ class TipoDeArquivoTest(unittest.TestCase):
         self.assertTrue(DriveFile("1", "a.jpg", "image/jpeg").publicavel)
         self.assertTrue(DriveFile("2", "b.mp4", "video/mp4").publicavel)
 
-    def test_png_e_recusado_com_instrucao(self):
-        png = DriveFile("3", "c.png", "image/png")
+    def test_png_e_webp_sao_convertidos_em_vez_de_recusados(self):
+        """Exigir reexportação é fricção recorrente por um problema de uma linha."""
+        for mime in ("image/png", "image/webp"):
+            with self.subTest(mime=mime):
+                arquivo = DriveFile("3", "c.png", mime)
 
-        self.assertFalse(png.publicavel)
-        self.assertIn("JPEG", png.motivo_recusa)
+                self.assertTrue(arquivo.publicavel)
+                self.assertTrue(arquivo.precisa_converter)
+                self.assertEqual(arquivo.extension, ".jpg")
+                self.assertEqual(arquivo.motivo_recusa, "")
+
+    def test_webp_disfarcado_de_jpg_e_detectado_pelo_mime(self):
+        """Imagem salva da web chega com nome .jpg e conteúdo WebP."""
+        disfarcado = DriveFile("4", "IMG_20260915_134401_009.jpg", "image/webp")
+
+        self.assertTrue(disfarcado.precisa_converter)
 
     def test_pdf_e_recusado(self):
         pdf = DriveFile("4", "tabela.pdf", "application/pdf")
@@ -176,3 +195,48 @@ class FolderNameTest(unittest.TestCase):
             folder_name("TOKEN", PASTA, opener=opener_erro(404))
 
         self.assertIn("compartilhada", str(ctx.exception))
+
+
+class ConversaoTest(unittest.TestCase):
+    def setUp(self):
+        if importlib.util.find_spec("PIL") is None:
+            self.skipTest("Pillow não instalado")
+        self.dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.dir.cleanup)
+
+    def caminho(self, nome):
+        return os.path.join(self.dir.name, nome)
+
+    def test_webp_vira_jpeg(self):
+        from PIL import Image
+
+        origem = self.caminho("foto.jpg")  # nome mente, conteúdo é WebP
+        Image.new("RGB", (40, 40), (10, 120, 200)).save(origem, "WEBP")
+
+        converter_para_jpeg(origem)
+
+        with Image.open(origem) as imagem:
+            self.assertEqual(imagem.format, "JPEG")
+
+    def test_png_com_transparencia_vira_fundo_branco(self):
+        """JPEG não tem alfa; branco é o padrão sensato para foto de produto."""
+        from PIL import Image
+
+        origem = self.caminho("logo.png")
+        Image.new("RGBA", (20, 20), (255, 0, 0, 0)).save(origem, "PNG")
+
+        converter_para_jpeg(origem)
+
+        with Image.open(origem) as imagem:
+            self.assertEqual(imagem.format, "JPEG")
+            self.assertEqual(imagem.convert("RGB").getpixel((5, 5)), (255, 255, 255))
+
+    def test_arquivo_corrompido_vira_erro_com_nome(self):
+        origem = self.caminho("quebrada.png")
+        with open(origem, "wb") as handle:
+            handle.write(b"isto nao e uma imagem")
+
+        with self.assertRaises(DriveError) as ctx:
+            converter_para_jpeg(origem)
+
+        self.assertIn("quebrada.png", str(ctx.exception))

@@ -27,11 +27,15 @@ SCOPE_READONLY = "https://www.googleapis.com/auth/drive.readonly"
 # isso é ignorado aqui em vez de falhar lá na publicação.
 EXTENSIONS = {
     "image/jpeg": ".jpg",
-    "image/png": ".png",  # avisado na listagem: precisa virar JPEG antes
     "video/mp4": ".mp4",
     "video/quicktime": ".mov",
 }
 PUBLICAVEL = {"image/jpeg", "video/mp4", "video/quicktime"}
+# A API só aceita JPEG para imagem, mas exigir isso de quem sobe a foto é
+# fricção recorrente por um problema de uma linha: PNG e WebP são convertidos na
+# importação. WebP aparece bastante disfarçado de .jpg — imagem salva da web ou
+# do WhatsApp —, e é por isso que o tipo vem do mime, nunca do nome.
+CONVERSIVEIS = {"image/png", "image/webp"}
 
 
 class DriveError(RuntimeError):
@@ -53,12 +57,18 @@ class DriveFile:
     duration_ms: int = 0
 
     @property
+    def precisa_converter(self) -> bool:
+        return self.mime_type in CONVERSIVEIS
+
+    @property
     def extension(self) -> str:
+        if self.precisa_converter:
+            return ".jpg"
         return EXTENSIONS.get(self.mime_type, os.path.splitext(self.name)[1].lower())
 
     @property
     def publicavel(self) -> bool:
-        return self.mime_type in PUBLICAVEL
+        return self.mime_type in PUBLICAVEL or self.precisa_converter
 
     @property
     def duration_s(self) -> float:
@@ -71,8 +81,6 @@ class DriveFile:
     @property
     def motivo_recusa(self) -> str:
         if not self.publicavel:
-            if self.mime_type == "image/png":
-                return "PNG — a API do Instagram só aceita JPEG; exporte como JPEG"
             return f"tipo {self.mime_type} não publicável no Instagram"
         if not self.cabe_em_story:
             return (
@@ -243,3 +251,31 @@ def download(
     finally:
         if os.path.exists(parcial):
             os.remove(parcial)
+
+
+def converter_para_jpeg(caminho: str) -> None:
+    """Converte PNG/WebP para JPEG no lugar, porque a API não aceita os outros.
+
+    Transparência vira fundo branco: JPEG não tem canal alfa, e branco é o padrão
+    sensato para foto de produto — o alternativo seria preto.
+    """
+    try:
+        from PIL import Image
+    except ImportError as exc:  # pragma: no cover - ambiente sem Pillow
+        raise DriveError(
+            "Pillow não instalado — necessário para converter PNG/WebP em JPEG "
+            "(pip install -r requirements.txt)"
+        ) from exc
+
+    try:
+        with Image.open(caminho) as imagem:
+            if imagem.mode in ("RGBA", "LA", "P"):
+                com_alfa = imagem.convert("RGBA")
+                fundo = Image.new("RGB", com_alfa.size, (255, 255, 255))
+                fundo.paste(com_alfa, mask=com_alfa.split()[-1])
+                final = fundo
+            else:
+                final = imagem.convert("RGB")
+            final.save(caminho, "JPEG", quality=90, optimize=True)
+    except OSError as exc:
+        raise DriveError(f"não consegui converter '{os.path.basename(caminho)}': {exc}") from exc

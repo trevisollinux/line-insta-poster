@@ -24,6 +24,7 @@ from poster.inbox import (
 FOTO = DriveFile("abc123def", "Satchel Conhaque.jpg", "image/jpeg", 2048)
 VIDEO = DriveFile("vid456ghi", "tour bolsa.mp4", "video/mp4", 4096)
 PNG = DriveFile("png789jkl", "necessaire.png", "image/png", 1024)
+PDF = DriveFile("pdf000xyz", "tabela.pdf", "application/pdf", 512)
 
 
 class TriagemTest(unittest.TestCase):
@@ -46,11 +47,17 @@ class TriagemTest(unittest.TestCase):
     def test_separa_novo_repetido_e_recusado(self):
         ja = {"abc123def": Imported("abc123def", "Satchel Conhaque.jpg", "p", "u", "t")}
 
-        novos, repetidos, recusados = triagem([FOTO, VIDEO, PNG], ja)
+        novos, repetidos, recusados = triagem([FOTO, VIDEO, PDF], ja)
 
         self.assertEqual([a.id for a in novos], ["vid456ghi"])
         self.assertEqual([a.id for a in repetidos], ["abc123def"])
-        self.assertEqual([a.id for a in recusados], ["png789jkl"])
+        self.assertEqual([a.id for a in recusados], ["pdf000xyz"])
+
+    def test_png_entra_como_novo_porque_sera_convertido(self):
+        novos, _, recusados = triagem([PNG], {})
+
+        self.assertEqual([a.id for a in novos], ["png789jkl"])
+        self.assertEqual(recusados, [])
 
     def test_pasta_vazia(self):
         self.assertEqual(triagem([], {}), ([], [], []))
@@ -182,11 +189,17 @@ class ReportTest(unittest.TestCase):
         self.assertIn("Satchel Conhaque.jpg", texto)
         self.assertIn("https://cdn/a.jpg", texto)
 
-    def test_explica_o_png_recusado(self):
-        texto = report_markdown([], [PNG], [], [])
+    def test_explica_o_formato_recusado(self):
+        texto = report_markdown([], [PDF], [], [])
 
-        self.assertIn("necessaire.png", texto)
-        self.assertIn("JPEG", texto)
+        self.assertIn("tabela.pdf", texto)
+        self.assertIn("não publicável", texto)
+
+    def test_avisa_que_publica_sozinho(self):
+        texto = report_markdown([(FOTO, "https://cdn/a.jpg")], [], [], [])
+
+        self.assertIn("publicam sozinhas", texto)
+        self.assertNotIn("queue/drafts.yaml", texto)
 
     def test_pasta_sem_novidade(self):
         self.assertIn("Nenhuma mídia nova", report_markdown([], [], [], []))
