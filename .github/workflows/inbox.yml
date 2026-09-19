@@ -32,6 +32,15 @@ jobs:
         env:
           GH_MEDIA_TOKEN: ${{ secrets.GH_MEDIA_TOKEN }}
         run: |
+          # Secret ausente e token inválido dão o mesmo erro do git ("Invalid
+          # username or token"), e a correção de cada um é em lugar diferente.
+          if [ -z "${GH_MEDIA_TOKEN}" ]; then
+            echo "::error::O secret GH_MEDIA_TOKEN não existe (ou está vazio) em"
+            echo "${GITHUB_REPOSITORY}. Ele precisa estar NESTE repositório, o do"
+            echo "código — é aqui que o workflow roda. Criar o PAT não basta:"
+            echo "Settings → Secrets and variables → Actions → New repository secret."
+            exit 1
+          fi
           git clone --depth 1 \
             "https://x-access-token:${GH_MEDIA_TOKEN}@github.com/${MEDIA_REPO}.git" \
             "$RUNNER_TEMP/media"
