@@ -9,6 +9,7 @@
 | Renovar token | dia 1, 6h BRT | renova o long-lived token e regrava o secret |
 | Curadoria do acervo | dia 1, 8h BRT | ranqueia o acervo e abre PR com candidatos |
 | Capturar métricas dos stories | de hora em hora | lê os stories no ar e grava em `state/stories_metrics.csv` e `state/stories_curva.csv` |
+| Vigia dos stories | de hora em hora | abre issue quando o dia passou sem o story esperado |
 | Testes | push e PR | suíte + validação da fila versionada |
 
 Códigos de saída da CLI: `0` sucesso, `1` falha (com alerta), `2` nada a fazer.
@@ -44,6 +45,28 @@ A coluna `posicao_dia` é calculada na gravação, não vem da API. Ela é o dad
 mais explicou o alcance até agora — o 2º story do dia rende consistentemente
 menos que o 1º —, e recalcular tudo a cada gravação faz o arquivo se corrigir
 sozinho se uma captura chegar fora de ordem.
+
+## Quando nada acontece
+
+Falha manda e-mail; ausência não. Run que nasce morto (`startup failure`) não
+tem job, não tem log e não notifica ninguém — foi assim que o cron de stories
+ficou quebrado sem que ninguém percebesse. Cron que não dispara não deixa nem
+isso.
+
+O **Vigia dos stories** cobre esse ponto cego. Ele não observa execuções: lê os
+horários do próprio `publicar-stories-auto.yml`, conta quantos já venceram hoje
+(com 45 min de tolerância, porque o cron do GitHub atrasa por rotina) e compara
+com o que está em `state/published.json`. Faltando algum, abre uma issue — que
+chega por e-mail. O título carrega a data, então 24 execuções por dia dão no
+máximo uma issue.
+
+Ele lê a agenda em vez de repetir os horários porque agenda duplicada sai de
+sincronia: o vigia passaria a cobrar um horário que ninguém mais usa, e faria
+isso em silêncio — exatamente o defeito que ele existe para pegar.
+
+Mora num workflow separado do coletor de métricas de propósito. Se morasse
+junto, um problema no coletor derrubaria justamente quem deveria perceber que
+algo parou.
 
 ## Quando falha
 

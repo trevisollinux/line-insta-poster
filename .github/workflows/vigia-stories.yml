@@ -1,0 +1,83 @@
+name: Vigia dos stories
+
+# Avisa quando o dia passou sem o story esperado.
+#
+# O GitHub já manda e-mail quando um job falha. O que ele não notifica é o job
+# que não aconteceu: run que nasce morto (`startup failure`) não tem job, não
+# tem log e não gera e-mail, e cron que não dispara não deixa rastro nenhum.
+# Nos dois casos o silêncio é idêntico ao de um dia sem nada agendado.
+#
+# Por isso este workflow não observa execuções — ele compara o que o dia
+# deveria ter publicado com o que está em state/published.json. Essa conta
+# funciona mesmo quando o workflow de publicação não chegou a existir.
+#
+# É um arquivo separado do coletor de métricas de propósito: se o vigia morasse
+# dentro dele, um problema no coletor levaria junto justamente quem deveria
+# perceber que algo parou.
+#
+# De hora em hora, e não uma vez por dia, porque avisar às 18h45 ainda dá tempo
+# de publicar à noite; avisar às 23h só informa que o dia foi perdido.
+
+on:
+  schedule:
+    - cron: '30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: instagram-vigia
+  cancel-in-progress: false
+
+jobs:
+  conferir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Instalar dependências
+        run: pip install --quiet -r requirements.txt
+
+      - name: Conferir
+        id: conferir
+        run: |
+          set +e
+          python -m poster.cli watch-stories \
+            --report "$RUNNER_TEMP/vigia.md" \
+            --title-file "$RUNNER_TEMP/vigia-titulo.txt"
+          codigo=$?
+          echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
+          # 2 = nada faltando, que é o resultado esperado na maioria das horas.
+          if [ "$codigo" = "2" ]; then exit 0; fi
+          exit $codigo
+
+      - name: Abrir issue (e-mail)
+        if: steps.conferir.outputs.codigo == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          titulo=$(cat "$RUNNER_TEMP/vigia-titulo.txt")
+
+          # O vigia roda de hora em hora; sem esta checagem, um dia ruim viraria
+          # uma dúzia de e-mails do mesmo problema. O título carrega a data, o
+          # que dá exatamente uma issue por dia.
+          existentes=$(gh issue list \
+            --state open \
+            --search "$titulo in:title" \
+            --json number --jq 'length')
+          if [ "$existentes" != "0" ]; then
+            echo "issue de hoje já está aberta — nada a fazer"
+            exit 0
+          fi
+
+          gh issue create \
+            --title "$titulo" \
+            --body-file "$RUNNER_TEMP/vigia.md"

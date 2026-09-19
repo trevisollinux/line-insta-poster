@@ -7,6 +7,7 @@ Comandos
   refresh-token  renova o long-lived token e (opcional) grava no secret do repo
   curate         coleta o acervo, ranqueia e escreve queue/candidates.yaml
   story-metrics  captura as métricas dos stories no ar antes de expirarem
+  watch-stories  avisa quando o dia passou sem o story esperado
 
 Códigos de saída: 0 sucesso, 1 falha (com alerta), 2 nada a fazer.
 """
@@ -27,6 +28,7 @@ from . import (
     queue_file,
     rehost as rehost_mod,
     state,
+    vigia,
 )
 from .alerts import alert, write_summary
 from .config import PublishConfig, env_str
@@ -319,6 +321,42 @@ def cmd_story_metrics(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_watch_stories(args: argparse.Namespace) -> int:
+    """Compara os stories que o dia deveria ter com os que saíram.
+
+    Não falha o job quando encontra um buraco: quem avisa é a issue. Job
+    vermelho aqui confundiria "o vigia quebrou" com "a publicação faltou", que
+    são problemas diferentes e com donos diferentes.
+    """
+    publicados = state.load_state(args.state)
+    diagnostico = vigia.avaliar(
+        publicados,
+        caminho_workflow=args.workflow,
+        offset=args.utc_offset,
+        tolerancia_min=args.tolerancia,
+    )
+
+    print(
+        f"{diagnostico.agora:%d/%m %H:%M} | esperados {diagnostico.esperados} | "
+        f"publicados {diagnostico.publicados}"
+    )
+    if diagnostico.ok:
+        print("nada faltando")
+        return EXIT_NOTHING
+
+    corpo = vigia.relatorio_markdown(diagnostico)
+    print(corpo)
+    write_summary(f"### ⚠️ {vigia.titulo(diagnostico)}\n\n{corpo}")
+    if args.report:
+        os.makedirs(os.path.dirname(args.report) or ".", exist_ok=True)
+        with open(args.report, "w", encoding="utf-8") as handle:
+            handle.write(corpo)
+    if args.title_file:
+        with open(args.title_file, "w", encoding="utf-8") as handle:
+            handle.write(vigia.titulo(diagnostico))
+    return EXIT_OK
+
+
 def cmd_inbox(args: argparse.Namespace) -> int:
     """Importa o que a curadoria humana largou na pasta do Drive."""
     webhook = env_str("IG_ALERT_WEBHOOK")
@@ -597,6 +635,17 @@ def build_parser() -> argparse.ArgumentParser:
     story_metrics.add_argument("--metric", default="views", help="métrica do resumo")
     story_metrics.add_argument("--report", default="", help="resumo markdown neste caminho")
     story_metrics.set_defaults(func=cmd_story_metrics)
+
+    watch = sub.add_parser(
+        "watch-stories", help="avisa quando o dia passou sem o story esperado"
+    )
+    watch.add_argument("--state", default=state.STATE_PATH)
+    watch.add_argument("--workflow", default=vigia.WORKFLOW_PATH)
+    watch.add_argument("--utc-offset", type=int, default=vigia.BRT_OFFSET)
+    watch.add_argument("--tolerancia", type=int, default=vigia.TOLERANCIA_MIN)
+    watch.add_argument("--report", default="", help="corpo da issue neste caminho")
+    watch.add_argument("--title-file", default="", help="título da issue neste caminho")
+    watch.set_defaults(func=cmd_watch_stories)
 
     inbox = sub.add_parser("inbox", help="importa fotos novas da pasta do Drive")
     inbox.add_argument("--folder-id", default="", help="pasta do Drive (ou GDRIVE_FOLDER_ID)")
