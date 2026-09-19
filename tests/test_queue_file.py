@@ -17,6 +17,30 @@ class QueueValidationTest(unittest.TestCase):
         self.assertEqual(parsed.repeat_after_days, 30)
         self.assertTrue(parsed.reviewed_price)
 
+    def test_stories_dispensa_reviewed_price(self):
+        """A flag protege preço na legenda, e STORIES não tem legenda."""
+        payload = item(media_type="STORIES", caption="")
+        payload.pop("reviewed_price")
+
+        [parsed] = parse_queue([payload])
+
+        self.assertEqual(parsed.media_type, "STORIES")
+        self.assertFalse(parsed.reviewed_price)
+
+    def test_formatos_com_legenda_continuam_exigindo(self):
+        for formato, extra in (
+            ("IMAGE", {}),
+            ("REELS", {"url": "https://media.example/v.mp4"}),
+        ):
+            with self.subTest(formato=formato):
+                payload = item(media_type=formato, **extra)
+                payload.pop("reviewed_price")
+
+                with self.assertRaises(QueueError) as ctx:
+                    parse_queue([payload])
+
+                self.assertIn("reviewed_price", str(ctx.exception))
+
     def test_sem_reviewed_price_a_fila_inteira_falha(self):
         with self.assertRaises(QueueError) as ctx:
             parse_queue([item(reviewed_price=False)])

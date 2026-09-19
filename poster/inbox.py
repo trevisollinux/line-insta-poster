@@ -23,18 +23,20 @@ from .drive import DriveFile
 from .rehost import public_url
 
 IMPORTED_PATH = os.path.join(REPO_ROOT, "state", "inbox.json")
-DRAFTS_PATH = os.path.join(REPO_ROOT, "queue", "drafts.yaml")
+DRAFTS_PATH = os.path.join(REPO_ROOT, "queue", "stories.yaml")
 MEDIA_SUBDIR = "inbox"
 
-DRAFTS_HEADER = """# Rascunhos vindos da pasta do Drive — NÃO é a fila.
+DRAFTS_HEADER = """# Stories vindos da pasta do Drive — esta fila PUBLICA sozinha.
 #
-# Cada item nasce com reviewed_price: false e por isso não pode ser publicado:
-# a validação recusa. Para colocar no ar, mova para queue/posts.yaml depois de:
-#   1. escrever a legenda (STORIES não aceita legenda);
-#   2. conferir o preço da peça;
-#   3. marcar reviewed_price: true.
+# Um item por execução, sem repetir: o que já saiu fica em state/published.json.
+# Story não leva legenda (a API não aceita), some em 24h, e por isso não exige
+# reviewed_price — aquela flag protege preço na legenda, e aqui não há legenda.
 #
-# `url` já aponta para a mídia no repositório line-store-media.
+# O que ela NÃO protege: preço queimado dentro da imagem. Se algo sair errado,
+# apague o story pelo app; ele dura 24h.
+#
+# Para mandar uma destas mídias ao feed, copie o item para queue/posts.yaml,
+# troque media_type, escreva a legenda e marque reviewed_price: true.
 """
 
 
@@ -101,7 +103,7 @@ def triagem(
     for arquivo in arquivos:
         if arquivo.id in ja_importados:
             repetidos.append(arquivo)
-        elif not arquivo.publicavel:
+        elif arquivo.motivo_recusa:
             recusados.append(arquivo)
         else:
             novos.append(arquivo)
@@ -109,13 +111,11 @@ def triagem(
 
 
 def draft(arquivo: DriveFile, url: str) -> dict:
-    """Item de fila pré-preenchido, faltando o que só pessoa decide."""
+    """Item de story pronto para publicar — um por execução, sem repetir."""
     return {
         "id": os.path.splitext(os.path.basename(url))[0],
-        "media_type": "REELS" if arquivo.mime_type.startswith("video/") else "IMAGE",
+        "media_type": "STORIES",
         "url": url,
-        "caption": "",  # escrever antes de publicar
-        "reviewed_price": False,  # trava proposital
         "origem": f"Drive: {arquivo.name}",
     }
 

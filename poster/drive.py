@@ -38,6 +38,11 @@ class DriveError(RuntimeError):
     """Falha ao falar com o Drive — nada foi importado."""
 
 
+# Story aceita vídeo de até 60s. Acima disso a Meta recusa, e é melhor barrar
+# aqui do que descobrir no container.
+STORY_MAX_SECONDS = 60
+
+
 @dataclass(frozen=True)
 class DriveFile:
     id: str
@@ -45,6 +50,7 @@ class DriveFile:
     mime_type: str
     size: int = 0
     modified: str = ""
+    duration_ms: int = 0
 
     @property
     def extension(self) -> str:
@@ -55,12 +61,25 @@ class DriveFile:
         return self.mime_type in PUBLICAVEL
 
     @property
+    def duration_s(self) -> float:
+        return self.duration_ms / 1000 if self.duration_ms else 0.0
+
+    @property
+    def cabe_em_story(self) -> bool:
+        return not self.duration_ms or self.duration_s <= STORY_MAX_SECONDS
+
+    @property
     def motivo_recusa(self) -> str:
-        if self.publicavel:
-            return ""
-        if self.mime_type == "image/png":
-            return "PNG — a API do Instagram só aceita JPEG; exporte como JPEG"
-        return f"tipo {self.mime_type} não publicável no Instagram"
+        if not self.publicavel:
+            if self.mime_type == "image/png":
+                return "PNG — a API do Instagram só aceita JPEG; exporte como JPEG"
+            return f"tipo {self.mime_type} não publicável no Instagram"
+        if not self.cabe_em_story:
+            return (
+                f"vídeo de {self.duration_s:.0f}s — story aceita até "
+                f"{STORY_MAX_SECONDS}s; corte antes de subir"
+            )
+        return ""
 
 
 def access_token(service_account_json: str, *, scope: str = SCOPE_READONLY) -> str:
@@ -157,7 +176,10 @@ def list_files(
     while True:
         params = {
             "q": f"'{folder_id}' in parents and trashed = false",
-            "fields": "nextPageToken,files(id,name,mimeType,size,modifiedTime)",
+            "fields": (
+                "nextPageToken,files(id,name,mimeType,size,modifiedTime,"
+                "videoMediaMetadata(durationMillis))"
+            ),
             "orderBy": "modifiedTime desc",
             "pageSize": str(page_size),
             "supportsAllDrives": "true",
@@ -176,6 +198,9 @@ def list_files(
                     mime_type=str(linha.get("mimeType") or ""),
                     size=int(linha.get("size") or 0),
                     modified=str(linha.get("modifiedTime") or ""),
+                    duration_ms=int(
+                        (linha.get("videoMediaMetadata") or {}).get("durationMillis") or 0
+                    ),
                 )
             )
         pagina = payload.get("nextPageToken")

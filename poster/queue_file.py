@@ -121,8 +121,12 @@ def _parse_item(entry: dict[str, Any], label: str) -> QueueItem:
         problems.append("STORIES não aceita caption")
     problems.extend(_caption_problems(caption))
 
+    # A flag existe para impedir preço velho **na legenda**. STORIES não tem
+    # legenda, então exigi-la ali seria burocracia sem proteção. O risco que
+    # sobra — preço queimado dentro da imagem — nenhuma validação alcança.
     reviewed_price = entry.get("reviewed_price")
-    if reviewed_price is not True:
+    exige_preco = media_type in CAPTIONED_TYPES
+    if exige_preco and reviewed_price is not True:
         problems.append(
             "reviewed_price precisa ser true — preço do post tem de ser conferido "
             "à mão antes de publicar"
@@ -146,7 +150,7 @@ def _parse_item(entry: dict[str, Any], label: str) -> QueueItem:
         media_type=media_type,
         urls=tuple(urls),
         caption=caption,
-        reviewed_price=True,
+        reviewed_price=reviewed_price is True,
         weight=weight,
         cover_url=cover_url,
         share_to_feed=bool(entry.get("share_to_feed", True)),

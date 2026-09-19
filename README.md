@@ -88,6 +88,24 @@ python -m poster.cli rehost --media-id X   # baixa a mídia de um post para medi
 
 Pelo celular: aba **Actions** → *Publicar no Instagram* → *Run workflow*.
 
+## Duas filas, dois níveis de confiança
+
+| Fila | O que entra | Publica |
+|---|---|---|
+| `queue/posts.yaml` | feed, Reels, carrossel | só com `reviewed_price: true` e legenda escrita |
+| `queue/stories.yaml` | fotos da pasta do Drive | **sozinha**, um story por execução |
+
+A diferença não é rigor a mais ou a menos: é o que cada formato carrega. A flag
+`reviewed_price` existe para impedir preço velho **na legenda**, e story não tem
+legenda — a API nem aceita o campo. Exigir a conferência ali seria burocracia
+sem proteção.
+
+O que isso **não** cobre: preço queimado dentro da imagem. Nenhuma validação
+alcança pixel. Story dura 24h e dá para apagar pelo app.
+
+Para mandar uma foto do Drive ao feed, copie o item para `queue/posts.yaml`,
+troque o `media_type`, escreva a legenda e marque `reviewed_price: true`.
+
 ## Formato da fila
 
 ```yaml

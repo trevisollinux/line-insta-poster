@@ -72,7 +72,9 @@ jobs:
           IG_SELECTION: ${{ inputs.selection || 'weighted' }}
         run: |
           set +e
-          python -m poster.cli publish --media-type "${{ inputs.media_type || '' }}"
+          python -m poster.cli publish \
+            --media-type "${{ inputs.media_type || '' }}" \
+            --queue "${{ inputs.queue || 'queue/posts.yaml' }}"
           codigo=$?
           echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
           # 2 = fila sem item elegível: é aviso, não falha do job.

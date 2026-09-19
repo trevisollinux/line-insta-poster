@@ -1,0 +1,34 @@
+name: Publicar Stories (automático)
+
+# Publica um story por execução da fila que vem do Drive, sem aprovação.
+#
+# Por que esta fila dispensa a conferência de preço: story não leva legenda (a
+# API não aceita), e a flag reviewed_price existe para barrar preço velho na
+# legenda. O que ela não cobre — preço queimado dentro da imagem — nenhuma
+# validação cobre; story dura 24h e dá para apagar pelo app.
+#
+# Feed e Reels continuam exigindo aprovação, em queue/posts.yaml.
+
+on:
+  schedule:
+    - cron: '0 14 * * *'   # 11h no horário de Brasília
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'escolher o item sem publicar'
+        type: choice
+        options: ['false', 'true']
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
+    with:
+      media_type: STORIES
+      queue: queue/stories.yaml
+      selection: order
+      dry_run: ${{ inputs.dry_run || 'false' }}

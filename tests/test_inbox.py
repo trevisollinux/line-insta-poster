@@ -27,6 +27,22 @@ PNG = DriveFile("png789jkl", "necessaire.png", "image/png", 1024)
 
 
 class TriagemTest(unittest.TestCase):
+    def test_video_longo_demais_para_story_e_recusado(self):
+        longo = DriveFile("vlong", "tour.mp4", "video/mp4", 9999, duration_ms=95000)
+
+        novos, _, recusados = triagem([longo], {})
+
+        self.assertEqual(novos, [])
+        self.assertIn("60s", recusados[0].motivo_recusa)
+
+    def test_video_curto_passa(self):
+        curto = DriveFile("vcurto", "clipe.mp4", "video/mp4", 9999, duration_ms=12000)
+
+        novos, _, recusados = triagem([curto], {})
+
+        self.assertEqual([a.id for a in novos], ["vcurto"])
+        self.assertEqual(recusados, [])
+
     def test_separa_novo_repetido_e_recusado(self):
         ja = {"abc123def": Imported("abc123def", "Satchel Conhaque.jpg", "p", "u", "t")}
 
@@ -73,25 +89,37 @@ class NomeDeArquivoTest(unittest.TestCase):
 
 
 class DraftTest(unittest.TestCase):
-    def test_rascunho_nasce_travado(self):
+    def test_tudo_vira_story(self):
+        """Story não leva legenda, e é o formato que publica sem aprovação."""
+        self.assertEqual(draft(FOTO, "https://cdn/x.jpg")["media_type"], "STORIES")
+        self.assertEqual(draft(VIDEO, "https://cdn/x.mp4")["media_type"], "STORIES")
+
+    def test_nao_carrega_legenda_nem_flag_de_preco(self):
         item = draft(FOTO, "https://cdn/x.jpg")
 
-        self.assertFalse(item["reviewed_price"], "rascunho não pode ir ao ar sozinho")
-        self.assertEqual(item["caption"], "", "legenda é decisão humana")
-
-    def test_video_vira_reels_e_foto_vira_image(self):
-        self.assertEqual(draft(VIDEO, "https://cdn/x.mp4")["media_type"], "REELS")
-        self.assertEqual(draft(FOTO, "https://cdn/x.jpg")["media_type"], "IMAGE")
+        self.assertNotIn("caption", item)
+        self.assertNotIn("reviewed_price", item)
 
     def test_guarda_de_onde_veio(self):
         self.assertIn("Satchel Conhaque.jpg", draft(FOTO, "https://cdn/x.jpg")["origem"])
 
-    def test_rascunho_e_recusado_pela_validacao_da_fila(self):
-        """A trava não é decorativa: a fila recusa mesmo."""
+    def test_item_gerado_e_publicavel(self):
+        """O que o inbox escreve tem de passar na validação da fila."""
+        from poster.queue_file import parse_queue
+
+        [parsed] = parse_queue([draft(FOTO, "https://cdn.example/x.jpg")])
+
+        self.assertEqual(parsed.media_type, "STORIES")
+
+    def test_item_de_story_nao_entra_no_feed_sem_aprovacao(self):
+        """Mudar o formato para IMAGE reativa a exigência de preço."""
         from poster.queue_file import QueueError, parse_queue
 
+        item = draft(FOTO, "https://cdn.example/x.jpg")
+        item["media_type"] = "IMAGE"
+
         with self.assertRaises(QueueError) as ctx:
-            parse_queue([draft(FOTO, "https://cdn.example/x.jpg")])
+            parse_queue([item])
 
         self.assertIn("reviewed_price", str(ctx.exception))
 
@@ -115,8 +143,9 @@ class ArquivosTest(unittest.TestCase):
     def test_estado_ausente_vira_vazio(self):
         self.assertEqual(load_imported(os.path.join(self.dir.name, "nao_existe.json")), {})
 
-    def test_rascunhos_anteriores_sobrevivem(self):
-        caminho = os.path.join(self.dir.name, "drafts.yaml")
+    def test_itens_anteriores_sobrevivem(self):
+        """Foto ainda não publicada não pode sumir na importação seguinte."""
+        caminho = os.path.join(self.dir.name, "stories.yaml")
         write_drafts([draft(FOTO, "https://cdn/a.jpg")], caminho)
 
         anteriores = load_drafts(caminho)
@@ -124,13 +153,15 @@ class ArquivosTest(unittest.TestCase):
 
         self.assertEqual(len(load_drafts(caminho)), 2)
 
-    def test_arquivo_de_rascunhos_avisa_que_nao_e_a_fila(self):
-        caminho = os.path.join(self.dir.name, "drafts.yaml")
+    def test_arquivo_avisa_que_publica_sozinho(self):
+        """Quem abrir o arquivo precisa entender o que ele faz sem perguntar."""
+        caminho = os.path.join(self.dir.name, "stories.yaml")
         write_drafts([draft(FOTO, "https://cdn/a.jpg")], caminho)
 
         with open(caminho, encoding="utf-8") as handle:
             conteudo = handle.read()
-        self.assertIn("NÃO é a fila", conteudo)
+        self.assertIn("PUBLICA sozinha", conteudo)
+        self.assertIn("sem repetir", conteudo)
         self.assertEqual(len(yaml.safe_load(conteudo)), 1)
 
 
