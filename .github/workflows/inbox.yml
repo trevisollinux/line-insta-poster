@@ -36,19 +36,58 @@ jobs:
             "https://x-access-token:${GH_MEDIA_TOKEN}@github.com/${MEDIA_REPO}.git" \
             "$RUNNER_TEMP/media"
 
-      - name: Conferir acesso de escrita à mídia
+      - name: Preparar o repositório de mídia
         run: |
-          # Sem isto, credencial errada só apareceria na primeira foto de
-          # verdade — com alguém esperando. O dry-run autentica no remoto e não
-          # escreve nada.
+          # Duas coisas aqui, e a diferença entre elas importa:
+          #
+          # 1. Repositório recém-criado não tem commit nenhum, e sem branch o
+          #    jsDelivr não serve nada — inicializar é requisito, não contorno.
+          # 2. Credencial errada só apareceria na primeira foto de verdade, com
+          #    alguém esperando. Melhor descobrir agora.
           cd "$RUNNER_TEMP/media"
-          if ! git push --dry-run origin HEAD 2>&1; then
-            echo "::error::GH_MEDIA_TOKEN sem permissão de escrita em ${MEDIA_REPO}."
-            echo "Confira: fine-grained PAT, Only select repositories → ${MEDIA_REPO},"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          if git rev-parse HEAD >/dev/null 2>&1; then
+            saida=$(git push --dry-run origin HEAD 2>&1) || {
+              echo "$saida"
+              echo "::error::Não consegui escrever em ${MEDIA_REPO}. Se a mensagem acima"
+              echo "fala em permissão ou 403, confira o GH_MEDIA_TOKEN: fine-grained PAT,"
+              echo "Only select repositories → ${MEDIA_REPO}, Contents: Read and write."
+              exit 1
+            }
+            echo "acesso de escrita confirmado em ${MEDIA_REPO}"
+            exit 0
+          fi
+
+          echo "repositório vazio — inicializando"
+          mkdir -p inbox
+          cat > README.md <<'DOC'
+          # line-store-media
+
+          Mídia servida para a publicação no Instagram, usada por
+          [line-insta-poster](https://github.com/trevisollinux/line-insta-poster).
+
+          Este repositório é **público por necessidade**: quem baixa os arquivos é o
+          servidor da Meta, que não tem credencial nenhuma. Repositório privado
+          simplesmente não funcionaria para isso.
+
+          - `inbox/` — fotos e vídeos vindos da pasta do Drive
+          - As URLs de publicação usam o jsDelivr, que espelha este repositório e
+            serve com o tipo de conteúdo correto (o `raw.githubusercontent.com` não).
+
+          Não edite nada aqui à mão: os arquivos são escritos pelos workflows.
+          DOC
+          touch inbox/.gitkeep
+          git add -A
+          git commit -m 'chore: inicializa o repositório de mídia'
+          git push -u origin HEAD:main || {
+            echo "::error::Não consegui escrever em ${MEDIA_REPO} — confira o"
+            echo "GH_MEDIA_TOKEN: Only select repositories → ${MEDIA_REPO},"
             echo "Repository permissions → Contents: Read and write."
             exit 1
-          fi
-          echo "acesso de escrita confirmado em ${MEDIA_REPO}"
+          }
+          echo "repositório de mídia inicializado e acesso de escrita confirmado"
 
       - uses: actions/setup-python@v5
         with:
