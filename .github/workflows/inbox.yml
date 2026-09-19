@@ -36,6 +36,20 @@ jobs:
             "https://x-access-token:${GH_MEDIA_TOKEN}@github.com/${MEDIA_REPO}.git" \
             "$RUNNER_TEMP/media"
 
+      - name: Conferir acesso de escrita à mídia
+        run: |
+          # Sem isto, credencial errada só apareceria na primeira foto de
+          # verdade — com alguém esperando. O dry-run autentica no remoto e não
+          # escreve nada.
+          cd "$RUNNER_TEMP/media"
+          if ! git push --dry-run origin HEAD 2>&1; then
+            echo "::error::GH_MEDIA_TOKEN sem permissão de escrita em ${MEDIA_REPO}."
+            echo "Confira: fine-grained PAT, Only select repositories → ${MEDIA_REPO},"
+            echo "Repository permissions → Contents: Read and write."
+            exit 1
+          fi
+          echo "acesso de escrita confirmado em ${MEDIA_REPO}"
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
