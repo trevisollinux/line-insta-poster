@@ -26,6 +26,11 @@ on:
         type: choice
         options: ['', 'REELS', 'STORIES', 'CAROUSEL', 'IMAGE']
         default: ''
+      queue:
+        description: 'arquivo de fila'
+        type: choice
+        options: ['queue/posts.yaml', 'queue/stories.yaml']
+        default: 'queue/posts.yaml'
   workflow_call:
     inputs:
       dry_run:
@@ -37,6 +42,9 @@ on:
       media_type:
         type: string
         default: ''
+      queue:
+        type: string
+        default: 'queue/posts.yaml'
 
 permissions:
   contents: write

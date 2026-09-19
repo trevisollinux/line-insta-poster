@@ -5,6 +5,7 @@ fácil não perceber que o cron parou de rodar.
 """
 import glob
 import os
+import re
 import unittest
 
 import yaml
@@ -117,3 +118,83 @@ class CaminhosDeArquivoTest(unittest.TestCase):
 
         orfaos = citados - esperados - {"queue/candidates.yaml"}
         self.assertEqual(orfaos, set(), f"workflow cita caminho que não existe: {orfaos}")
+
+
+def _gatilhos(documento: dict) -> dict:
+    # `on:` vira True em YAML 1.1; o GitHub lê a chave, não o booleano.
+    bruto = documento.get("on", documento.get(True))
+    return bruto if isinstance(bruto, dict) else {}
+
+
+def _carregar(caminho: str) -> dict:
+    with open(caminho, encoding="utf-8") as handle:
+        return yaml.safe_load(handle) or {}
+
+
+def _inputs_declarados(
+    documento: dict, gatilhos: tuple[str, ...] = ("workflow_call", "workflow_dispatch")
+) -> set[str]:
+    """Inputs declarados, por gatilho.
+
+    O padrão une os dois porque o corpo do workflow pode ser alcançado por
+    qualquer um deles. A chamada reutilizável é o caso restrito: o GitHub
+    valida `with:` só contra `workflow_call`, e declarar em `workflow_dispatch`
+    não conta. Foi essa distinção que deixou o bug do `queue` passar.
+    """
+    declarados: set[str] = set()
+    for gatilho in gatilhos:
+        config = _gatilhos(documento).get(gatilho)
+        if isinstance(config, dict):
+            declarados |= set(config.get("inputs") or {})
+    return declarados
+
+
+class ContratoDeInputsTest(unittest.TestCase):
+    """Chamar um workflow reutilizável com input que ele não declara mata o run.
+
+    Foi exatamente o que aconteceu com `queue`: publish.yml usava
+    `inputs.queue` sem nunca tê-lo declarado, e o cron de stories nasceu morto
+    todos os dias — sem job, sem log, sem e-mail de falha. Testar YAML válido
+    não pegava, porque o YAML estava válido.
+    """
+
+    def test_todo_input_passado_existe_no_workflow_chamado(self):
+        for caminho in WORKFLOWS:
+            documento = _carregar(caminho)
+            for nome_job, job in (documento.get("jobs") or {}).items():
+                usa = str(job.get("uses") or "")
+                if not usa.startswith("./"):
+                    continue
+                alvo = os.path.join(RAIZ, usa.removeprefix("./").split("@")[0])
+                with self.subTest(workflow=os.path.basename(caminho), job=nome_job):
+                    self.assertTrue(os.path.exists(alvo), f"{usa} não existe")
+                    declarados = _inputs_declarados(
+                        _carregar(alvo), gatilhos=("workflow_call",)
+                    )
+                    passados = set((job.get("with") or {}))
+                    sobrando = passados - declarados
+                    self.assertEqual(
+                        sobrando,
+                        set(),
+                        f"{os.path.basename(caminho)} passa {sorted(sobrando)} para "
+                        f"{usa}, que não declara esse input — o run nasce morto",
+                    )
+
+    def test_todo_input_referenciado_no_corpo_esta_declarado(self):
+        # A outra ponta do mesmo erro: usar `inputs.x` sem declarar x faz o
+        # valor chegar vazio e o workflow rodar com o padrão errado, calado.
+        padrao = re.compile(r"inputs\.([A-Za-z_][A-Za-z0-9_-]*)")
+        for caminho in WORKFLOWS:
+            with open(caminho, encoding="utf-8") as handle:
+                referenciados = set(padrao.findall(handle.read()))
+            if not referenciados:
+                continue
+            documento = _carregar(caminho)
+            with self.subTest(workflow=os.path.basename(caminho)):
+                faltando = referenciados - _inputs_declarados(documento)
+                self.assertEqual(
+                    faltando,
+                    set(),
+                    f"{os.path.basename(caminho)} usa inputs.{sorted(faltando)} "
+                    "sem declarar",
+                )
