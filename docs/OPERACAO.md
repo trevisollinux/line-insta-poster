@@ -5,6 +5,7 @@
 | Workflow | Quando | O que faz |
 |---|---|---|
 | Publicar no Instagram | diário, 10h BRT | publica um item e commita o estado |
+| Publicar Stories (automático) | diário, 18h e 21h BRT | publica um story de `queue/stories.yaml`, sem aprovação |
 | Renovar token | dia 1, 6h BRT | renova o long-lived token e regrava o secret |
 | Curadoria do acervo | dia 1, 8h BRT | ranqueia o acervo e abre PR com candidatos |
 | Capturar métricas dos stories | de hora em hora | lê os stories no ar e grava em `state/stories_metrics.csv` e `state/stories_curva.csv` |

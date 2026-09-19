@@ -198,3 +198,27 @@ class ContratoDeInputsTest(unittest.TestCase):
                     f"{os.path.basename(caminho)} usa inputs.{sorted(faltando)} "
                     "sem declarar",
                 )
+
+
+class HorarioDosStoriesTest(unittest.TestCase):
+    """Os crons de story são um experimento de horário — o horário é o dado.
+
+    Um cron escrito em UTC é fácil de mexer errado: trocar a hora e esquecer de
+    somar as 3h desloca o experimento sem quebrar nada visível. Este teste fixa
+    a conversão, para que a mudança apareça aqui e não nos números do mês que vem.
+    """
+
+    HORARIOS_BRT = {18, 21}
+
+    def test_os_crons_caem_nos_horarios_combinados(self):
+        caminho = os.path.join(RAIZ, ".github", "workflows", "publicar-stories-auto.yml")
+        agenda = _gatilhos(_carregar(caminho)).get("schedule") or []
+
+        horas_brt = set()
+        for entrada in agenda:
+            minuto, hora = entrada["cron"].split()[:2]
+            self.assertEqual(minuto, "0", f"cron fora da hora cheia: {entrada['cron']}")
+            # São Paulo é UTC-3 fixo: sem horário de verão desde 2019.
+            horas_brt.add((int(hora) - 3) % 24)
+
+        self.assertEqual(horas_brt, self.HORARIOS_BRT)
