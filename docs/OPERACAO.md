@@ -57,10 +57,32 @@ Não é suposição. Medido em quatro execuções agendadas reais:
 | `0 13 * * *` | 13:00 | 16:20 | 3h20 |
 | `0 12 * * *` | 12:00 | 15:45 | 3h45 |
 
-Repositório público roda na fila gratuita compartilhada do GitHub, que é
-despriorizada sob carga. O atraso é o preço do "de graça", não defeito da
-configuração — e minuto de Actions em repo público é ilimitado, então a conta
-não fecha para o outro lado: não dá para pagar por prioridade aqui.
+### Onde o tempo é perdido
+
+Não é falta de runner. Comparando `created_at` com `run_started_at` das mesmas
+quatro execuções, a fila do job foi de **0 segundo** em todas: assim que o run
+existiu, a máquina estava disponível.
+
+O atraso inteiro está antes disso — o despachante de agendamentos do GitHub
+simplesmente cria o run horas depois da hora marcada.
+
+O que o GitHub documenta: o evento `schedule` é *best effort* e pode atrasar em
+períodos de carga alta, sendo o início de cada hora o pior momento; sob carga,
+uma execução pode até ser descartada, e não apenas adiada.
+
+O que não sei, e não dá para descobrir de fora: por que a carga produz
+justamente 3 a 4 horas aqui, quando o relatado mais comum são minutos. Uma
+primeira versão deste texto atribuía o atraso a despriorização de runner em
+repositório público — a medição de fila 0s desmentiu isso, e a explicação foi
+removida em vez de reescrita com outro palpite.
+
+Duas observações dos quatro casos, ambas com amostra pequena demais para
+concluir: o atraso do cron das 13h vem encolhendo (4h34 → 4h00 → 3h20), e os
+dois crons de 19/09, marcados com 1h de diferença, dispararam com 35 min de
+diferença — o que parece processamento de fila acumulada, não despertar fixo.
+
+É por isso que o vigia existe. Execução agendada que pode ser descartada em
+silêncio não é algo em que se confie sem conferência independente.
 
 **Consequência prática:** o horário no cron é de *disparo*, não de publicação.
 Os horários estão adiantados cerca de 4h para compensar:
