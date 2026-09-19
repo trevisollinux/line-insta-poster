@@ -171,6 +171,11 @@ Cada candidato traz `source_media_url` — o link da Meta para baixar a mídia
 original. Ele expira em algumas horas, então serve para rehospedar na hora da
 revisão, nunca como `url` da fila.
 
+## Retomando o projeto
+
+`docs/CONTEXTO.md` guarda o estado, as decisões não óbvias e os bugs já
+resolvidos. É o primeiro arquivo a ler para continuar de onde parou.
+
 ## Documentação
 
 - [`docs/SETUP.md`](docs/SETUP.md) — do zero ao primeiro post: PPA, app Meta,
