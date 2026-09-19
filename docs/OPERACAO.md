@@ -5,7 +5,7 @@
 | Workflow | Quando | O que faz |
 |---|---|---|
 | Publicar no Instagram | diário, 10h BRT | publica um item e commita o estado |
-| Publicar Stories (automático) | disparo 13h10 e 17h10 BRT; sai ~4h depois | publica um story de `queue/stories.yaml`, sem aprovação |
+| Publicar Stories (automático) | disparo 13h34 e 17h34 BRT; sai ~4h depois | publica um story de `queue/stories.yaml`, sem aprovação |
 | Renovar token | dia 1, 6h BRT | renova o long-lived token e regrava o secret |
 | Curadoria do acervo | dia 1, 8h BRT | ranqueia o acervo e abre PR com candidatos |
 | Capturar métricas dos stories | de hora em hora | lê os stories no ar e grava em `state/stories_metrics.csv` e `state/stories_curva.csv` |
@@ -87,11 +87,12 @@ silêncio não é algo em que se confie sem conferência independente.
 **Consequência prática:** o horário no cron é de *disparo*, não de publicação.
 Os horários estão adiantados cerca de 4h para compensar:
 
-- `10 16 * * *` → dispara 13h10 BRT → story sai entre 16h30 e 17h44
-- `10 20 * * *` → dispara 17h10 BRT → story sai entre 20h30 e 21h44
+- `34 16 * * *` → dispara 13h34 BRT → story sai entre 16h54 e 18h08
+- `34 20 * * *` → dispara 17h34 BRT → story sai entre 20h54 e 22h08
 
-O minuto 10 em vez de 00 é hipótese não confirmada: as execuções medidas
-estavam todas em minuto 00, o mais disputado da hora.
+O minuto 34 é hipótese não confirmada: as execuções medidas estavam todas em
+minuto 00, o mais disputado da hora, e um minuto quebrado deve cair fora do
+pico.
 
 Isso também explica a tolerância do vigia abaixo, de 5h30. Ela não é frouxidão
 — é o tamanho do atraso real mais margem.
