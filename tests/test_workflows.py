@@ -89,3 +89,31 @@ class CommitGuardTest(unittest.TestCase):
                         conteudo.index("git diff --cached"),
                         "o git add precisa vir antes da comparação",
                     )
+
+
+class CaminhosDeArquivoTest(unittest.TestCase):
+    """Renomear arquivo e esquecer o workflow quebra só em produção.
+
+    Aconteceu: a fila virou queue/stories.yaml e o `git add` continuou citando
+    queue/drafts.yaml. Os testes passaram; o job caiu com pathspec inválido.
+    """
+
+    def test_workflows_citam_os_caminhos_que_o_codigo_usa(self):
+        from poster.inbox import DRAFTS_PATH, IMPORTED_PATH
+        from poster.queue_file import QUEUE_PATH
+        from poster.state import STATE_PATH
+
+        esperados = {
+            os.path.relpath(caminho, RAIZ).replace(os.sep, "/")
+            for caminho in (DRAFTS_PATH, IMPORTED_PATH, QUEUE_PATH, STATE_PATH)
+        }
+        citados = set()
+        for caminho in WORKFLOWS:
+            with open(caminho, encoding="utf-8") as handle:
+                conteudo = handle.read()
+            for arquivo in esperados | {"queue/drafts.yaml", "queue/candidates.yaml"}:
+                if arquivo in conteudo:
+                    citados.add(arquivo)
+
+        orfaos = citados - esperados - {"queue/candidates.yaml"}
+        self.assertEqual(orfaos, set(), f"workflow cita caminho que não existe: {orfaos}")

@@ -139,17 +139,17 @@ jobs:
           git commit -m 'chore: mídia nova vinda do Drive'
           git push
 
-      - name: Commitar rascunhos
+      - name: Commitar a fila de stories
         if: steps.importar.outputs.codigo == '0'
         run: |
-          git add -- queue/drafts.yaml state/inbox.json
+          git add -- queue/stories.yaml state/inbox.json
           if git diff --cached --quiet; then
-            echo "nenhum rascunho novo"
+            echo "nenhuma fila nova"
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'chore: rascunhos vindos da pasta do Drive'
+          git commit -m 'chore: stories vindos da pasta do Drive'
           git push
 
       - name: Avisar por e-mail (issue)
