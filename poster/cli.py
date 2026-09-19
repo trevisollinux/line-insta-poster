@@ -12,11 +12,12 @@ Códigos de saída: 0 sucesso, 1 falha (com alerta), 2 nada a fazer.
 from __future__ import annotations
 
 import argparse
+import os
 import random
 import sys
 from datetime import datetime, timedelta, timezone
 
-from . import curadoria, queue_file, rehost as rehost_mod, state
+from . import curadoria, drive, inbox as inbox_mod, queue_file, rehost as rehost_mod, state
 from .alerts import alert, write_summary
 from .config import PublishConfig, env_str
 from .graph import GRAPH_VERSION, GraphClient, GraphError
@@ -191,6 +192,87 @@ def cmd_refresh_token(args: argparse.Namespace) -> int:
 
     write_summary(f"### Token renovado\n\nVálido até **{validade}**.\n")
     return EXIT_OK
+
+
+def cmd_inbox(args: argparse.Namespace) -> int:
+    """Importa o que a curadoria humana largou na pasta do Drive."""
+    webhook = env_str("IG_ALERT_WEBHOOK")
+    credencial = env_str("GDRIVE_SERVICE_ACCOUNT")
+    pasta = args.folder_id or env_str("GDRIVE_FOLDER_ID")
+    if not (credencial and pasta):
+        print(
+            "GDRIVE_SERVICE_ACCOUNT e GDRIVE_FOLDER_ID são obrigatórios",
+            file=sys.stderr,
+        )
+        return EXIT_FAIL
+
+    try:
+        token = drive.access_token(credencial)
+        arquivos = drive.list_files(token, pasta)
+    except drive.DriveError as exc:
+        alert(str(exc), webhook=webhook)
+        return EXIT_FAIL
+
+    ja_importados = inbox_mod.load_imported(args.state_file)
+    novos, repetidos, recusados = inbox_mod.triagem(arquivos, ja_importados)
+    print(
+        f"pasta: {len(arquivos)} arquivos — {len(novos)} novos, "
+        f"{len(repetidos)} já importados, {len(recusados)} recusados pelo formato"
+    )
+    for arquivo in recusados:
+        print(f"  recusado {arquivo.name}: {arquivo.motivo_recusa}")
+
+    importados: list[tuple[drive.DriveFile, str]] = []
+    falhas: list[tuple[str, str]] = []
+    rascunhos: list[dict] = []
+    destino_midia = os.path.join(args.media_dir, inbox_mod.MEDIA_SUBDIR)
+
+    for arquivo in novos:
+        nome = inbox_mod.media_filename(arquivo)
+        try:
+            drive.download(token, arquivo, os.path.join(destino_midia, nome))
+        except drive.DriveError as exc:
+            falhas.append((arquivo.name, str(exc)))
+            continue
+        url = inbox_mod.media_public_url(args.media_repo, args.branch, nome)
+        importados.append((arquivo, url))
+        rascunhos.append(inbox_mod.draft(arquivo, url))
+        ja_importados[arquivo.id] = inbox_mod.Imported(
+            drive_id=arquivo.id,
+            name=arquivo.name,
+            path=f"{inbox_mod.MEDIA_SUBDIR}/{nome}",
+            url=url,
+            imported_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        )
+        print(f"  importado {arquivo.name} → {nome}")
+
+    if rascunhos:
+        # Rascunhos anteriores ainda não aprovados continuam valendo.
+        anteriores = inbox_mod.load_drafts(args.drafts)
+        inbox_mod.write_drafts(anteriores + rascunhos, args.drafts)
+        inbox_mod.save_imported(ja_importados, args.state_file)
+
+    if args.report:
+        with open(args.report, "w", encoding="utf-8") as handle:
+            handle.write(
+                inbox_mod.report_markdown(importados, recusados, repetidos, falhas)
+            )
+
+    write_summary(
+        "### Caixa de entrada do Drive\n\n"
+        f"- arquivos na pasta: {len(arquivos)}\n"
+        f"- importados agora: {len(importados)}\n"
+        f"- recusados pelo formato: {len(recusados)}\n"
+        f"- falharam no download: {len(falhas)}\n"
+    )
+    if falhas:
+        alert(
+            f"{len(falhas)} mídia(s) da pasta do Drive não baixaram",
+            webhook=webhook,
+            context={"falhas": [nome for nome, _ in falhas]},
+        )
+        return EXIT_FAIL
+    return EXIT_OK if importados else EXIT_NOTHING
 
 
 def cmd_rehost(args: argparse.Namespace) -> int:
@@ -368,6 +450,16 @@ def build_parser() -> argparse.ArgumentParser:
     refresh.add_argument("--secret-repo", default="", help="owner/repo do secret")
     refresh.add_argument("--secret-name", default="IG_ACCESS_TOKEN")
     refresh.set_defaults(func=cmd_refresh_token)
+
+    inbox = sub.add_parser("inbox", help="importa fotos novas da pasta do Drive")
+    inbox.add_argument("--folder-id", default="", help="pasta do Drive (ou GDRIVE_FOLDER_ID)")
+    inbox.add_argument("--media-dir", required=True, help="raiz do repositório de mídia")
+    inbox.add_argument("--media-repo", required=True, help="owner/repo da mídia")
+    inbox.add_argument("--branch", default="main")
+    inbox.add_argument("--drafts", default=inbox_mod.DRAFTS_PATH)
+    inbox.add_argument("--state-file", default=inbox_mod.IMPORTED_PATH)
+    inbox.add_argument("--report", default="", help="relatório markdown neste caminho")
+    inbox.set_defaults(func=cmd_inbox)
 
     rehost = sub.add_parser("rehost", help="baixa a mídia de um post para o repositório")
     rehost.add_argument("--media-id", required=True, help="id da mídia no Instagram")

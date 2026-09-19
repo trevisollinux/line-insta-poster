@@ -1,0 +1,104 @@
+name: Importar fotos do Drive
+
+# Varre a pasta do Drive onde a curadoria humana larga foto nova, traz o que
+# ainda não veio, hospeda no repositório de mídia e emite rascunhos de fila.
+#
+# A pasta é caixa de entrada, não host: a Meta nunca busca nada lá. E rascunho
+# nasce com reviewed_price: false — nada vai ao ar sem alguém decidir.
+
+on:
+  schedule:
+    - cron: '0 12 * * *'   # 9h no horário de Brasília
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: instagram-inbox
+  cancel-in-progress: false
+
+env:
+  MEDIA_REPO: trevisollinux/line-store-media
+
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clonar o repositório de mídia
+        env:
+          GH_MEDIA_TOKEN: ${{ secrets.GH_MEDIA_TOKEN }}
+        run: |
+          git clone --depth 1 \
+            "https://x-access-token:${GH_MEDIA_TOKEN}@github.com/${MEDIA_REPO}.git" \
+            "$RUNNER_TEMP/media"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Instalar dependências
+        run: pip install --quiet -r requirements.txt
+
+      - name: Importar da pasta
+        id: importar
+        env:
+          GDRIVE_SERVICE_ACCOUNT: ${{ secrets.GDRIVE_SERVICE_ACCOUNT }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          IG_ALERT_WEBHOOK: ${{ secrets.IG_ALERT_WEBHOOK }}
+        run: |
+          set +e
+          python -m poster.cli inbox \
+            --media-dir "$RUNNER_TEMP/media" \
+            --media-repo "$MEDIA_REPO" \
+            --report "$RUNNER_TEMP/inbox.md"
+          codigo=$?
+          echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
+          # 2 = pasta sem novidade: é aviso, não falha do job.
+          if [ "$codigo" = "2" ]; then exit 0; fi
+          exit $codigo
+
+      - name: Publicar a mídia no repositório de mídia
+        if: steps.importar.outputs.codigo == '0'
+        run: |
+          cd "$RUNNER_TEMP/media"
+          git add -- inbox/
+          if git diff --cached --quiet; then
+            echo "nenhuma mídia nova"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: mídia nova vinda do Drive'
+          git push
+
+      - name: Commitar rascunhos
+        if: steps.importar.outputs.codigo == '0'
+        run: |
+          git add -- queue/drafts.yaml state/inbox.json
+          if git diff --cached --quiet; then
+            echo "nenhum rascunho novo"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: rascunhos vindos da pasta do Drive'
+          git push
+
+      - name: Avisar por e-mail (issue)
+        if: always() && steps.importar.outputs.codigo == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ! -s "$RUNNER_TEMP/inbox.md" ]; then
+            echo "sem relatório para enviar"
+            exit 0
+          fi
+          gh issue create \
+            --title "Fotos novas do Drive — $(date -u +%d/%m/%Y)" \
+            --body-file "$RUNNER_TEMP/inbox.md"
