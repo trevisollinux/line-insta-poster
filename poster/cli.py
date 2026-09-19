@@ -208,6 +208,10 @@ def cmd_inbox(args: argparse.Namespace) -> int:
 
     try:
         token = drive.access_token(credencial)
+        # Confirma o acesso antes de listar: pasta não compartilhada devolve
+        # lista vazia, indistinguível de pasta sem fotos.
+        nome_pasta = drive.folder_name(token, pasta)
+        print(f"pasta: '{nome_pasta}'")
         arquivos = drive.list_files(token, pasta)
     except drive.DriveError as exc:
         alert(str(exc), webhook=webhook)

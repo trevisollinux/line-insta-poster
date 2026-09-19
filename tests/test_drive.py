@@ -6,7 +6,7 @@ import tempfile
 import unittest
 import urllib.error
 
-from poster.drive import DriveError, DriveFile, download, list_files
+from poster.drive import DriveError, DriveFile, download, folder_name, list_files
 
 PASTA = "1V5F60XSyFesdYiwSo_7JCgIV1Jiv22r_"
 
@@ -161,3 +161,18 @@ class DownloadTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FolderNameTest(unittest.TestCase):
+    """Sem esta checagem, pasta não compartilhada parece pasta vazia."""
+
+    def test_devolve_o_nome_da_pasta(self):
+        abrir = opener_json([{"id": PASTA, "name": "Instagram — a postar"}])
+
+        self.assertEqual(folder_name("TOKEN", PASTA, opener=abrir), "Instagram — a postar")
+
+    def test_sem_acesso_falha_em_vez_de_fingir_pasta_vazia(self):
+        with self.assertRaises(DriveError) as ctx:
+            folder_name("TOKEN", PASTA, opener=opener_erro(404))
+
+        self.assertIn("compartilhada", str(ctx.exception))

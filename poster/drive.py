@@ -125,6 +125,25 @@ def _get(url: str, token: str, *, opener=urllib.request.urlopen) -> dict:
         raise DriveError(f"falha de rede ao falar com o Drive: {exc}") from exc
 
 
+def folder_name(
+    token: str, folder_id: str, *, opener=urllib.request.urlopen
+) -> str:
+    """Confirma que a conta de serviço enxerga a pasta, e devolve o nome dela.
+
+    Existe porque `files.list` **não** dá erro em pasta sem acesso: devolve lista
+    vazia, idêntica a uma pasta realmente vazia. Sem esta checagem, esquecer de
+    compartilhar com o robô ficaria indistinguível de "ninguém subiu foto" — e
+    ninguém iria investigar um job verde.
+    """
+    params = {"fields": "id,name,mimeType", "supportsAllDrives": "true"}
+    payload = _get(
+        f"{DRIVE_API}/files/{folder_id}?{urllib.parse.urlencode(params)}",
+        token,
+        opener=opener,
+    )
+    return str(payload.get("name") or "")
+
+
 def list_files(
     token: str,
     folder_id: str,
