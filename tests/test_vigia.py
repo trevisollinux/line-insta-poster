@@ -162,3 +162,49 @@ class RelatorioTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class EnsaioTest(unittest.TestCase):
+    """O ensaio existe para que o alarme não estreie no dia do incidente."""
+
+    def base(self, publicados: int = 1):
+        entradas = [entrada(f"2026-09-19T1{i}:00") for i in range(publicados)]
+        return vigia.avaliar(
+            entradas,
+            agora=datetime.fromisoformat("2026-09-19T17:45").replace(tzinfo=BRT),
+            caminho_workflow=AGENDA,
+        )
+
+    def test_dia_saudavel_vira_buraco_no_ensaio(self):
+        real = self.base()
+        self.assertTrue(real.ok)
+
+        self.assertFalse(vigia.simulado(real).ok)
+
+    def test_o_ensaio_se_identifica_no_titulo(self):
+        # Sem isso, um ensaio no meio de um dia ruim viraria dúvida sobre qual
+        # das duas issues é o incidente de verdade.
+        self.assertTrue(vigia.titulo(vigia.simulado(self.base())).startswith("[teste] "))
+
+    def test_o_incidente_de_verdade_nao_leva_o_prefixo(self):
+        self.assertFalse(vigia.titulo(self.base()).startswith("[teste]"))
+
+    def test_o_corpo_diz_que_nada_esta_faltando(self):
+        texto = vigia.relatorio_markdown(vigia.simulado(self.base()))
+
+        self.assertIn("ensaio", texto.lower())
+        self.assertIn("Nenhum story está faltando", texto)
+        self.assertIn("pode fechar", texto)
+
+    def test_o_ensaio_nao_inventa_o_numero_de_publicados(self):
+        # O ensaio força o alarme, não os dados: se mentisse aqui, o teste
+        # deixaria de provar que a leitura do estado funciona.
+        self.assertEqual(vigia.simulado(self.base(publicados=2)).publicados, 2)
+
+    def test_o_ensaio_nao_altera_o_diagnostico_original(self):
+        real = self.base()
+
+        vigia.simulado(real)
+
+        self.assertTrue(real.ok)
+        self.assertFalse(real.teste)

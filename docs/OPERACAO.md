@@ -68,6 +68,16 @@ Mora num workflow separado do coletor de métricas de propósito. Se morasse
 junto, um problema no coletor derrubaria justamente quem deveria perceber que
 algo parou.
 
+### Testar o alarme
+
+Actions → *Vigia dos stories* → *Run workflow* → **simular: true**. Abre uma
+issue com `[teste]` no título, que pode ser fechada na hora.
+
+Vale repetir isso de vez em quando. Alarme que nunca tocou é alarme em que não
+dá para confiar, e a parte que quebra calada não é a conta — é o caminho que
+cria a issue. Descobrir que ele parou de funcionar no dia do incidente é
+descobrir tarde demais.
+
 ## Quando falha
 
 **Alerta chegou (ou o job ficou vermelho).** Abra o run, leia o Summary. O item

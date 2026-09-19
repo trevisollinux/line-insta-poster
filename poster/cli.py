@@ -340,6 +340,10 @@ def cmd_watch_stories(args: argparse.Namespace) -> int:
         f"{diagnostico.agora:%d/%m %H:%M} | esperados {diagnostico.esperados} | "
         f"publicados {diagnostico.publicados}"
     )
+    if args.simular:
+        # Ensaio: exercita o caminho inteiro, inclusive a criação da issue.
+        print("ensaio do alarme — forçando um buraco")
+        diagnostico = vigia.simulado(diagnostico)
     if diagnostico.ok:
         print("nada faltando")
         return EXIT_NOTHING
@@ -643,6 +647,11 @@ def build_parser() -> argparse.ArgumentParser:
     watch.add_argument("--workflow", default=vigia.WORKFLOW_PATH)
     watch.add_argument("--utc-offset", type=int, default=vigia.BRT_OFFSET)
     watch.add_argument("--tolerancia", type=int, default=vigia.TOLERANCIA_MIN)
+    watch.add_argument(
+        "--simular",
+        action="store_true",
+        help="dispara o alarme de propósito, para testar o aviso",
+    )
     watch.add_argument("--report", default="", help="corpo da issue neste caminho")
     watch.add_argument("--title-file", default="", help="título da issue neste caminho")
     watch.set_defaults(func=cmd_watch_stories)

@@ -18,7 +18,7 @@ pegar.
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, time, timedelta, timezone
 
 import yaml
@@ -41,6 +41,7 @@ class Diagnostico:
     esperados: int
     publicados: int
     horarios_vencidos: list[time] = field(default_factory=list)
+    teste: bool = False
 
     @property
     def faltando(self) -> int:
@@ -116,14 +117,41 @@ def avaliar(
     )
 
 
+def simulado(diagnostico: Diagnostico) -> Diagnostico:
+    """Força um buraco de propósito, para exercitar o alarme inteiro.
+
+    Alarme que nunca tocou é alarme em que não dá para confiar: a parte que
+    mais quebra calada não é a conta, é o caminho que cria a issue. Testar isso
+    esperando um dia ruim acontecer seria descobrir o defeito na hora errada.
+
+    O `teste: True` viaja até o título e o corpo, para que ninguém confunda o
+    ensaio com um incidente de verdade.
+    """
+    return replace(diagnostico, esperados=diagnostico.publicados + 1, teste=True)
+
+
 def titulo(diagnostico: Diagnostico) -> str:
     # A data no título é o que permite uma issue por dia: o workflow procura
     # por este texto antes de abrir outra, e assim 24 execuções por dia não
     # viram 24 e-mails do mesmo problema.
-    return f"Story não publicado — {diagnostico.agora:%d/%m/%Y}"
+    prefixo = "[teste] " if diagnostico.teste else ""
+    return f"{prefixo}Story não publicado — {diagnostico.agora:%d/%m/%Y}"
 
 
 def relatorio_markdown(diagnostico: Diagnostico) -> str:
+    if diagnostico.teste:
+        return (
+            "### Isto é um ensaio do alarme\n\n"
+            "Disparado de propósito para verificar que a issue é criada e que o "
+            "e-mail chega. **Nenhum story está faltando** — pode fechar esta "
+            "issue.\n\n"
+            "Se você recebeu este e-mail, o aviso de silêncio funciona: no dia "
+            "em que um story realmente não sair, a mensagem chega pelo mesmo "
+            "caminho, sem o `[teste]` no título.\n\n"
+            f"- Ensaio disparado em {diagnostico.agora:%d/%m/%Y às %H:%M}\n"
+            f"- Stories publicados hoje até agora: {diagnostico.publicados}\n"
+        )
+
     horarios = ", ".join(f"{h:%H:%M}" for h in diagnostico.horarios_vencidos) or "—"
     plural = "s" if diagnostico.faltando > 1 else ""
     return (

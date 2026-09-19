@@ -22,6 +22,12 @@ on:
   schedule:
     - cron: '30 * * * *'
   workflow_dispatch:
+    inputs:
+      simular:
+        description: 'ensaio: abre a issue de propósito, para testar o aviso'
+        type: choice
+        options: ['false', 'true']
+        default: 'false'
 
 permissions:
   contents: read
@@ -50,7 +56,13 @@ jobs:
         id: conferir
         run: |
           set +e
-          python -m poster.cli watch-stories \
+          # O ensaio existe porque alarme que nunca tocou é alarme em que não
+          # dá para confiar — e a parte que quebra calada não é a conta, é o
+          # caminho que cria a issue.
+          extra=''
+          if [ "${{ inputs.simular }}" = 'true' ]; then extra='--simular'; fi
+
+          python -m poster.cli watch-stories $extra \
             --report "$RUNNER_TEMP/vigia.md" \
             --title-file "$RUNNER_TEMP/vigia-titulo.txt"
           codigo=$?
