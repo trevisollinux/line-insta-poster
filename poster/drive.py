@@ -71,11 +71,20 @@ def access_token(service_account_json: str, *, scope: str = SCOPE_READONLY) -> s
     funcionando (e testável) sem o SDK instalado.
     """
     try:
-        from google.auth.transport.requests import Request
         from google.oauth2 import service_account
     except ImportError as exc:  # pragma: no cover - ambiente sem o SDK
         raise DriveError(
             "google-auth não instalado — necessário para ler o Drive "
+            "(pip install -r requirements.txt)"
+        ) from exc
+    try:
+        # Transporte separado de propósito na mensagem: `requests` não é
+        # dependência automática do google-auth, e confundir os dois manda quem
+        # está depurando para o lugar errado.
+        from google.auth.transport.requests import Request
+    except ImportError as exc:  # pragma: no cover - ambiente sem o transporte
+        raise DriveError(
+            "requests não instalado — o google-auth usa ele como transporte "
             "(pip install -r requirements.txt)"
         ) from exc
 
