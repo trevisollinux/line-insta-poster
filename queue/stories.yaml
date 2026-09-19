@@ -1,0 +1,36 @@
+# Stories vindos da pasta do Drive — esta fila PUBLICA sozinha.
+#
+# Um item por execução, sem repetir: o que já saiu fica em state/published.json.
+# Story não leva legenda (a API não aceita), some em 24h, e por isso não exige
+# reviewed_price — aquela flag protege preço na legenda, e aqui não há legenda.
+#
+# O que ela NÃO protege: preço queimado dentro da imagem. Se algo sair errado,
+# apague o story pelo app; ele dura 24h.
+#
+# Para mandar uma destas mídias ao feed, copie o item para queue/posts.yaml,
+# troque media_type, escreva a legenda e marque reviewed_price: true.
+
+- id: 2026-09-19-img-20260812-083523-923-1wfosR
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260812-083523-923-1wfosR.jpg
+  origem: 'Drive: IMG_20260812_083523_923.jpg'
+- id: 2026-09-19-img-20260812-083519-097-1fMJiL
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260812-083519-097-1fMJiL.jpg
+  origem: 'Drive: IMG_20260812_083519_097.jpg'
+- id: 2026-09-19-img-20260816-170125-643-1RsObi
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260816-170125-643-1RsObi.jpg
+  origem: 'Drive: IMG_20260816_170125_643.jpg'
+- id: 2026-09-19-img-20260816-170135-099-1UvgV4
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260816-170135-099-1UvgV4.jpg
+  origem: 'Drive: IMG_20260816_170135_099.jpg'
+- id: 2026-09-19-img-20260913-194822-461-1cvRAE
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260913-194822-461-1cvRAE.jpg
+  origem: 'Drive: IMG_20260913_194822_461.jpg'
+- id: 2026-09-19-img-20260915-132418-425-1q9C7a
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260915-132418-425-1q9C7a.jpg
+  origem: 'Drive: IMG_20260915_132418_425.jpg'
