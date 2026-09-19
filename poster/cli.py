@@ -6,6 +6,7 @@ Comandos
   token          mostra quantos dias o token ainda tem
   refresh-token  renova o long-lived token e (opcional) grava no secret do repo
   curate         coleta o acervo, ranqueia e escreve queue/candidates.yaml
+  story-metrics  captura as métricas dos stories no ar antes de expirarem
 
 Códigos de saída: 0 sucesso, 1 falha (com alerta), 2 nada a fazer.
 """
@@ -17,7 +18,16 @@ import random
 import sys
 from datetime import datetime, timedelta, timezone
 
-from . import audiencia, curadoria, drive, inbox as inbox_mod, queue_file, rehost as rehost_mod, state
+from . import (
+    audiencia,
+    curadoria,
+    drive,
+    inbox as inbox_mod,
+    metricas_stories,
+    queue_file,
+    rehost as rehost_mod,
+    state,
+)
 from .alerts import alert, write_summary
 from .config import PublishConfig, env_str
 from .graph import GRAPH_VERSION, GraphClient, GraphError
@@ -241,6 +251,58 @@ def cmd_audience(args: argparse.Namespace) -> int:
         + f"\n\n**Maior audiência:** {resumo}\n\n"
         "Isto mede presença, não interesse: diz onde há gente, não o que rende.\n"
     )
+    return EXIT_OK
+
+
+def cmd_story_metrics(args: argparse.Namespace) -> int:
+    """Captura as insights dos stories que estão no ar e guarda em CSV.
+
+    Story vive 24h e a API não devolve o que já expirou, então o que não for
+    capturado enquanto está no ar está perdido para sempre. Por isso o comando
+    é tolerante: story sem insight não derruba a captura dos outros.
+    """
+    access_token, ig_user_id = env_str("IG_ACCESS_TOKEN"), env_str("IG_USER_ID")
+    if not (access_token and ig_user_id):
+        print("IG_ACCESS_TOKEN e IG_USER_ID são obrigatórios", file=sys.stderr)
+        return EXIT_FAIL
+
+    client = GraphClient(access_token, version=env_str("IG_GRAPH_VERSION", GRAPH_VERSION))
+    try:
+        ativos = metricas_stories.stories_ativos(client, ig_user_id)
+    except GraphError as exc:
+        alert(f"não consegui listar os stories no ar: {exc}")
+        return EXIT_FAIL
+
+    novas: list[dict[str, str]] = []
+    falhas: list[str] = []
+    for story in ativos:
+        media_id = str(story.get("id") or "")
+        try:
+            medidas = metricas_stories.insights(client, media_id)
+        except GraphError as exc:
+            falhas.append(f"{media_id}: {exc}")
+            medidas = {}
+        novas.append(metricas_stories.montar_linha(story, medidas, offset=args.utc_offset))
+
+    existentes = metricas_stories.carregar(args.csv)
+    linhas = metricas_stories.gravar(
+        metricas_stories.mesclar(existentes, novas), args.csv
+    )
+
+    print(f"{len(ativos)} stories no ar | {len(linhas)} no histórico → {args.csv}")
+    for falha in falhas:
+        print(f"  sem insights  {falha}", file=sys.stderr)
+
+    cabecalho = f"### Stories capturados\n\n{len(ativos)} no ar, {len(linhas)} no histórico.\n"
+    write_summary(cabecalho + "\n" + metricas_stories.resumo(linhas, metrica=args.metric))
+    if args.report:
+        os.makedirs(os.path.dirname(args.report) or ".", exist_ok=True)
+        with open(args.report, "w", encoding="utf-8") as handle:
+            handle.write(metricas_stories.resumo(linhas, metrica=args.metric))
+
+    if not ativos:
+        # Nada no ar não é erro: é o estado normal da conta fora da janela de 24h.
+        return EXIT_NOTHING
     return EXIT_OK
 
 
@@ -512,6 +574,15 @@ def build_parser() -> argparse.ArgumentParser:
     audience = sub.add_parser("audience", help="horas com mais seguidores online")
     audience.add_argument("--utc-offset", type=int, default=audiencia.BRT_OFFSET)
     audience.set_defaults(func=cmd_audience)
+
+    story_metrics = sub.add_parser(
+        "story-metrics", help="captura as métricas dos stories no ar"
+    )
+    story_metrics.add_argument("--csv", default=metricas_stories.CSV_PATH)
+    story_metrics.add_argument("--utc-offset", type=int, default=metricas_stories.BRT_OFFSET)
+    story_metrics.add_argument("--metric", default="views", help="métrica do resumo")
+    story_metrics.add_argument("--report", default="", help="resumo markdown neste caminho")
+    story_metrics.set_defaults(func=cmd_story_metrics)
 
     inbox = sub.add_parser("inbox", help="importa fotos novas da pasta do Drive")
     inbox.add_argument("--folder-id", default="", help="pasta do Drive (ou GDRIVE_FOLDER_ID)")

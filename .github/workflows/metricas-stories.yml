@@ -1,0 +1,71 @@
+name: Capturar métricas dos stories
+
+# Story sai do ar em 24h e a API não devolve o que expirou: `/stories` só lista
+# o que está publicado agora. O que não for lido enquanto está no ar está
+# perdido — não existe como buscar depois.
+#
+# Daí a cadência de 4 em 4 horas. Não é para "ficar de olho": é para garantir
+# que a última leitura de cada story caia perto das 20h de vida dele, que é
+# quando o número já parou de subir. Rodando uma vez por dia, metade dos
+# stories expiraria antes de ser lida.
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram-metricas-stories
+  cancel-in-progress: false
+
+jobs:
+  capturar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Instalar dependências
+        run: pip install --quiet -r requirements.txt
+
+      - name: Capturar
+        id: capturar
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+        run: |
+          set +e
+          python -m poster.cli story-metrics
+          codigo=$?
+          echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
+          # 2 = nenhum story no ar. É o estado normal da conta na maior parte
+          # do dia, não uma falha.
+          if [ "$codigo" = "2" ]; then exit 0; fi
+          exit $codigo
+
+      - name: Commitar o histórico
+        run: |
+          git add -- state/stories_metrics.csv
+          if git diff --cached --quiet; then
+            echo "nada novo para registrar"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: métricas dos stories'
+          # Este job roda seis vezes por dia e divide o branch com os de
+          # publicação: sem rebase, uma corrida normal viraria push rejeitado.
+          for tentativa in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && exit 0
+            sleep $((tentativa * 5))
+          done
+          echo "::error::não consegui publicar o histórico depois de 3 tentativas"
+          exit 1

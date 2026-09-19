@@ -7,11 +7,28 @@
 | Publicar no Instagram | diário, 10h BRT | publica um item e commita o estado |
 | Renovar token | dia 1, 6h BRT | renova o long-lived token e regrava o secret |
 | Curadoria do acervo | dia 1, 8h BRT | ranqueia o acervo e abre PR com candidatos |
+| Capturar métricas dos stories | de 4 em 4 horas | lê os stories no ar e grava em `state/stories_metrics.csv` |
 | Testes | push e PR | suíte + validação da fila versionada |
 
 Códigos de saída da CLI: `0` sucesso, `1` falha (com alerta), `2` nada a fazer.
 O workflow de publicação trata `2` como aviso, não como falha — fila vazia não é
 erro, mas aparece no Summary do run.
+
+### Por que a captura de story roda tanto
+
+Story expira em 24h e a Graph API não guarda nada depois disso: `/stories`
+devolve só o que está no ar agora. Métrica não capturada é métrica perdida, sem
+recuperação possível. A cada 4 horas, a última leitura de cada story cai por
+volta das 20h de vida dele — perto do número final, ainda dentro da janela.
+
+O arquivo guarda uma linha por story e as métricas ficam com o maior valor já
+lido, não com o mais recente: são contadores que só sobem, então número menor
+numa captura seguinte é oscilação da API, não queda de audiência.
+
+A coluna `posicao_dia` é calculada na gravação, não vem da API. Ela é o dado que
+mais explicou o alcance até agora — o 2º story do dia rende consistentemente
+menos que o 1º —, e recalcular tudo a cada gravação faz o arquivo se corrigir
+sozinho se uma captura chegar fora de ordem.
 
 ## Quando falha
 
