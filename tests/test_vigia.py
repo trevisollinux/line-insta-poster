@@ -2,7 +2,7 @@
 import os
 import tempfile
 import unittest
-from datetime import datetime, time, timezone
+from datetime import date, datetime, time, timezone
 
 from tests.support import FakeClient  # noqa: F401  (garante o sys.path do pacote)
 
@@ -32,19 +32,20 @@ def workflow(*crons: str) -> str:
     return caminho
 
 
-AGENDA = workflow("0 21 * * *", "0 0 * * *")  # 18h e 21h em Brasília
+AGENDA = workflow("10 16 * * *", "10 20 * * *")  # disparos 13h10 e 17h10
 
 
 class HorariosTest(unittest.TestCase):
     def test_converte_os_crons_para_o_fuso_local(self):
         self.assertEqual(
-            vigia.horarios_do_workflow(AGENDA), [time(18, 0), time(21, 0)]
+            vigia.horarios_do_workflow(AGENDA), [time(13, 10), time(17, 10)]
         )
 
     def test_le_a_agenda_real_do_repositorio(self):
         # Se o vigia copiasse os horários, ele poderia vigiar um horário que
         # ninguém mais usa — calado, como o problema que ele existe para pegar.
-        self.assertEqual(vigia.horarios_do_workflow(), [time(18, 0), time(21, 0)])
+        # Estes são horários de disparo; o story sai ~4h depois.
+        self.assertEqual(vigia.horarios_do_workflow(), [time(13, 10), time(17, 10)])
 
     def test_ignora_cron_com_curinga(self):
         self.assertEqual(vigia.horarios_do_workflow(workflow("0 */4 * * *")), [])
@@ -58,27 +59,55 @@ class HorariosTest(unittest.TestCase):
 
 
 class ToleranciaTest(unittest.TestCase):
-    def agora(self, hhmm: str) -> datetime:
-        return datetime.fromisoformat(f"2026-09-19T{hhmm}").replace(tzinfo=BRT)
+    """A folga antes de cobrar um horário.
 
-    def test_horario_recem_vencido_ainda_nao_conta(self):
-        # Cron do GitHub atrasa alguns minutos por rotina; cobrar às 18h01
-        # geraria alarme falso quase todo dia.
-        vencidos = vigia.horarios_vencidos([time(18, 0)], self.agora("18:20"))
+    Os casos são escritos em relação a `TOLERANCIA_MIN`, não a minutos fixos:
+    o valor já mudou uma vez (de 45 min para 5h30, quando medimos que o cron do
+    GitHub atrasa até 4h34) e vai mudar de novo se o atraso mudar. Teste preso
+    ao número quebraria a cada medição, sem nenhum defeito real por trás.
+    """
 
-        self.assertEqual(vencidos, [])
+    SLOT = time(13, 10)
+
+    def momento(self, minutos_apos_o_slot: int) -> datetime:
+        base = datetime.combine(date(2026, 9, 19), self.SLOT).replace(tzinfo=BRT)
+        return base + vigia.timedelta(minutes=minutos_apos_o_slot)
+
+    def test_dentro_da_tolerancia_ainda_nao_conta(self):
+        agora = self.momento(vigia.TOLERANCIA_MIN - 10)
+
+        self.assertEqual(vigia.horarios_vencidos([self.SLOT], agora), [])
 
     def test_passada_a_tolerancia_o_horario_conta(self):
-        vencidos = vigia.horarios_vencidos([time(18, 0)], self.agora("18:46"))
+        agora = self.momento(vigia.TOLERANCIA_MIN + 10)
 
-        self.assertEqual(vencidos, [time(18, 0)])
+        self.assertEqual(vigia.horarios_vencidos([self.SLOT], agora), [self.SLOT])
+
+    def test_a_folga_cobre_o_pior_atraso_ja_medido(self):
+        # 4h34 foi o pior atraso real observado neste repositório. Se a folga
+        # ficar menor que isso, o vigia passa a acusar todo dia sem motivo.
+        self.assertGreater(vigia.TOLERANCIA_MIN, 274)
 
     def test_antes_do_primeiro_horario_nada_e_cobrado(self):
-        vencidos = vigia.horarios_vencidos(
-            [time(18, 0), time(21, 0)], self.agora("09:00")
+        madrugada = datetime.fromisoformat("2026-09-19T02:00").replace(tzinfo=BRT)
+
+        self.assertEqual(
+            vigia.horarios_vencidos([time(13, 10), time(17, 10)], madrugada), []
         )
 
-        self.assertEqual(vencidos, [])
+    def test_de_madrugada_nao_cobra_o_dia_que_mal_comecou(self):
+        """Regressão: a folga de horas fazia `agora - folga` cair em ontem.
+
+        Comparando só a hora do dia, às 2h da manhã o limite virava 20h30 e
+        todos os horários do dia novo apareciam como perdidos de uma vez.
+        """
+        for hora in ("00:05", "02:00", "05:30", "13:09"):
+            with self.subTest(agora=hora):
+                agora = datetime.fromisoformat(f"2026-09-19T{hora}").replace(tzinfo=BRT)
+
+                self.assertEqual(
+                    vigia.horarios_vencidos([time(13, 10), time(17, 10)], agora), []
+                )
 
 
 class AvaliarTest(unittest.TestCase):
@@ -91,36 +120,36 @@ class AvaliarTest(unittest.TestCase):
         )
 
     def test_dia_em_dia_nao_acusa_nada(self):
-        d = self.diagnostico("21:50", [entrada("2026-09-19T18:03"), entrada("2026-09-19T21:04")])
+        d = self.diagnostico("23:00", [entrada("2026-09-19T17:03"), entrada("2026-09-19T21:04")])
 
         self.assertTrue(d.ok)
         self.assertEqual((d.esperados, d.publicados), (2, 2))
 
     def test_acusa_o_story_que_nao_saiu(self):
-        d = self.diagnostico("21:50", [entrada("2026-09-19T18:03")])
+        d = self.diagnostico("23:00", [entrada("2026-09-19T17:03")])
 
         self.assertFalse(d.ok)
         self.assertEqual(d.faltando, 1)
 
     def test_dia_totalmente_silencioso(self):
-        d = self.diagnostico("21:50", [])
+        d = self.diagnostico("23:00", [])
 
         self.assertEqual(d.faltando, 2)
 
     def test_story_atrasado_ainda_conta_para_o_dia(self):
         # O de hoje saiu 53 min depois do horário. Cobrar por atraso dentro do
         # mesmo dia seria ruído: o que importa é o dia ter recebido o story.
-        d = self.diagnostico("18:50", [entrada("2026-09-19T18:40")])
+        d = self.diagnostico("19:00", [entrada("2026-09-19T18:40")])
 
         self.assertTrue(d.ok)
 
     def test_story_de_ontem_nao_cobre_hoje(self):
-        d = self.diagnostico("18:50", [entrada("2026-09-18T18:03")])
+        d = self.diagnostico("19:00", [entrada("2026-09-18T18:03")])
 
         self.assertFalse(d.ok)
 
     def test_ignora_outros_formatos(self):
-        d = self.diagnostico("18:50", [entrada("2026-09-19T18:03", media_type="REELS")])
+        d = self.diagnostico("19:00", [entrada("2026-09-19T18:03", media_type="REELS")])
 
         self.assertFalse(d.ok)
 
@@ -132,7 +161,7 @@ class AvaliarTest(unittest.TestCase):
 
     def test_publicacao_extra_nao_vira_numero_negativo(self):
         d = self.diagnostico(
-            "18:50",
+            "19:00",
             [entrada("2026-09-19T17:33"), entrada("2026-09-19T18:03")],
         )
 
@@ -143,7 +172,7 @@ class RelatorioTest(unittest.TestCase):
     def diagnostico(self):
         return vigia.avaliar(
             [],
-            agora=datetime.fromisoformat("2026-09-19T21:50").replace(tzinfo=BRT),
+            agora=datetime.fromisoformat("2026-09-19T23:00").replace(tzinfo=BRT),
             caminho_workflow=AGENDA,
         )
 
@@ -155,7 +184,7 @@ class RelatorioTest(unittest.TestCase):
         texto = vigia.relatorio_markdown(self.diagnostico())
 
         self.assertIn("**2**", texto)
-        self.assertIn("18:00, 21:00", texto)
+        self.assertIn("13:10, 17:10", texto)
         self.assertIn("startup failure", texto)
         self.assertIn("queue/stories.yaml", texto)
 

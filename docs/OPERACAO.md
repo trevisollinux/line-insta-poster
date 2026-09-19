@@ -5,7 +5,7 @@
 | Workflow | Quando | O que faz |
 |---|---|---|
 | Publicar no Instagram | diário, 10h BRT | publica um item e commita o estado |
-| Publicar Stories (automático) | diário, 18h e 21h BRT | publica um story de `queue/stories.yaml`, sem aprovação |
+| Publicar Stories (automático) | disparo 13h10 e 17h10 BRT; sai ~4h depois | publica um story de `queue/stories.yaml`, sem aprovação |
 | Renovar token | dia 1, 6h BRT | renova o long-lived token e regrava o secret |
 | Curadoria do acervo | dia 1, 8h BRT | ranqueia o acervo e abre PR com candidatos |
 | Capturar métricas dos stories | de hora em hora | lê os stories no ar e grava em `state/stories_metrics.csv` e `state/stories_curva.csv` |
@@ -45,6 +45,34 @@ A coluna `posicao_dia` é calculada na gravação, não vem da API. Ela é o dad
 mais explicou o alcance até agora — o 2º story do dia rende consistentemente
 menos que o 1º —, e recalcular tudo a cada gravação faz o arquivo se corrigir
 sozinho se uma captura chegar fora de ordem.
+
+## O cron deste repositório atrasa horas
+
+Não é suposição. Medido em quatro execuções agendadas reais:
+
+| Cron | Previsto | Rodou | Atraso |
+|---|---|---|---|
+| `0 13 * * *` | 13:00 | 17:34 | 4h34 |
+| `0 13 * * *` | 13:00 | 17:00 | 4h00 |
+| `0 13 * * *` | 13:00 | 16:20 | 3h20 |
+| `0 12 * * *` | 12:00 | 15:45 | 3h45 |
+
+Repositório público roda na fila gratuita compartilhada do GitHub, que é
+despriorizada sob carga. O atraso é o preço do "de graça", não defeito da
+configuração — e minuto de Actions em repo público é ilimitado, então a conta
+não fecha para o outro lado: não dá para pagar por prioridade aqui.
+
+**Consequência prática:** o horário no cron é de *disparo*, não de publicação.
+Os horários estão adiantados cerca de 4h para compensar:
+
+- `10 16 * * *` → dispara 13h10 BRT → story sai entre 16h30 e 17h44
+- `10 20 * * *` → dispara 17h10 BRT → story sai entre 20h30 e 21h44
+
+O minuto 10 em vez de 00 é hipótese não confirmada: as execuções medidas
+estavam todas em minuto 00, o mais disputado da hora.
+
+Isso também explica a tolerância do vigia abaixo, de 5h30. Ela não é frouxidão
+— é o tamanho do atraso real mais margem.
 
 ## Quando nada acontece
 

@@ -30,9 +30,16 @@ WORKFLOW_PATH = os.path.join(
 
 BRT_OFFSET = -3  # America/Sao_Paulo, fixo desde 2019
 
-# O cron do GitHub atrasa com frequência — atraso de alguns minutos é rotina,
-# não incidente. Só depois desta folga um horário conta como perdido.
-TOLERANCIA_MIN = 45
+# Quanto esperar antes de considerar um horário perdido.
+#
+# Comecei com 45 minutos, supondo que o cron do GitHub atrasasse alguns
+# minutos. Medi: neste repositório o atraso real foi de 3h20 a 4h34 em quatro
+# execuções. Com 45 minutos o vigia abriria uma issue falsa todos os dias, e
+# alarme que grita à toa é alarme que ninguém lê.
+#
+# 5h30 cobre o pior atraso observado com folga e ainda avisa no mesmo dia: o
+# disparo das 13h10 é cobrado às 18h40, o das 17h10 às 22h40.
+TOLERANCIA_MIN = 330
 
 
 @dataclass(frozen=True)
@@ -75,9 +82,21 @@ def horarios_do_workflow(
 def horarios_vencidos(
     horarios: list[time], agora: datetime, *, tolerancia_min: int = TOLERANCIA_MIN
 ) -> list[time]:
-    """Horários de hoje cujo prazo (horário + tolerância) já passou."""
-    limite = agora - timedelta(minutes=tolerancia_min)
-    return [h for h in horarios if h <= limite.time()]
+    """Horários de hoje cujo prazo (horário + tolerância) já passou.
+
+    A comparação é entre datas completas, não entre horas do dia. Parece
+    detalhe e não é: com tolerância medida em horas, `agora - tolerância` cai
+    no dia anterior durante a madrugada. Comparando só a hora, às 2h da manhã
+    o limite viraria 20h30 "de hoje" e o vigia acusaria como perdidos todos os
+    horários de um dia que mal começou — alarme falso na pior hora possível.
+    """
+    folga = timedelta(minutes=tolerancia_min)
+    vencidos = []
+    for horario in horarios:
+        prazo = datetime.combine(agora.date(), horario, tzinfo=agora.tzinfo) + folga
+        if prazo <= agora:
+            vencidos.append(horario)
+    return vencidos
 
 
 def publicados_hoje(

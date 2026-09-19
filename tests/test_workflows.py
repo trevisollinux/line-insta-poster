@@ -208,17 +208,18 @@ class HorarioDosStoriesTest(unittest.TestCase):
     a conversão, para que a mudança apareça aqui e não nos números do mês que vem.
     """
 
-    HORARIOS_BRT = {18, 21}
+    # Horários de DISPARO, adiantados ~4h porque o cron deste repositório
+    # atrasa de 3h20 a 4h34. O story sai entre 16h30-17h44 e 20h30-21h44.
+    DISPAROS_BRT = {(13, 10), (17, 10)}
 
     def test_os_crons_caem_nos_horarios_combinados(self):
         caminho = os.path.join(RAIZ, ".github", "workflows", "publicar-stories-auto.yml")
         agenda = _gatilhos(_carregar(caminho)).get("schedule") or []
 
-        horas_brt = set()
+        disparos = set()
         for entrada in agenda:
             minuto, hora = entrada["cron"].split()[:2]
-            self.assertEqual(minuto, "0", f"cron fora da hora cheia: {entrada['cron']}")
             # São Paulo é UTC-3 fixo: sem horário de verão desde 2019.
-            horas_brt.add((int(hora) - 3) % 24)
+            disparos.add(((int(hora) - 3) % 24, int(minuto)))
 
-        self.assertEqual(horas_brt, self.HORARIOS_BRT)
+        self.assertEqual(disparos, self.DISPAROS_BRT)

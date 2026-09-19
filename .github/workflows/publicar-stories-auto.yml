@@ -11,10 +11,25 @@ name: Publicar Stories (automático)
 
 on:
   schedule:
-    # Dois horários por dia, para comparar. São Paulo é UTC-3 fixo (sem horário
-    # de verão desde 2019), então é só somar 3h — o cron não anda em outubro.
-    - cron: '0 21 * * *'   # 18h00 em Brasília
-    - cron: '0 0 * * *'    # 21h00 em Brasília (já é o dia seguinte em UTC)
+    # ATENÇÃO: estes horários são de DISPARO, não de publicação.
+    #
+    # O cron agendado deste repositório atrasa de 3h20 a 4h34 — medido em
+    # quatro execuções reais, não estimado. Repositório público roda na fila
+    # gratuita compartilhada, que o GitHub despriorizou; o atraso é o preço do
+    # "de graça", não defeito nosso. Marcar 18h aqui publicava perto das 22h.
+    #
+    # Por isso os horários estão adiantados ~4h em relação ao alvo:
+    #   13h10 BRT  →  story sai entre 16h30 e 17h44
+    #   17h10 BRT  →  story sai entre 20h30 e 21h44
+    #
+    # São Paulo é UTC-3 fixo (sem horário de verão desde 2019), então é só
+    # somar 3h — o cron não anda em outubro.
+    #
+    # O minuto 10 em vez de 00 é hipótese, não fato: as duas execuções que eu
+    # medi estavam ambas em minuto 00, o minuto mais disputado da hora. Pode
+    # ajudar, pode não mudar nada — os próximos dias dizem.
+    - cron: '10 16 * * *'  # 13h10 em Brasília
+    - cron: '10 20 * * *'  # 17h10 em Brasília
   workflow_dispatch:
     inputs:
       dry_run:
