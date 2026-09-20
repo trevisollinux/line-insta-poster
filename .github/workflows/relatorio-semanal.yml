@@ -1,0 +1,63 @@
+name: Resumo da semana
+
+# O contrário do vigia: ele avisa quando algo quebrou, este conta o que
+# aconteceu quando nada quebrou.
+#
+# Os números já existem em state/, mas CSV ninguém abre de segunda de manhã —
+# e dado que ninguém lê não é dado, é arquivo. A issue chega por e-mail, que é
+# onde o Gustavo já olha.
+#
+# Segunda de manhã de propósito: é quando ainda dá para mudar a semana. Um
+# resumo na sexta informa sobre uma semana que já acabou.
+
+on:
+  schedule:
+    - cron: '0 11 * * 1'   # segunda, 08h00 em Brasília (sai entre 11h20 e 13h24)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  resumir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Instalar dependências
+        run: pip install --quiet -r requirements.txt
+
+      - name: Montar o resumo
+        run: |
+          python -m poster.cli weekly-report \
+            --queue queue/stories.yaml \
+            --report "$RUNNER_TEMP/semana.md" \
+            --title-file "$RUNNER_TEMP/semana-titulo.txt"
+
+      - name: Abrir issue (e-mail)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          titulo=$(cat "$RUNNER_TEMP/semana-titulo.txt")
+
+          # Sem dedupe: o título carrega a data da segunda, então duas
+          # execuções na mesma semana dariam a mesma issue. Confere antes.
+          existentes=$(gh issue list \
+            --state open \
+            --search "$titulo in:title" \
+            --json number --jq 'length')
+          if [ "$existentes" != "0" ]; then
+            echo "o resumo desta semana já está aberto"
+            exit 0
+          fi
+
+          gh issue create \
+            --title "$titulo" \
+            --body-file "$RUNNER_TEMP/semana.md"

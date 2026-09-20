@@ -23,6 +23,7 @@ from . import (
     audiencia,
     conta as conta_mod,
     curadoria,
+    relatorio as relatorio_mod,
     drive,
     inbox as inbox_mod,
     metricas_stories,
@@ -434,6 +435,53 @@ def cmd_account_metrics(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_weekly_report(args: argparse.Namespace) -> int:
+    """Resume a semana — o contrário do vigia.
+
+    O vigia avisa quando algo quebrou. Este conta o que aconteceu quando nada
+    quebrou, que é a informação que some: os números ficam no CSV, e CSV
+    ninguém abre de segunda de manhã.
+    """
+    fuso = timezone(timedelta(hours=relatorio_mod.BRT_OFFSET))
+    agora = datetime.now(timezone.utc).astimezone(fuso)
+
+    publicados = state.load_state(args.state)
+    da_semana = relatorio_mod.semana(publicados, agora=agora, dias=args.dias)
+    metricas = metricas_stories.carregar(args.metricas)
+    juntados = relatorio_mod.juntar(da_semana, metricas)
+
+    try:
+        itens = queue_file.load_queue(args.queue)
+        restantes = vigia.avaliar_fila(itens, publicados).restantes
+    except queue_file.QueueError:
+        restantes = 0
+
+    hoje, antes = relatorio_mod.conta_na_semana(
+        conta_mod.carregar(args.conta), agora=agora, dias=args.dias
+    )
+
+    resumo = relatorio_mod.Resumo(
+        inicio=agora - timedelta(days=args.dias),
+        fim=agora,
+        publicados=juntados,
+        fila_restante=restantes,
+        conta_hoje=hoje,
+        conta_antes=antes,
+    )
+
+    corpo = relatorio_mod.markdown(resumo)
+    print(corpo)
+    write_summary(f"### {relatorio_mod.titulo(agora)}\n\n{corpo}")
+    if args.report:
+        os.makedirs(os.path.dirname(args.report) or ".", exist_ok=True)
+        with open(args.report, "w", encoding="utf-8") as handle:
+            handle.write(corpo)
+    if args.title_file:
+        with open(args.title_file, "w", encoding="utf-8") as handle:
+            handle.write(relatorio_mod.titulo(agora))
+    return EXIT_OK
+
+
 def cmd_watch_queue(args: argparse.Namespace) -> int:
     """Avisa enquanto ainda dá tempo de abastecer a fila."""
     try:
@@ -821,6 +869,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="janela pedida à API — janela maior conserta captura perdida",
     )
     conta.set_defaults(func=cmd_account_metrics)
+
+    semanal = sub.add_parser("weekly-report", help="resume a semana numa issue")
+    semanal.add_argument("--state", default=state.STATE_PATH)
+    semanal.add_argument("--queue", default=inbox_mod.DRAFTS_PATH)
+    semanal.add_argument("--metricas", default=metricas_stories.CSV_PATH)
+    semanal.add_argument("--conta", default=conta_mod.CSV_PATH)
+    semanal.add_argument("--dias", type=int, default=7)
+    semanal.add_argument("--report", default="")
+    semanal.add_argument("--title-file", default="")
+    semanal.set_defaults(func=cmd_weekly_report)
 
     fila = sub.add_parser(
         "watch-queue", help="avisa quando a fila de stories está acabando"

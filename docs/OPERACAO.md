@@ -318,6 +318,26 @@ que mexe em workflow de verdade poderia desfazer um `disabled_manually` de
 alguém. Vale repetir de vez em quando, pela mesma razão do vigia: o caminho que
 abre a issue só roda no dia do problema.
 
+## O resumo da semana
+
+Toda segunda de manhã, uma issue com o que aconteceu: stories publicados,
+views (mediana, mínimo, máximo e **n**), melhor e pior do período, desempenho
+por tipo de conteúdo, o estado da conta com a variação da semana, e quantas
+fotos sobraram na fila.
+
+É o contrário do vigia. Ele avisa quando algo quebrou; este conta o que
+aconteceu quando nada quebrou — informação que hoje some, porque fica em CSV e
+CSV ninguém abre de segunda de manhã.
+
+**Regra que atravessa o relatório: nenhum número sai sem o tamanho da amostra
+ao lado.** Uma semana tem 10 a 14 stories; mediana de 3 não é tendência, e
+escrever como se fosse é a forma mais barata de alguém decidir errado com cara
+de dado. A tabela por tipo traz o `n` em coluna própria, e há teste exigindo
+isso.
+
+Segunda de manhã de propósito: é quando ainda dá para mudar a semana. Resumo
+na sexta informa sobre uma semana que já acabou.
+
 ## Quando falha
 
 **Alerta chegou (ou o job ficou vermelho).** Abra o run, leia o Summary. O item
