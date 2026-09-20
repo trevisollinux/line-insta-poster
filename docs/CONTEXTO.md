@@ -1,6 +1,7 @@
 # Contexto para retomar o projeto
 
-Escrito em 19/09/2026, no fim da primeira maratona de implementação. O objetivo
+Escrito em 19/09/2026 e atualizado em 20/09 de manhã, depois da noite de
+medição do agendador do GitHub. O objetivo
 é que outra sessão (ou outra pessoa) consiga continuar sem reconstruir o
 raciocínio do zero. Prioriza o **porquê** das decisões — o *o quê* está no
 código, e o código não explica sozinho por que não foi feito do jeito óbvio.
@@ -26,7 +27,7 @@ simplesmente não funciona para isso. Se privacidade virar requisito, a resposta
 
 ---
 
-## 2. Estado em 19/09/2026
+## 2. Estado em 20/09/2026, 09h BRT
 
 Funcionando ponta a ponta:
 
@@ -34,11 +35,23 @@ Funcionando ponta a ponta:
   mensal que regrava o próprio secret.
 - Acervo de **135 posts** ranqueado em `state/catalog.json`.
 - Caixa de entrada do Drive importando fotos e convertendo PNG/WebP em JPEG.
-- **11 fotos** em `queue/stories.yaml`, **3 stories publicados** (1 teste em
-  18/09, 2 reais em 19/09).
-- Coletor de métricas de story rodando de hora em hora.
-- Vigia de silêncio no ar, com alarme já testado de verdade (issue #6).
+- **8 fotos** restantes em `queue/stories.yaml`.
+- Coletor de métricas de story no ar — mas com **25% de entrega**, ver a
+  ressalva na seção 3.
+- Vigia de silêncio no ar, com alarme testado de verdade (issue #6).
 - **253 testes**, nenhum toca a rede.
+
+Stories publicados até agora:
+
+| Quando (BRT) | Media | O que foi |
+|---|---|---|
+| 18/09 12:50 | `17961062295200190` | teste inicial |
+| 19/09 17:33 | `17971817322069714` | slot das 16h40, na mão após o bug do `queue` |
+| 19/09 18:09 | `18123811351859916` | slot das 18h, na mão |
+| 20/09 04:48 | `18111631310156210` | experimento noturno — saiu 5h24 atrasado |
+
+O de 20/09 saiu às 4h48 da manhã porque o cron atrasou 5h24. Publicou certo, em
+hora que ninguém vê. Se a métrica dele vier péssima, é o horário, não a foto.
 
 `queue/posts.yaml` (feed/Reels, exige aprovação humana) está **vazio**.
 
@@ -116,7 +129,7 @@ em silêncio, que é exatamente o defeito que ele existe para pegar.
 
 ---
 
-## 4. A restrição que molda tudo: o cron do GitHub atrasa horas
+## 4. A restrição que molda tudo: o agendador do GitHub acorda pouco
 
 **Medido, não estimado.** Quatro execuções agendadas reais:
 
@@ -236,6 +249,11 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
   BRT (16h34 UTC). Pelo modelo dos despertares, é improvável que o minuto
   importe: o que decide é quando o agendador acorda, não em que minuto a
   ocorrência estava marcada.
+- **Horário de publicação previsível não é possível com cron do GitHub.** A
+  medição fechou essa porta. Se virar requisito, a saída é um gatilho externo
+  chamando `workflow_dispatch` pela API na hora certa — o que exige guardar um
+  token fora do GitHub, e essa é uma decisão de segurança do Gustavo, não
+  técnica. Não foi decidido.
 - **Issue #6** (`[teste] Story não publicado`) é o ensaio do alarme e pode ser
   fechada.
 - **Issue #2** tem os 15 candidatos da curadoria esperando aprovação humana.
@@ -297,3 +315,10 @@ um token que faz tudo.
   **Reintroduza o bug para validar o teste; não confie no verde.**
 - Em certo momento parti para fotos do catálogo do site quando o pedido era
   republicar posts que já funcionaram no Instagram.
+- Afirmei que o coletor de hora em hora garantiria que nenhum story expirasse
+  sem medição. A taxa real é de 25%. Ver a ressalva na seção 3 — é o tipo de
+  garantia falsa que faz alguém confiar num dado incompleto meses depois.
+- Desenhei o experimento do cron noturno com um disparo único (`23 2 20 9 *`),
+  que casa com um minuto do ano. Se o GitHub tivesse perdido a janela, não
+  mediria nada e eu não saberia distinguir de "ainda não acordou". Deu certo
+  por sorte. **Para medir agendamento, use cron recorrente: várias chances.**
