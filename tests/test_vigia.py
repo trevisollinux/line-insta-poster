@@ -32,7 +32,7 @@ def workflow(*crons: str) -> str:
     return caminho
 
 
-AGENDA = workflow("34 16 * * *", "34 20 * * *")  # disparos 13h34 e 17h34
+AGENDA = workflow("34 16 * * *", "34 20 * * *")  # fixture: disparos 13h34 e 17h34
 
 
 class HorariosTest(unittest.TestCase):
@@ -44,8 +44,16 @@ class HorariosTest(unittest.TestCase):
     def test_le_a_agenda_real_do_repositorio(self):
         # Se o vigia copiasse os horários, ele poderia vigiar um horário que
         # ninguém mais usa — calado, como o problema que ele existe para pegar.
-        # Estes são horários de disparo; o story sai ~4h depois.
-        self.assertEqual(vigia.horarios_do_workflow(), [time(13, 34), time(17, 34)])
+        #
+        # O esperado vem de test_workflows, que é onde a agenda combinada está
+        # fixada. Repetir os horários aqui criaria um segundo lugar para
+        # esquecer de atualizar — e este teste existe justamente contra isso.
+        from tests.test_workflows import HorarioDosStoriesTest
+
+        esperados = sorted(
+            time(hora, minuto) for hora, minuto in HorarioDosStoriesTest.DISPAROS_BRT
+        )
+        self.assertEqual(vigia.horarios_do_workflow(), esperados)
 
     def test_ignora_cron_com_curinga(self):
         self.assertEqual(vigia.horarios_do_workflow(workflow("0 */4 * * *")), [])

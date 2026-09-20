@@ -21,8 +21,17 @@ on:
     # marcado. Marcar 18h aqui publicava perto das 22h.
     #
     # Por isso os horários estão adiantados ~4h em relação ao alvo:
-    #   13h34 BRT  →  story sai entre 16h54 e 18h08
-    #   17h34 BRT  →  story sai entre 20h54 e 22h08
+    #   08h34 BRT  →  story sai entre 11h54 e 14h00
+    #   12h34 BRT  →  story sai entre 15h54 e 18h00
+    #
+    # Os dois cabem na tarde, que é a faixa que rende nos dados (tarde 323
+    # views contra 141 da noite). A agenda anterior (13h34 e 17h34) jogava o
+    # segundo para 20h54-23h, justamente a pior.
+    #
+    # As quatro horas entre um disparo e outro não são estética: a dispersão da
+    # entrega é de 2h04 (3h20 a 5h24). Com menos de 2h04 de intervalo, o
+    # segundo story poderia sair ANTES do primeiro, e a ordem importa — dentro
+    # do mesmo dia, o segundo story fica em ~84% do primeiro.
     #
     # São Paulo é UTC-3 fixo (sem horário de verão desde 2019), então é só
     # somar 3h — o cron não anda em outubro.
@@ -31,8 +40,8 @@ on:
     # todas em minuto 00, o mais disputado da hora, e um minuto quebrado deve
     # cair fora do pico. Pode ajudar, pode não mudar nada — os próximos dias
     # dizem.
-    - cron: '34 16 * * *'  # 13h34 em Brasília
-    - cron: '34 20 * * *'  # 17h34 em Brasília
+    - cron: '34 11 * * *'  # 08h34 em Brasília
+    - cron: '34 15 * * *'  # 12h34 em Brasília
   workflow_dispatch:
     inputs:
       dry_run:

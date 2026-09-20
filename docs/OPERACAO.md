@@ -96,8 +96,12 @@ silêncio não é algo em que se confie sem conferência independente.
 **Consequência prática:** o horário no cron é de *disparo*, não de publicação.
 Os horários estão adiantados cerca de 4h para compensar:
 
-- `34 16 * * *` → dispara 13h34 BRT → story sai entre 16h54 e 18h08
-- `34 20 * * *` → dispara 17h34 BRT → story sai entre 20h54 e 22h08
+- `34 11 * * *` → dispara 08h34 BRT → story sai entre 11h54 e 14h
+- `34 15 * * *` → dispara 12h34 BRT → story sai entre 15h54 e 18h
+
+Os dois caem na tarde, que é a faixa que rende nos dados (323 views contra 141
+da noite). O intervalo de 4h entre eles é requisito: a dispersão da entrega é
+de 2h04, e com menos que isso o segundo story poderia sair antes do primeiro.
 
 O minuto 34 é hipótese não confirmada: as execuções medidas estavam todas em
 minuto 00, o mais disputado da hora, e um minuto quebrado deve cair fora do

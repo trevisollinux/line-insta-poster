@@ -328,8 +328,8 @@ class HorarioDosStoriesTest(unittest.TestCase):
     """
 
     # Horários de DISPARO, adiantados ~4h porque o cron deste repositório
-    # atrasa de 3h20 a 5h24. O story sai entre 16h54-18h58 e 20h54-22h58.
-    DISPAROS_BRT = {(13, 34), (17, 34)}
+    # atrasa de 3h20 a 5h24. O story sai entre 11h54-14h e 15h54-18h.
+    DISPAROS_BRT = {(8, 34), (12, 34)}
 
     def test_os_crons_caem_nos_horarios_combinados(self):
         caminho = os.path.join(RAIZ, ".github", "workflows", "publicar-stories-auto.yml")

@@ -172,8 +172,13 @@ de runner em repo público — a medição de fila 0s desmentiu.
 **Consequências que já estão no código:**
 
 - Os horários do cron são de **disparo**, não de publicação. Estão adiantados
-  ~4h: `34 16 * * *` (13h34 BRT) e `34 20 * * *` (17h34 BRT), para o story sair
-  entre 16h54-18h08 e 20h54-22h08.
+  ~4h: `34 11 * * *` (08h34 BRT) e `34 15 * * *` (12h34 BRT), para o story sair
+  entre 11h54-14h e 15h54-18h — os dois dentro da tarde, que é a faixa que
+  rende. A agenda anterior (13h34 e 17h34) jogava o segundo para 20h54-23h.
+- **As 4h entre um disparo e outro são requisito, não estética.** A dispersão
+  da entrega é de 2h04; com intervalo menor, o segundo story pode sair antes do
+  primeiro — e a ordem importa, porque o segundo do dia fica em ~84% do
+  primeiro.
 - O minuto 34 é hipótese não confirmada: as quatro medições estavam todas em
   minuto 00, o mais disputado. Pode não mudar nada.
 - A tolerância do vigia é de 5h30. Não é frouxidão — é o pior atraso medido

@@ -33,12 +33,14 @@ BRT_OFFSET = -3  # America/Sao_Paulo, fixo desde 2019
 # Quanto esperar antes de considerar um horário perdido.
 #
 # Comecei com 45 minutos, supondo que o cron do GitHub atrasasse alguns
-# minutos. Medi: neste repositório o atraso real foi de 3h20 a 4h34 em quatro
-# execuções. Com 45 minutos o vigia abriria uma issue falsa todos os dias, e
-# alarme que grita à toa é alarme que ninguém lê.
+# minutos. Medi: neste repositório o atraso real foi de 3h20 a 5h24. Com 45
+# minutos o vigia abriria uma issue falsa todos os dias, e alarme que grita à
+# toa é alarme que ninguém lê.
 #
-# 5h30 cobre o pior atraso observado com folga e ainda avisa no mesmo dia: o
-# disparo das 13h10 é cobrado às 18h40, o das 17h10 às 22h40.
+# 5h30 cobre o pior atraso observado e ainda avisa a tempo de fazer algo: com a
+# agenda de 08h34 e 12h34, o primeiro é cobrado às 14h04 e o segundo às 18h04.
+# A margem sobre o pior caso é de 6 minutos — se um atraso maior aparecer, o
+# número a mexer é este, não a agenda.
 TOLERANCIA_MIN = 330
 
 
@@ -181,7 +183,7 @@ def relatorio_markdown(diagnostico: Diagnostico) -> str:
         f"{diagnostico.faltando} story{plural}.\n\n"
         f"- Horários de disparo já vencidos hoje: {horarios} "
         f"(com {folga_h:.1f}h de tolerância — o cron deste repositório atrasa "
-        f"de 3h20 a 4h34)\n"
+        f"de 3h20 a 5h24)\n"
         f"- Fonte: `state/published.json`\n\n"
         "### O que checar, nesta ordem\n\n"
         "1. **A aba Actions tem um run de _Publicar Stories (automático)_ hoje?**\n"
