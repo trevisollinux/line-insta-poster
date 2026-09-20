@@ -85,7 +85,12 @@ Só a primeira linha é lida como marca. Varrer o texto inteiro faria uma legend
 que diz "preço ok" no meio da frase virar aprovação — e a trava é a única coisa
 entre um reajuste e um preço velho no perfil, que em feed não expira em 24h.
 
-E a exigência é **condicional à legenda ter preço**, não ao formato. É o mesmo
+E a exigência é **condicional à legenda trazer um número de preço**, não ao
+formato nem ao assunto. "Valor no direct" e "consulte o preço" passam direto:
+o que envelhece é o número, e essas são as legendas mais comuns da loja quando
+a peça não vai com valor publicado. A primeira versão disparava nas palavras
+soltas "preço" e "valor" — a trava passaria a pedir conferência justamente no
+caso mais frequente, que é como trava vira ritual. É o mesmo
 raciocínio que já dispensava STORIES: a flag protege preço velho na legenda, e
 legenda sem preço não tem o que conferir. Exigir sempre viraria ritual, e
 ritual vira hábito — a pessoa marca sem olhar, inclusive onde importa.

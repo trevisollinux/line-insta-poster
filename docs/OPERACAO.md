@@ -37,9 +37,15 @@ preço não há o que conferir. Exigir a marca sempre transformaria a conferênc
 em ritual, e ritual vira hábito: a pessoa marca sem olhar, inclusive nos posts
 que realmente têm preço.
 
-Conta como preço: `R$`, "reais", "890,00", "6x de 148", "à vista", e as
-palavras "preço" e "valor" mesmo sem número — erra para o lado de pedir uma
-conferência a mais. **Não** alcança preço escrito por extenso nem preço
+O gatilho é o **número**, não o assunto. Conta como preço: `R$ 890`,
+`890,00`, `890 reais`, `6x de 148`, `preço: 890`, `por 890`, `a partir de 690`.
+
+**Não** conta: "valor no direct", "consulte o preço na bio", "à vista com
+desconto" — falam de preço sem trazer número, e o que envelhece é o número.
+São as legendas mais comuns quando a peça não vai com valor publicado, e é por
+isso que elas passam direto.
+
+Também não alcança preço escrito por extenso ("oitocentos e noventa") nem preço
 queimado dentro da imagem; disso nenhuma validação dá conta.
 
 Só a primeira linha conta. Uma legenda que mencione "preço ok" no meio do

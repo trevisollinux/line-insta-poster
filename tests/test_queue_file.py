@@ -56,21 +56,38 @@ class QueueValidationTest(unittest.TestCase):
         self.assertFalse(parsed.reviewed_price)
 
     def test_o_que_conta_como_preco_na_legenda(self):
+        """O gatilho é o NÚMERO, não o assunto.
+
+        O que envelhece é o valor. "Valor no direct" e "consulte o preço" não
+        envelhecem — e são as legendas mais comuns desta loja, que nem sempre
+        publica preço. Uma trava que dispara no caso mais frequente vira
+        ritual, e ritual vira hábito de marcar sem olhar.
+        """
         for legenda in (
             "R$ 890",
             "890,00 no pix",
             "6x de 148",
-            "consulte o preço na bio",
-            "à vista com desconto",
+            "preço: 890",
+            "por 890",
+            "a partir de 690",
+            "890 reais",
         ):
-            with self.subTest(legenda=legenda):
+            with self.subTest(exige=legenda):
                 payload = item(caption=legenda)
                 payload.pop("reviewed_price")
                 with self.assertRaises(QueueError):
                     parse_queue([payload])
 
-        for legenda in ("Juniper 3 em 1 🥰", "#readytogo", "Nossa mochila de couro"):
-            with self.subTest(legenda=legenda):
+        for legenda in (
+            "valor no direct",
+            "consulte o preço na bio",
+            "preço no direct 💬",
+            "à vista com desconto",
+            "Juniper 3 em 1 🥰",
+            "#readytogo",
+            "12 meses de garantia",
+        ):
+            with self.subTest(livre=legenda):
                 payload = item(caption=legenda)
                 payload.pop("reviewed_price")
                 parse_queue([payload])

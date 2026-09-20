@@ -20,23 +20,33 @@ QUEUE_PATH = os.path.join(REPO_ROOT, "queue", "posts.yaml")
 MEDIA_TYPES = {"IMAGE", "REELS", "STORIES", "CAROUSEL"}
 CAPTIONED_TYPES = {"IMAGE", "REELS", "CAROUSEL"}  # STORIES não aceita legenda
 
-# O que faz uma legenda "ter preço". A flag reviewed_price existe para barrar
-# preço velho na legenda; legenda sem preço não tem o que conferir, e exigir a
-# marca ali seria ritual. Ritual repetido vira hábito, e hábito não confere
-# nada — exigir sempre enfraquece a trava justamente nos posts que importam.
+# O que faz uma legenda "ter preço": um NÚMERO que é dinheiro. A flag
+# reviewed_price existe para barrar preço velho na legenda, e o que envelhece é
+# o número — "valor no direct" e "consulte o preço" não envelhecem nunca.
 #
-# Erra para o lado seguro: "preço" e "valor" entram como gatilho mesmo em
-# frases que não trazem número, porque pedir uma conferência a mais é barato e
-# deixar passar um reajuste não é.
+# A primeira versão disto disparava nas palavras "preço" e "valor" sozinhas,
+# achando que errar para o lado de pedir conferência a mais era barato. Não é:
+# "valor no direct" é a legenda mais comum desta loja, e a trava passaria a
+# disparar no caso mais frequente — que é como uma trava vira ritual, e ritual
+# vira hábito de marcar sem olhar.
 PRECO_NA_LEGENDA = re.compile(
-    r"(r\$|\breais\b|\bpre[cç]o\b|\bvalor\b|\b[àa]\s+vista\b"
-    r"|\d+\s*x\s*(de\s*)?(r\$\s*)?\d|\d+[.,]\d{2}\b)",
-    re.IGNORECASE,
+    r"""(
+        r\$\s*\d                                  # R$ 890
+      | \d[\d.,]*\s*reais                         # 890 reais
+      | \d+[.,]\d{2}\b                            # 890,00
+      | \d+\s*x\s*(de\s*)?\d                     # 6x de 148
+      | (pre[cç]o|valor)\D{0,12}\d                 # preço: 890
+      | \b(por|apenas|somente|a\s+partir\s+de|s[oó])\s+\d{2,5}\b
+    )""",
+    re.IGNORECASE | re.VERBOSE,
 )
 
 
 def menciona_preco(caption: str) -> bool:
-    """Se a legenda fala de preço, alguém precisa ter conferido esse preço.
+    """Se a legenda traz um preço, alguém precisa ter conferido esse preço.
+
+    "Traz um preço" quer dizer número, não assunto: "valor no direct" e
+    "consulte o preço" passam, porque não há número para envelhecer.
 
     O que ISTO não cobre, e nenhuma validação cobre: preço escrito por extenso
     ("oitocentos e noventa") e preço queimado dentro da imagem.
