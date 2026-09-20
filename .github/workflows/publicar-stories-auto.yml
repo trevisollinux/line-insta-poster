@@ -13,10 +13,12 @@ on:
   schedule:
     # ATENÇÃO: estes horários são de DISPARO, não de publicação.
     #
-    # O cron agendado deste repositório atrasa de 3h20 a 4h34 — medido em
-    # quatro execuções reais, não estimado. Repositório público roda na fila
-    # gratuita compartilhada, que o GitHub despriorizou; o atraso é o preço do
-    # "de graça", não defeito nosso. Marcar 18h aqui publicava perto das 22h.
+    # O cron agendado deste repositório atrasa de 3h20 a 5h24 — medido em
+    # execuções reais, não estimado. A causa NÃO é fila de runner: comparando
+    # created_at com run_started_at, a fila foi 0s em todas. O agendador do
+    # GitHub é que acorda pouco e de forma irregular (34 a 352 min entre
+    # despertares), e o run só nasce no primeiro despertar depois do horário
+    # marcado. Marcar 18h aqui publicava perto das 22h.
     #
     # Por isso os horários estão adiantados ~4h em relação ao alvo:
     #   13h34 BRT  →  story sai entre 16h54 e 18h08
