@@ -1,0 +1,129 @@
+name: Heartbeat
+
+# Mantém os workflows agendados vivos — e avisa se não mantiver.
+#
+# O GitHub desativa os crons de um repositório público depois de 60 dias sem
+# atividade no repositório. Desativa em silêncio: o cron simplesmente para de
+# disparar, e um cron que não dispara não deixa rastro nenhum. Levaria junto o
+# vigia, que é justamente quem deveria perceber que algo parou — o dia em que
+# isso acontecesse, o sistema inteiro ficaria mudo parecendo saudável.
+#
+# ATENÇÃO — o que aqui é hipótese, e não fato medido:
+#
+# Este workflow empurra um commit para zerar o contador dos 60 dias. O commit
+# sai como github-actions[bot], com o GITHUB_TOKEN. **Não está verificado** que
+# um commit de bot conta como "atividade" para esse contador; há relato de que
+# só push de pessoa conta, e não dá para confirmar de fora sem esperar 60 dias
+# parado. Se não contar, o repositório já estaria em risco hoje: tudo o que ele
+# recebe são commits de bot (as métricas de hora em hora).
+#
+# Por isso o segundo passo existe: ele confere pela API se algum workflow foi
+# desativado por inatividade, reativa e abre issue. Essa conferência é o que
+# transforma a hipótese em medição — se a issue aparecer um dia, a resposta é
+# "commit de bot não conta", e a saída passa a ser um PAT com Contents RW só
+# deste repositório, gravando o pulso como pessoa.
+#
+# O limite desse remendo, dito de frente: se TODOS os agendados forem
+# desativados de uma vez, este também é desativado e não sobra ninguém para
+# reativar. Aí a recuperação é manual, na aba Actions — o GitHub mostra o botão
+# de reativar. Nenhuma automação dentro do próprio GitHub resolve esse caso.
+#
+# Segunda e quinta, não uma vez por mês: o agendador deste repositório descarta
+# ocorrências (25% de entrega medida no cron horário). São ~17 chances em 60
+# dias; mesmo perdendo a maioria, sobra folga.
+
+on:
+  schedule:
+    - cron: '23 15 * * 1,4'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+
+concurrency:
+  group: instagram-heartbeat
+  cancel-in-progress: false
+
+jobs:
+  pulsar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Registrar o pulso
+        run: |
+          # O arquivo guarda só a última batida: o histórico já está no git, e
+          # um arquivo que só cresce acumularia ruído para sempre.
+          date -u '+%Y-%m-%dT%H:%M:%SZ' > state/heartbeat.txt
+
+          git add -- state/heartbeat.txt
+          if git diff --cached --quiet; then
+            echo "pulso idêntico ao anterior — nada a commitar"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: pulso do heartbeat'
+          # Divide o branch com o coletor de métricas, que roda de hora em
+          # hora: sem rebase, uma corrida normal viraria push rejeitado.
+          for tentativa in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && exit 0
+            sleep $((tentativa * 5))
+          done
+          echo "::error::não consegui empurrar o pulso depois de 3 tentativas"
+          exit 1
+
+      - name: Conferir e reativar os agendados
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          # `state` vem como active | disabled_inactivity | disabled_manually.
+          # Só o do meio é o que este workflow existe para pegar; desativado na
+          # mão é decisão de alguém, e reativar por cima seria desfazê-la.
+          gh api "repos/${GITHUB_REPOSITORY}/actions/workflows" --paginate \
+            --jq '.workflows[] | select(.state == "disabled_inactivity") | [.id, .name] | @tsv' \
+            > "$RUNNER_TEMP/desativados.tsv"
+
+          if [ ! -s "$RUNNER_TEMP/desativados.tsv" ]; then
+            echo "nenhum workflow desativado por inatividade"
+            exit 0
+          fi
+
+          while IFS=$'\t' read -r id nome; do
+            echo "reativando: $nome ($id)"
+            gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/${id}/enable"
+          done < "$RUNNER_TEMP/desativados.tsv"
+
+          titulo="[cron] Workflows agendados foram desativados por inatividade"
+
+          # Corpo em arquivo, nunca heredoc dentro do run: heredoc encerra o
+          # bloco YAML e o workflow nasce morto.
+          {
+            echo "O GitHub desativou por inatividade os workflows abaixo. Eu reativei:"
+            echo
+            cut -f2 "$RUNNER_TEMP/desativados.tsv" | sed 's/^/- /'
+            echo
+            echo "O que isso significa: o commit de pulso do heartbeat **não** conta como"
+            echo "atividade para o contador de 60 dias. A prevenção por commit de bot não"
+            echo "funciona, e o próximo passo é um PAT com Contents RW só deste repositório"
+            echo "para o pulso sair como pessoa."
+            echo
+            echo "Enquanto isso, confira na aba Actions se algum agendado ficou de fora —"
+            echo "se o próprio heartbeat tivesse sido desativado junto, ninguém teria"
+            echo "reativado nada e esta issue não existiria."
+          } > "$RUNNER_TEMP/heartbeat.md"
+
+          existentes=$(gh issue list \
+            --state open \
+            --search "$titulo in:title" \
+            --json number --jq 'length')
+          if [ "$existentes" != "0" ]; then
+            echo "issue já está aberta — nada a fazer"
+            exit 0
+          fi
+
+          gh issue create --title "$titulo" --body-file "$RUNNER_TEMP/heartbeat.md"

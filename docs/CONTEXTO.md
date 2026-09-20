@@ -39,7 +39,7 @@ Funcionando ponta a ponta:
 - Coletor de métricas de story no ar — mas com **25% de entrega**, ver a
   ressalva na seção 3.
 - Vigia de silêncio no ar, com alarme testado de verdade (issue #6).
-- **253 testes**, nenhum toca a rede.
+- **255 testes**, nenhum toca a rede.
 
 Stories publicados até agora:
 
@@ -264,8 +264,15 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
 - **`online_followers` não devolve dado** para esta conta. A métrica foi
   descontinuada para parte das contas.
 - **Um story por dia em vez de dois** — recomendado pelos dados, não decidido.
-- **Heartbeat dos 60 dias:** o GitHub desativa workflows agendados após 60 dias
-  sem atividade no repositório. Ainda não há proteção contra isso.
+- **Heartbeat dos 60 dias:** resolvido pela metade, de propósito. O workflow
+  `heartbeat.yml` pulsa segunda e quinta (commit em `state/heartbeat.txt`) e
+  confere pela API se algum agendado caiu por inatividade, reativando e abrindo
+  issue. **O que não está verificado:** que commit de bot conte como atividade
+  para o contador dos 60 dias — há relato de que só push de pessoa conta, e a
+  issue do heartbeat é o que vai responder isso. Se ela aparecer, a saída é um
+  PAT com Contents RW só deste repositório. E se todos os agendados forem
+  desativados de uma vez, o heartbeat cai junto: recuperação manual na aba
+  Actions.
 
 ---
 
@@ -273,7 +280,7 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
 
 ```bash
 pip install -r requirements.txt
-python -m unittest discover -s tests -t .    # 253 testes, nenhum usa rede
+python -m unittest discover -s tests -t .    # 255 testes, nenhum usa rede
 python -m poster.cli validate                # valida a fila, sem rede
 python -m poster.cli publish --dry-run       # escolhe sem publicar
 python -m poster.cli watch-stories --simular # ensaia o alarme

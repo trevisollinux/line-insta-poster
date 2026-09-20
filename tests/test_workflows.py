@@ -3,6 +3,7 @@
 Workflow inválido não falha um job: o run nasce morto ("startup failure") e é
 fácil não perceber que o cron parou de rodar.
 """
+import datetime
 import glob
 import os
 import re
@@ -52,6 +53,53 @@ class WorkflowTest(unittest.TestCase):
 
         self.assertIn("git add -- queue/candidates.yaml state/catalog.json media/", conteudo)
         self.assertNotIn("git checkout -b", conteudo)
+
+
+class HeartbeatTest(unittest.TestCase):
+    """O heartbeat é o único workflow cuja falha não aparece em lugar nenhum.
+
+    O GitHub desativa os crons de um repositório público depois de 60 dias sem
+    atividade. Se o heartbeat pulsar de menos, o repositório atravessa a janela
+    e todos os agendados morrem juntos — inclusive o vigia, que é quem deveria
+    avisar. Não há alarme para esse caso: o teste é o alarme.
+    """
+
+    CAMINHO = os.path.join(RAIZ, ".github", "workflows", "heartbeat.yml")
+    # 60 dias é o prazo do GitHub. A folga existe porque o agendador descarta
+    # ocorrências: entregou 25% no cron horário, e um pulso marcado não é um
+    # pulso dado.
+    FOLGA_MAXIMA_DIAS = 14
+
+    def test_o_pulso_cabe_com_folga_na_janela_de_60_dias(self):
+        disparos = _dias_de_disparo(self.CAMINHO, dias=60)
+
+        self.assertGreaterEqual(
+            len(disparos), 8, "poucas chances de pulso em 60 dias"
+        )
+        maior_intervalo = max(
+            (b - a).days for a, b in zip(disparos, disparos[1:])
+        )
+        self.assertLessEqual(
+            maior_intervalo,
+            self.FOLGA_MAXIMA_DIAS,
+            "intervalo entre pulsos grande demais para um agendador que descarta ocorrências",
+        )
+
+    def test_so_reativa_o_que_o_github_desativou_por_inatividade(self):
+        """Reativar `disabled_manually` desfaria uma decisão de alguém."""
+        with open(self.CAMINHO, encoding="utf-8") as handle:
+            conteudo = handle.read()
+
+        self.assertTrue(
+            'select(.state == "disabled_inactivity")' in conteudo,
+            "o filtro precisa pegar só o que o GitHub desativou por inatividade",
+        )
+        # Reativar é um PUT por id, e o único id que circula é o que saiu do
+        # filtro acima. Um PUT com qualquer outra origem reativaria demais.
+        puts = [linha for linha in conteudo.splitlines() if "gh api -X PUT" in linha]
+        self.assertTrue(puts, "o workflow não reativa nada")
+        for linha in puts:
+            self.assertIn("${id}/enable", linha, linha)
 
 
 if __name__ == "__main__":
@@ -200,6 +248,59 @@ class ContratoDeInputsTest(unittest.TestCase):
                 )
 
 
+def _campo_cron(campo: str, valor: int) -> bool:
+    """Casa um campo de cron com um valor. Cobre `*`, listas, faixas e passos.
+
+    Não é um croniter: só o suficiente para conferir cadência de agenda, que é
+    o que os testes daqui precisam saber.
+    """
+    if campo == "*":
+        return True
+    for parte in campo.split(","):
+        passo = 1
+        if "/" in parte:
+            parte, texto_passo = parte.split("/", 1)
+            passo = int(texto_passo)
+        if parte == "*":
+            if valor % passo == 0:
+                return True
+            continue
+        if "-" in parte:
+            inicio, fim = (int(x) for x in parte.split("-", 1))
+        else:
+            inicio = fim = int(parte)
+        if inicio <= valor <= fim and (valor - inicio) % passo == 0:
+            return True
+    return False
+
+
+def _dias_de_disparo(caminho: str, *, dias: int) -> list[datetime.date]:
+    """Dias em que a agenda do workflow dispara, a partir de hoje.
+
+    Dia do mês e dia da semana são OU quando os dois estão restritos — é a
+    regra do cron, e ignorá-la subestimaria a cadência.
+    """
+    agenda = _gatilhos(_carregar(caminho)).get("schedule") or []
+    hoje = datetime.date.today()
+    disparos = []
+    for salto in range(dias):
+        dia = hoje + datetime.timedelta(days=salto)
+        # cron usa 0-6 com domingo em 0; date.weekday() usa segunda em 0.
+        dow = (dia.weekday() + 1) % 7
+        for entrada in agenda:
+            _, _, dom, mes, semana = entrada["cron"].split()
+            if not _campo_cron(mes, dia.month):
+                continue
+            if dom == "*" or semana == "*":
+                casou = _campo_cron(dom, dia.day) and _campo_cron(semana, dow)
+            else:
+                casou = _campo_cron(dom, dia.day) or _campo_cron(semana, dow)
+            if casou:
+                disparos.append(dia)
+                break
+    return disparos
+
+
 class HorarioDosStoriesTest(unittest.TestCase):
     """Os crons de story são um experimento de horário — o horário é o dado.
 
@@ -209,7 +310,7 @@ class HorarioDosStoriesTest(unittest.TestCase):
     """
 
     # Horários de DISPARO, adiantados ~4h porque o cron deste repositório
-    # atrasa de 3h20 a 4h34. O story sai entre 16h54-18h08 e 20h54-22h08.
+    # atrasa de 3h20 a 5h24. O story sai entre 16h54-18h58 e 20h54-22h58.
     DISPAROS_BRT = {(13, 34), (17, 34)}
 
     def test_os_crons_caem_nos_horarios_combinados(self):
