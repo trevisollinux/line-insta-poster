@@ -1,10 +1,14 @@
 name: Importar fotos do Drive
 
 # Varre a pasta do Drive onde a curadoria humana larga foto nova, traz o que
-# ainda não veio, hospeda no repositório de mídia e emite rascunhos de fila.
+# ainda não veio, hospeda no repositório de mídia e põe na fila de stories.
 #
-# A pasta é caixa de entrada, não host: a Meta nunca busca nada lá. E rascunho
-# nasce com reviewed_price: false — nada vai ao ar sem alguém decidir.
+# A pasta é caixa de entrada, não host: a Meta nunca busca nada lá.
+#
+# ATENÇÃO: daqui não sai rascunho para aprovar. O que entra em
+# queue/stories.yaml publica sozinho como story, um por execução do cron —
+# quem decide é quem sobe a foto na pasta. Feed e Reels (queue/posts.yaml)
+# continuam exigindo aprovação humana.
 
 on:
   schedule:

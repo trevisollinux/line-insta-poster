@@ -1,12 +1,18 @@
 """Importa o que a curadoria humana largou na pasta do Drive.
 
 Fluxo: lê a pasta → descarta o que já veio antes → baixa o que é publicável →
-grava no repositório de mídia → emite rascunhos de fila para aprovação.
+grava no repositório de mídia → entra em `queue/stories.yaml`.
 
-Rascunho nasce com `reviewed_price: false` de propósito: ele **não** pode ser
-publicado por acidente, porque a validação da fila recusa item sem essa marca.
-Entre a foto aparecer na pasta e ela ir ao ar existe uma decisão humana, e é
-assim que deve continuar.
+**Não há aprovação humana neste caminho.** O que cai na pasta vai ao ar como
+story sozinho, um por execução do cron. A decisão está em quem sobe a foto, não
+em quem revisa depois — versões anteriores deste texto prometiam um
+`reviewed_price: false` que a fila de stories não usa mais, e prometer trava que
+não existe é pior que não ter trava.
+
+Por que story não exige a flag: ela protege preço velho na legenda, e story não
+leva legenda (a API não aceita). O que ninguém cobre é preço queimado dentro da
+imagem — se sair errado, apague pelo app; o story dura 24h. Feed e Reels, em
+`queue/posts.yaml`, continuam exigindo aprovação.
 """
 from __future__ import annotations
 
