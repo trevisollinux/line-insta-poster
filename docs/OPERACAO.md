@@ -16,6 +16,29 @@ Códigos de saída da CLI: `0` sucesso, `1` falha (com alerta), `2` nada a fazer
 O workflow de publicação trata `2` como aviso, não como falha — fila vazia não é
 erro, mas aparece no Summary do run.
 
+### Post de feed pela pasta `Feed/`
+
+Mídia na subpasta `Feed/` não vira story: vira item de `queue/posts.yaml`.
+Vídeo entra como REELS, imagem como IMAGE — o tipo sai do arquivo.
+
+A legenda vai num arquivo de texto **com o mesmo nome da mídia**
+(`bolsa.jpg` + `bolsa.txt`). Documento do Google também serve: o importador
+exporta o texto. Texto cujo nome não bate com nenhuma mídia vira aviso no
+e-mail, porque quase sempre é erro de digitação — e o sintoma sem o aviso
+seria um post publicado sem legenda.
+
+**A primeira linha do texto precisa ser `preço conferido`** para o post poder
+ir ao ar. Sem ela o item entra na fila com `reviewed_price: false` e fica
+parado. Valem também `preco ok`, `preço conferido: sim` e variações — sem
+acento e em qualquer caixa.
+
+Só a primeira linha conta. Uma legenda que mencione "preço ok" no meio do
+texto **não** aprova nada: a trava é a única coisa entre um reajuste e um
+preço velho no perfil, e post de feed não some em 24h como story.
+
+A importação reescreve `queue/posts.yaml` para acrescentar item novo. Os itens
+que já estavam lá são preservados; comentário escrito no meio da lista, não.
+
 ### Horários da importação
 
 A importação roda duas vezes por dia, mirando **9h e 17h**. Os crons estão em

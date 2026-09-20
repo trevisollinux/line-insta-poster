@@ -31,6 +31,21 @@ from .rehost import public_url
 
 IMPORTED_PATH = os.path.join(REPO_ROOT, "state", "inbox.json")
 DRAFTS_PATH = os.path.join(REPO_ROOT, "queue", "stories.yaml")
+POSTS_PATH = os.path.join(REPO_ROOT, "queue", "posts.yaml")
+
+# Subpasta cujo conteúdo vai para o feed em vez do story.
+PASTA_FEED = "feed"
+
+# A linha que a Lélia escreve na primeira linha da legenda para dizer que o
+# preço está conferido. Sem ela o post fica parado na fila.
+#
+# Por que a marca vive no texto e não num botão: quem escreve o preço é quem
+# confere o preço, e a conferência acontece no momento em que ela escreve —
+# não num segundo passo que alguém faz depois, sem a peça na mão.
+MARCA_PRECO = re.compile(
+    r"^pre[cç]o\s*(conferido|ok|checado)?\s*[:=-]?\s*(sim|ok|true|conferido)?$",
+    re.IGNORECASE,
+)
 MEDIA_SUBDIR = "inbox"
 
 DRAFTS_HEADER = """# Stories vindos da pasta do Drive — esta fila PUBLICA sozinha.
@@ -48,6 +63,80 @@ DRAFTS_HEADER = """# Stories vindos da pasta do Drive — esta fila PUBLICA sozi
 #
 # Para mandar uma destas mídias ao feed, copie o item para queue/posts.yaml,
 # troque media_type, escreva a legenda e marque reviewed_price: true.
+"""
+
+
+def parse_legenda(texto: str) -> tuple[str, bool]:
+    """Separa a marca de preço conferido do corpo da legenda.
+
+    Só a PRIMEIRA linha é lida como marca. Varrer o texto inteiro faria uma
+    legenda que menciona "preço ok" no meio virar aprovação — e a trava do
+    preço é a única coisa entre um reajuste e um post errado no perfil.
+    """
+    linhas = texto.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    if linhas and MARCA_PRECO.match(linhas[0].strip()):
+        return "\n".join(linhas[1:]).strip(), True
+    return texto.strip(), False
+
+
+def separar_legendas(
+    arquivos: list[DriveFile],
+) -> tuple[list[DriveFile], dict[str, DriveFile], list[DriveFile]]:
+    """Divide em (mídias, legendas por nome-base, legendas sem mídia).
+
+    Legenda órfã não some calada: ela vira aviso no relatório. Um .txt cujo
+    nome não bate com nenhuma foto é quase sempre erro de digitação, e o
+    sintoma sem este aviso seria um post publicado sem legenda.
+    """
+    midias = [a for a in arquivos if not a.e_legenda]
+    bases = {a.base for a in midias}
+    legendas: dict[str, DriveFile] = {}
+    orfas: list[DriveFile] = []
+    for arquivo in arquivos:
+        if not arquivo.e_legenda:
+            continue
+        if arquivo.base in bases:
+            legendas[arquivo.base] = arquivo
+        else:
+            orfas.append(arquivo)
+    return midias, legendas, orfas
+
+
+def draft_feed(arquivo: DriveFile, url: str, texto: str) -> dict:
+    """Item de feed vindo do Drive, com a legenda do arquivo de texto ao lado.
+
+    Vídeo vira REELS e imagem vira IMAGE: o Instagram não publica vídeo no
+    feed como outra coisa, então deduzir isso do tipo do arquivo evita um
+    campo a mais para alguém preencher errado.
+    """
+    caption, preco_ok = parse_legenda(texto)
+    return {
+        "id": os.path.splitext(os.path.basename(url))[0],
+        "media_type": "REELS" if arquivo.mime_type.startswith("video/") else "IMAGE",
+        "url": url,
+        "caption": caption,
+        "reviewed_price": preco_ok,
+        "origem": f"Drive: {arquivo.name}",
+    }
+
+
+POSTS_HEADER = """# Fila de publicação do feed e dos Reels.
+#
+# Item só é publicado se `reviewed_price: true`. A flag não é decoração: o
+# acervo tem post com preço pré-reajuste, e publicar um deles queima confiança
+# no DM. Quem marca a flag é quem conferiu o preço, não o script.
+#
+# Duas origens chegam aqui:
+#
+# 1. A subpasta `Feed/` do Drive. A mídia entra com a legenda do arquivo de
+#    texto de mesmo nome ao lado dela, e `reviewed_price` vem `true` só quando
+#    a primeira linha desse texto é `preço conferido`.
+# 2. Edição à mão, inclusive os candidatos de queue/candidates.yaml.
+#
+# ATENÇÃO: a importação reescreve este arquivo para acrescentar item novo.
+# Os itens são preservados; comentário escrito no meio da lista, não.
+#
+# Formato completo e comentado: queue/posts.example.yaml
 """
 
 
@@ -159,11 +248,13 @@ def load_drafts(path: str = DRAFTS_PATH) -> list[dict]:
     return [linha for linha in dados if isinstance(linha, dict)] if isinstance(dados, list) else []
 
 
-def write_drafts(rascunhos: list[dict], path: str = DRAFTS_PATH) -> str:
+def write_drafts(
+    rascunhos: list[dict], path: str = DRAFTS_PATH, *, header: str = ""
+) -> str:
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     corpo = yaml.safe_dump(rascunhos, allow_unicode=True, sort_keys=False, width=100)
     with open(path, "w", encoding="utf-8") as handle:
-        handle.write(DRAFTS_HEADER + "\n" + corpo)
+        handle.write((header or DRAFTS_HEADER) + "\n" + corpo)
     return path
 
 
@@ -176,6 +267,9 @@ def report_markdown(
     recusados: list[DriveFile],
     repetidos: list[DriveFile],
     falhas: list[tuple[str, str]],
+    *,
+    orfas: list[DriveFile] | None = None,
+    posts: list[dict] | None = None,
 ) -> str:
     linhas = ["## Fotos novas na pasta do Drive", ""]
     if importados:
@@ -209,12 +303,37 @@ def report_markdown(
     if repetidos:
         linhas += ["", f"{len(repetidos)} arquivo(s) já importado(s) antes, ignorados."]
 
+    if orfas:
+        linhas += ["", "### Legendas sem mídia", ""]
+        for arquivo in orfas:
+            linhas.append(
+                f"- **{arquivo.name}** — nenhuma mídia com esse nome. O nome do "
+                "texto precisa ser igual ao da foto."
+            )
+
+    if posts:
+        parados = [p for p in posts if not p.get("reviewed_price")]
+        linhas += ["", "### Posts de feed", ""]
+        for item in posts:
+            marca = "pronto" if item.get("reviewed_price") else "**parado**"
+            trecho = (item.get("caption") or "").splitlines()
+            resumo_cap = trecho[0][:60] if trecho else "_sem legenda_"
+            linhas.append(f"- {marca} · {item['media_type']} · {resumo_cap}")
+        if parados:
+            linhas += [
+                "",
+                f"{len(parados)} post(s) **não** vão ao ar: falta a primeira linha "
+                "`preço conferido` no arquivo de texto. Corrija o texto no Drive e "
+                "rode a importação de novo, ou marque `reviewed_price: true` na fila.",
+            ]
+
     linhas += [
         "",
         "### O que acontece agora",
         "",
         "Estas mídias entram em `queue/stories.yaml` e **publicam sozinhas** como "
-        "story, uma por execução, sem repetir.",
+        "story, uma por execução, sem repetir. O que veio da subpasta `Feed/` vai "
+        "para `queue/posts.yaml` e só sai com o preço conferido.",
         "",
         "Para tirar alguma da fila, apague o item do arquivo. Para mandar ao feed, "
         "copie para `queue/posts.yaml`, troque o `media_type`, escreva a legenda e "

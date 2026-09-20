@@ -39,7 +39,7 @@ Funcionando ponta a ponta:
 - Coletor de métricas de story no ar — mas com **25% de entrega**, ver a
   ressalva na seção 3.
 - Vigia de silêncio no ar, com alarme testado de verdade (issue #6).
-- **267 testes**, nenhum toca a rede.
+- **273 testes**, nenhum toca a rede.
 
 Stories publicados até agora:
 
@@ -71,6 +71,19 @@ certo. Está em `poster/rehost.py`.
 
 Também não funciona usar o `source_media_url` que a própria API devolve: é link
 assinado de player, expira em horas e dá erro 2207076 na publicação.
+
+### A aprovação do preço mora na legenda, não num botão
+
+Post de feed exige `reviewed_price: true`, e a pergunta era onde esse "sim"
+acontece. Ficou na primeira linha do arquivo de legenda: `preço conferido`.
+
+Decisão do Gustavo em 20/09, e o argumento é bom: quem escreve o preço é quem
+confere o preço, no momento em que escreve, com a peça em mente. Um botão
+depois seria uma segunda pessoa confirmando um número que ela não olhou.
+
+Só a primeira linha é lida como marca. Varrer o texto inteiro faria uma legenda
+que diz "preço ok" no meio da frase virar aprovação — e a trava é a única coisa
+entre um reajuste e um preço velho no perfil, que em feed não expira em 24h.
 
 ### O tipo de conteúdo vem da subpasta, não de um formulário
 
@@ -310,7 +323,7 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
 
 ```bash
 pip install -r requirements.txt
-python -m unittest discover -s tests -t .    # 267 testes, nenhum usa rede
+python -m unittest discover -s tests -t .    # 273 testes, nenhum usa rede
 python -m poster.cli validate                # valida a fila, sem rede
 python -m poster.cli publish --dry-run       # escolhe sem publicar
 python -m poster.cli watch-stories --simular # ensaia o alarme

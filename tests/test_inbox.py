@@ -10,6 +10,9 @@ from poster.drive import DriveFile
 from poster.inbox import (
     Imported,
     draft,
+    draft_feed,
+    parse_legenda,
+    separar_legendas,
     load_drafts,
     load_imported,
     media_filename,
@@ -219,6 +222,75 @@ class ReportTest(unittest.TestCase):
 
         self.assertIn("Falharam no download", texto)
         self.assertIn("timeout", texto)
+
+
+class LegendaDeFeedTest(unittest.TestCase):
+    """A marca de preço é a única coisa entre um reajuste e um post errado.
+
+    Post de feed não expira em 24h como story: preço velho fica no perfil até
+    alguém reparar.
+    """
+
+    def test_primeira_linha_marca_o_preco_conferido(self):
+        for texto in (
+            "preço conferido\nBolsa Juniper 3 em 1",
+            "PRECO OK: sim\nBolsa Juniper 3 em 1",
+            "preco-conferido\nBolsa Juniper 3 em 1",
+        ):
+            with self.subTest(texto=texto.splitlines()[0]):
+                legenda, ok = parse_legenda(texto)
+                self.assertTrue(ok)
+                self.assertEqual(legenda, "Bolsa Juniper 3 em 1")
+
+    def test_marca_no_meio_do_texto_nao_aprova(self):
+        """Só a primeira linha conta.
+
+        Varrer o texto inteiro faria uma legenda que diz "preço ok" no meio da
+        frase virar aprovação — e ninguém escreveria isso querendo aprovar.
+        """
+        legenda, ok = parse_legenda("Bolsa linda\npreço ok")
+
+        self.assertFalse(ok)
+        self.assertEqual(legenda, "Bolsa linda\npreço ok")
+
+    def test_sem_marca_o_texto_inteiro_e_legenda(self):
+        legenda, ok = parse_legenda("Bolsa Juniper 3 em 1 🥰")
+
+        self.assertFalse(ok)
+        self.assertEqual(legenda, "Bolsa Juniper 3 em 1 🥰")
+
+    def test_video_vira_reels_e_foto_vira_image(self):
+        video = DriveFile("1", "tour.mp4", "video/mp4", pasta="Feed")
+        foto = DriveFile("2", "bolsa.jpg", "image/jpeg", pasta="Feed")
+
+        self.assertEqual(
+            draft_feed(video, "https://cdn/x/tour.mp4", "preço conferido\noi")["media_type"],
+            "REELS",
+        )
+        self.assertEqual(
+            draft_feed(foto, "https://cdn/x/bolsa.jpg", "oi")["media_type"], "IMAGE"
+        )
+
+    def test_legenda_encontra_a_midia_pelo_nome(self):
+        foto = DriveFile("1", "bolsa.jpg", "image/jpeg", pasta="Feed")
+        texto = DriveFile("2", "Bolsa.txt", "text/plain", pasta="Feed")
+
+        midias, legendas, orfas = separar_legendas([foto, texto])
+
+        self.assertEqual([m.name for m in midias], ["bolsa.jpg"])
+        self.assertEqual(legendas["bolsa"].name, "Bolsa.txt")
+        self.assertEqual(orfas, [])
+
+    def test_legenda_sem_midia_vira_aviso(self):
+        # Quase sempre é erro de digitação no nome. Sem o aviso, o sintoma
+        # seria um post publicado sem legenda nenhuma.
+        texto = DriveFile("2", "bolsaa.txt", "text/plain", pasta="Feed")
+        foto = DriveFile("1", "bolsa.jpg", "image/jpeg", pasta="Feed")
+
+        _, legendas, orfas = separar_legendas([foto, texto])
+
+        self.assertEqual(legendas, {})
+        self.assertEqual([o.name for o in orfas], ["bolsaa.txt"])
 
 
 class TipoDeConteudoTest(unittest.TestCase):

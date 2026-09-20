@@ -1,10 +1,17 @@
-# Fila de publicação — curada à mão.
+# Fila de publicação do feed e dos Reels.
 #
-# Item só é publicado se `reviewed_price: true`. A flag não é decoração: o acervo
-# tem post com preço pré-reajuste, e publicar um deles queima confiança no DM.
-# Quem marca a flag é quem conferiu o preço, não o script.
+# Item só é publicado se `reviewed_price: true`. A flag não é decoração: o
+# acervo tem post com preço pré-reajuste, e publicar um deles queima confiança
+# no DM. Quem marca a flag é quem conferiu o preço, não o script.
 #
-# Formato completo e comentado: instagram/queue/posts.example.yaml
-# Documentação: docs/INSTAGRAM_PUBLISHER.md
+# Duas origens chegam aqui:
 #
-# Fila vazia = o job roda, avisa no Summary e sai sem publicar.
+# 1. A subpasta `Feed/` do Drive. A mídia entra com a legenda do arquivo de
+#    texto de mesmo nome ao lado dela, e `reviewed_price` vem `true` só quando
+#    a primeira linha desse texto é `preço conferido`.
+# 2. Edição à mão, inclusive os candidatos de queue/candidates.yaml.
+#
+# ATENÇÃO: a importação reescreve este arquivo para acrescentar item novo.
+# Os itens são preservados; comentário escrito no meio da lista, não.
+#
+# Formato completo e comentado: queue/posts.example.yaml

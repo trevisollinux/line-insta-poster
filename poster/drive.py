@@ -37,6 +37,13 @@ PUBLICAVEL = {"image/jpeg", "video/mp4", "video/quicktime"}
 # do WhatsApp —, e é por isso que o tipo vem do mime, nunca do nome.
 CONVERSIVEIS = {"image/png", "image/webp"}
 
+# Legenda de post de feed: a mídia vai na pasta, e ao lado dela um arquivo de
+# texto com o MESMO nome. Documento do Google entra junto porque criar .txt
+# pelo celular é desconfortável e criar um Doc é um toque — obrigar .txt seria
+# desenhar o fluxo para o desktop de quem escreveu o código.
+TEXTO_MIMES = {"text/plain", "text/markdown"}
+GOOGLE_DOC_MIME = "application/vnd.google-apps.document"
+
 
 class DriveError(RuntimeError):
     """Falha ao falar com o Drive — nada foi importado."""
@@ -63,6 +70,15 @@ class DriveFile:
     # fator que mais mexeu no alcance — e ninguém precisa preencher nada: basta
     # largar a foto na pasta certa. Quem não se organizou deixa na raiz.
     pasta: str = ""
+
+    @property
+    def e_legenda(self) -> bool:
+        return self.mime_type in TEXTO_MIMES or self.mime_type == GOOGLE_DOC_MIME
+
+    @property
+    def base(self) -> str:
+        """Nome sem extensão — é por ele que a legenda acha a mídia dela."""
+        return os.path.splitext(self.name)[0].strip().lower()
 
     @property
     def precisa_converter(self) -> bool:
@@ -321,6 +337,50 @@ def download(
     finally:
         if os.path.exists(parcial):
             os.remove(parcial)
+
+
+def baixar_texto(
+    token: str,
+    arquivo: DriveFile,
+    *,
+    opener=urllib.request.urlopen,
+    max_bytes: int = 64 * 1024,
+) -> str:
+    """Conteúdo de uma legenda, seja .txt ou documento do Google.
+
+    Caminhos diferentes: arquivo comum baixa com `alt=media`; documento do
+    Google não tem bytes para baixar e precisa do endpoint de exportação. O
+    erro de usar o caminho errado é um HTTP 403 genérico, que não diz isso.
+    """
+    if arquivo.mime_type == GOOGLE_DOC_MIME:
+        url = (
+            f"{DRIVE_API}/files/{arquivo.id}/export"
+            "?mimeType=text%2Fplain&supportsAllDrives=true"
+        )
+    else:
+        url = f"{DRIVE_API}/files/{arquivo.id}?alt=media&supportsAllDrives=true"
+
+    requisicao = urllib.request.Request(
+        url, headers={"Authorization": f"Bearer {token}"}, method="GET"
+    )
+    try:
+        with opener(requisicao, timeout=60) as resposta:
+            bruto = resposta.read(max_bytes + 1)
+    except urllib.error.HTTPError as exc:
+        raise DriveError(
+            f"não consegui ler a legenda '{arquivo.name}': HTTP {exc.code}"
+        ) from exc
+    except OSError as exc:
+        raise DriveError(f"não consegui ler a legenda '{arquivo.name}': {exc}") from exc
+
+    if len(bruto) > max_bytes:
+        raise DriveError(
+            f"legenda '{arquivo.name}' tem mais de {max_bytes // 1024} KB — "
+            "legenda do Instagram cabe em 2.200 caracteres"
+        )
+    # utf-8-sig porque bloco de notas do Windows grava BOM, e o BOM vira um
+    # caractere invisível no começo da legenda.
+    return bruto.decode("utf-8-sig", errors="replace")
 
 
 def converter_para_jpeg(caminho: str) -> None:

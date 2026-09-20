@@ -386,11 +386,18 @@ def cmd_inbox(args: argparse.Namespace) -> int:
         alert(str(exc), webhook=webhook)
         return EXIT_FAIL
 
+    # Legenda não é mídia: sai da lista antes da triagem, senão todo .txt
+    # apareceria como "recusado pelo formato" e o aviso perderia o sentido.
+    midias, legendas, orfas = inbox_mod.separar_legendas(arquivos)
+    for orfa in orfas:
+        print(f"  legenda sem mídia correspondente: {orfa.name}")
+
     ja_importados = inbox_mod.load_imported(args.state_file)
-    novos, repetidos, recusados = inbox_mod.triagem(arquivos, ja_importados)
+    novos, repetidos, recusados = inbox_mod.triagem(midias, ja_importados)
     print(
-        f"pasta: {len(arquivos)} arquivos — {len(novos)} novos, "
-        f"{len(repetidos)} já importados, {len(recusados)} recusados pelo formato"
+        f"pasta: {len(midias)} mídias e {len(legendas) + len(orfas)} legendas — "
+        f"{len(novos)} novas, {len(repetidos)} já importadas, "
+        f"{len(recusados)} recusadas pelo formato"
     )
     for arquivo in recusados:
         print(f"  recusado {arquivo.name}: {arquivo.motivo_recusa}")
@@ -398,6 +405,7 @@ def cmd_inbox(args: argparse.Namespace) -> int:
     importados: list[tuple[drive.DriveFile, str]] = []
     falhas: list[tuple[str, str]] = []
     rascunhos: list[dict] = []
+    posts: list[dict] = []
     destino_midia = os.path.join(args.media_dir, inbox_mod.MEDIA_SUBDIR)
 
     for arquivo in novos:
@@ -413,7 +421,23 @@ def cmd_inbox(args: argparse.Namespace) -> int:
             continue
         url = inbox_mod.media_public_url(args.media_repo, args.branch, nome)
         importados.append((arquivo, url))
-        rascunhos.append(inbox_mod.draft(arquivo, url))
+
+        if inbox_mod.slugify(arquivo.pasta) == inbox_mod.PASTA_FEED:
+            texto = ""
+            legenda = legendas.get(arquivo.base)
+            if legenda is not None:
+                try:
+                    texto = drive.baixar_texto(token, legenda)
+                except drive.DriveError as exc:
+                    # Sem legenda o post entra em branco e sem aprovação — o
+                    # que é recuperável. Perder a mídia não seria.
+                    print(f"  aviso: {exc}")
+            item = inbox_mod.draft_feed(arquivo, url, texto)
+            posts.append(item)
+            estado = "preço conferido" if item["reviewed_price"] else "PARADO (falta 'preço conferido')"
+            print(f"  feed: {arquivo.name} → {estado}")
+        else:
+            rascunhos.append(inbox_mod.draft(arquivo, url))
         ja_importados[arquivo.id] = inbox_mod.Imported(
             drive_id=arquivo.id,
             name=arquivo.name,
@@ -427,18 +451,32 @@ def cmd_inbox(args: argparse.Namespace) -> int:
         # Rascunhos anteriores ainda não aprovados continuam valendo.
         anteriores = inbox_mod.load_drafts(args.drafts)
         inbox_mod.write_drafts(anteriores + rascunhos, args.drafts)
+
+    if posts:
+        # A fila do feed também é editada à mão (os candidatos da curadoria
+        # entram por lá): lê antes de escrever, nunca substitui.
+        anteriores = inbox_mod.load_drafts(inbox_mod.POSTS_PATH)
+        inbox_mod.write_drafts(
+            anteriores + posts,
+            inbox_mod.POSTS_PATH,
+            header=inbox_mod.POSTS_HEADER,
+        )
+
+    if rascunhos or posts:
         inbox_mod.save_imported(ja_importados, args.state_file)
 
     if args.report:
         with open(args.report, "w", encoding="utf-8") as handle:
             handle.write(
-                inbox_mod.report_markdown(importados, recusados, repetidos, falhas)
+                inbox_mod.report_markdown(
+                    importados, recusados, repetidos, falhas, orfas=orfas, posts=posts
+                )
             )
 
     write_summary(
         "### Caixa de entrada do Drive\n\n"
         f"- arquivos na pasta: {len(arquivos)}\n"
-        f"- importados agora: {len(importados)}\n"
+        f"- importados agora: {len(importados)} ({len(posts)} para o feed)\n"
         f"- recusados pelo formato: {len(recusados)}\n"
         f"- falharam no download: {len(falhas)}\n"
     )
