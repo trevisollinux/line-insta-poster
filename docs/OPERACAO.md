@@ -167,6 +167,12 @@ vez, o heartbeat morre junto e não sobra ninguém para reativar. Aí é manual 
 aba Actions, botão de reativar. Nenhuma automação dentro do GitHub cobre esse
 caso.
 
+**Ensaiar o alarme:** Actions → *Heartbeat* → *Run workflow* → **simular:
+true**. Abre uma issue com `[teste]` no título e **não reativa nada** — ensaio
+que mexe em workflow de verdade poderia desfazer um `disabled_manually` de
+alguém. Vale repetir de vez em quando, pela mesma razão do vigia: o caminho que
+abre a issue só roda no dia do problema.
+
 ## Quando falha
 
 **Alerta chegou (ou o job ficou vermelho).** Abra o run, leia o Summary. O item

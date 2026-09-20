@@ -85,6 +85,24 @@ class HeartbeatTest(unittest.TestCase):
             "intervalo entre pulsos grande demais para um agendador que descarta ocorrências",
         )
 
+    def test_o_ensaio_nao_reativa_nada(self):
+        """Ensaio que mexe em workflow de verdade é pior que ensaio nenhum.
+
+        O ensaio serve para exercitar o caminho que abre a issue — o único que
+        só rodaria no dia do problema. Reativar de mentira não testa nada e
+        pode desfazer um `disabled_manually` de alguém.
+        """
+        with open(self.CAMINHO, encoding="utf-8") as handle:
+            linhas = handle.read().splitlines()
+
+        guarda = [i for i, l in enumerate(linhas) if 'if [ -z "$ensaio" ]' in l]
+        put = [i for i, l in enumerate(linhas) if "gh api -X PUT" in l]
+        self.assertTrue(guarda, "o ensaio não está separado da reativação")
+        self.assertTrue(put)
+        self.assertLess(
+            guarda[0], put[0], "a reativação precisa estar dentro da guarda do ensaio"
+        )
+
     def test_so_reativa_o_que_o_github_desativou_por_inatividade(self):
         """Reativar `disabled_manually` desfaria uma decisão de alguém."""
         with open(self.CAMINHO, encoding="utf-8") as handle:

@@ -36,6 +36,12 @@ on:
   schedule:
     - cron: '23 15 * * 1,4'
   workflow_dispatch:
+    inputs:
+      simular:
+        description: 'ensaio: abre a issue de propósito, sem reativar nada'
+        type: choice
+        options: ['false', 'true']
+        default: 'false'
 
 permissions:
   contents: write
@@ -81,24 +87,41 @@ jobs:
         run: |
           set -euo pipefail
 
-          # `state` vem como active | disabled_inactivity | disabled_manually.
-          # Só o do meio é o que este workflow existe para pegar; desativado na
-          # mão é decisão de alguém, e reativar por cima seria desfazê-la.
-          gh api "repos/${GITHUB_REPOSITORY}/actions/workflows" --paginate \
-            --jq '.workflows[] | select(.state == "disabled_inactivity") | [.id, .name] | @tsv' \
-            > "$RUNNER_TEMP/desativados.tsv"
+          # O ensaio existe porque a parte que quebra calada aqui não é a
+          # consulta — é o caminho que abre a issue, que só roda no dia em que
+          # o problema acontecer. Ele não reativa nada: inventar um id para
+          # exercitar o PUT seria arriscar mexer num workflow de verdade.
+          ensaio=''
+          if [ "${{ inputs.simular }}" = 'true' ]; then ensaio='1'; fi
+
+          if [ -n "$ensaio" ]; then
+            printf '0\t(ensaio — nenhum workflow foi tocado)\n' \
+              > "$RUNNER_TEMP/desativados.tsv"
+          else
+            # `state` vem como active | disabled_inactivity | disabled_manually.
+            # Só o do meio é o que este workflow existe para pegar; desativado
+            # na mão é decisão de alguém, e reativar por cima seria desfazê-la.
+            gh api "repos/${GITHUB_REPOSITORY}/actions/workflows" --paginate \
+              --jq '.workflows[] | select(.state == "disabled_inactivity") | [.id, .name] | @tsv' \
+              > "$RUNNER_TEMP/desativados.tsv"
+          fi
 
           if [ ! -s "$RUNNER_TEMP/desativados.tsv" ]; then
             echo "nenhum workflow desativado por inatividade"
             exit 0
           fi
 
-          while IFS=$'\t' read -r id nome; do
-            echo "reativando: $nome ($id)"
-            gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/${id}/enable"
-          done < "$RUNNER_TEMP/desativados.tsv"
+          if [ -z "$ensaio" ]; then
+            while IFS=$'\t' read -r id nome; do
+              echo "reativando: $nome ($id)"
+              gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/${id}/enable"
+            done < "$RUNNER_TEMP/desativados.tsv"
+          fi
 
           titulo="[cron] Workflows agendados foram desativados por inatividade"
+          # O título carrega o [teste] para a issue do ensaio não se confundir
+          # com a de verdade — e para a dedupe não engolir a verdadeira depois.
+          if [ -n "$ensaio" ]; then titulo="[teste] $titulo"; fi
 
           # Corpo em arquivo, nunca heredoc dentro do run: heredoc encerra o
           # bloco YAML e o workflow nasce morto.
