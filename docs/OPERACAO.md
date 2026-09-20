@@ -213,6 +213,19 @@ Mora num workflow separado do coletor de métricas de propósito. Se morasse
 junto, um problema no coletor derrubaria justamente quem deveria perceber que
 algo parou.
 
+### O aviso de fila acabando
+
+O mesmo workflow do vigia confere quantas fotos ainda podem sair e abre issue
+quando restam **4 ou menos** — dois dias de folga no ritmo de dois por dia.
+
+Por que antes e não depois: com a fila seca, o vigia normal passa a abrir uma
+issue por dia dizendo que o story não saiu, todo dia, até alguém abastecer.
+Este aviso existe para essa sequência nunca começar.
+
+A contagem usa a elegibilidade de `selection`, a mesma do publish. Contar
+linhas do arquivo daria um número folgado com a fila já seca, porque o
+publicado continua lá.
+
 ### Testar o alarme
 
 Actions → *Vigia dos stories* → *Run workflow* → **simular: true**. Abre uma

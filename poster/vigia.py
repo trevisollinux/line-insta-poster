@@ -122,6 +122,64 @@ def publicados_hoje(
     return total
 
 
+# Quando avisar que a fila está acabando. Dois stories por dia, então 4 itens
+# são 2 dias de folga — tempo de a Lélia subir fotos antes do silêncio.
+#
+# Avisar com a fila já vazia seria avisar depois do problema: o vigia normal
+# faz isso, e todo dia, uma issue por dia, até alguém abastecer. Este aviso
+# existe para essa sequência de issues nunca começar.
+MINIMO_NA_FILA = 4
+
+
+@dataclass(frozen=True)
+class Estoque:
+    restantes: int
+    minimo: int
+    dias: float
+
+    @property
+    def ok(self) -> bool:
+        return self.restantes > self.minimo
+
+
+def avaliar_fila(itens, publicados, *, minimo: int = MINIMO_NA_FILA, por_dia: int = 2) -> Estoque:
+    """Quantos itens ainda podem ser publicados.
+
+    A conta de elegibilidade vem de `selection`, a mesma que o publish usa.
+    Recontar aqui daria dois números que discordam no dia em que alguém mexer
+    na regra — e o aviso perderia o crédito justamente quando fosse usado.
+    """
+    from .selection import select_next
+
+    elegiveis = select_next(
+        itens, publicados, mode="order", media_types=("STORIES",)
+    ).eligible
+    return Estoque(
+        restantes=len(elegiveis),
+        minimo=minimo,
+        dias=len(elegiveis) / por_dia if por_dia else 0.0,
+    )
+
+
+def titulo_fila(estoque: Estoque, agora: datetime) -> str:
+    return f"Fila de stories acabando — {agora:%d/%m/%Y}"
+
+
+def relatorio_fila_markdown(estoque: Estoque) -> str:
+    return (
+        f"Restam **{estoque.restantes}** foto(s) na fila de stories — cerca de "
+        f"**{estoque.dias:.1f} dia(s)** no ritmo de dois por dia.\n\n"
+        "Quando a fila zerar, o vigia passa a abrir uma issue por dia dizendo "
+        "que o story não saiu. Este aviso existe para essa sequência não "
+        "começar.\n\n"
+        "### O que fazer\n\n"
+        "Peça fotos novas na pasta do Drive. A importação roda por volta das "
+        "9h e das 17h, e o que entrar já sai no próximo horário.\n\n"
+        "Se quiser adiantar: Actions → _Importar fotos do Drive_ → "
+        "_Run workflow_.\n"
+    )
+
+
 def avaliar(
     entradas,
     *,

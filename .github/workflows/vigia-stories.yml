@@ -93,3 +93,45 @@ jobs:
           gh issue create \
             --title "$titulo" \
             --body-file "$RUNNER_TEMP/vigia.md"
+
+      - name: Conferir o estoque da fila
+        id: fila
+        run: |
+          set +e
+          # Segundo alarme, propósito diferente: o de cima avisa que o dia
+          # passou sem story; este avisa ANTES, enquanto ainda dá para
+          # abastecer. Mora no mesmo workflow porque os dois são conferência
+          # sem rede e sem segredo — o custo de separar não se paga.
+          extra=''
+          if [ "${{ inputs.simular }}" = 'true' ]; then extra='--simular'; fi
+
+          python -m poster.cli watch-queue $extra \
+            --queue queue/stories.yaml \
+            --report "$RUNNER_TEMP/fila.md" \
+            --title-file "$RUNNER_TEMP/fila-titulo.txt"
+          codigo=$?
+          echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
+          if [ "$codigo" = "2" ]; then exit 0; fi
+          exit $codigo
+
+      - name: Abrir issue da fila (e-mail)
+        if: steps.fila.outputs.codigo == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          titulo=$(cat "$RUNNER_TEMP/fila-titulo.txt")
+
+          # Mesma dedupe do alarme de cima: a data no título dá no máximo uma
+          # issue por dia, em vez de uma por hora até alguém abastecer.
+          existentes=$(gh issue list \
+            --state open \
+            --search "$titulo in:title" \
+            --json number --jq 'length')
+          if [ "$existentes" != "0" ]; then
+            echo "issue de hoje já está aberta — nada a fazer"
+            exit 0
+          fi
+
+          gh issue create \
+            --title "$titulo" \
+            --body-file "$RUNNER_TEMP/fila.md"

@@ -35,11 +35,12 @@ Funcionando ponta a ponta:
   mensal que regrava o próprio secret.
 - Acervo de **135 posts** ranqueado em `state/catalog.json`.
 - Caixa de entrada do Drive importando fotos e convertendo PNG/WebP em JPEG.
-- **8 fotos** restantes em `queue/stories.yaml`.
+- **8 fotos** restantes em `queue/stories.yaml`, com aviso automático quando
+  restarem 4.
 - Coletor de métricas de story no ar — mas com **25% de entrega**, ver a
   ressalva na seção 3.
 - Vigia de silêncio no ar, com alarme testado de verdade (issue #6).
-- **280 testes**, nenhum toca a rede.
+- **283 testes**, nenhum toca a rede.
 
 Stories publicados até agora:
 
@@ -343,7 +344,7 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
 
 ```bash
 pip install -r requirements.txt
-python -m unittest discover -s tests -t .    # 280 testes, nenhum usa rede
+python -m unittest discover -s tests -t .    # 283 testes, nenhum usa rede
 python -m poster.cli validate                # valida a fila, sem rede
 python -m poster.cli publish --dry-run       # escolhe sem publicar
 python -m poster.cli watch-stories --simular # ensaia o alarme

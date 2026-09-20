@@ -381,6 +381,39 @@ def cmd_watch_stories(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_watch_queue(args: argparse.Namespace) -> int:
+    """Avisa enquanto ainda dá tempo de abastecer a fila."""
+    try:
+        itens = queue_file.load_queue(args.queue)
+    except queue_file.QueueError as exc:
+        alert(str(exc))
+        return EXIT_FAIL
+
+    publicados = state.load_state(args.state)
+    estoque = vigia.avaliar_fila(itens, publicados, minimo=args.minimo)
+    agora = datetime.now(timezone(timedelta(hours=vigia.BRT_OFFSET)))
+
+    print(f"fila de stories: {estoque.restantes} elegíveis (mínimo {estoque.minimo})")
+    if args.simular:
+        print("ensaio do alarme — forçando fila curta")
+        estoque = vigia.Estoque(restantes=0, minimo=args.minimo, dias=0.0)
+    if estoque.ok:
+        return EXIT_NOTHING
+
+    corpo = vigia.relatorio_fila_markdown(estoque)
+    titulo = vigia.titulo_fila(estoque, agora)
+    print(corpo)
+    write_summary(f"### ⚠️ {titulo}\n\n{corpo}")
+    if args.report:
+        os.makedirs(os.path.dirname(args.report) or ".", exist_ok=True)
+        with open(args.report, "w", encoding="utf-8") as handle:
+            handle.write(corpo)
+    if args.title_file:
+        with open(args.title_file, "w", encoding="utf-8") as handle:
+            handle.write(("[teste] " if args.simular else "") + titulo)
+    return EXIT_OK
+
+
 def cmd_inbox(args: argparse.Namespace) -> int:
     """Importa o que a curadoria humana largou na pasta do Drive."""
     webhook = env_str("IG_ALERT_WEBHOOK")
@@ -723,6 +756,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="dispara o alarme de propósito, para testar o aviso",
     )
+
+    fila = sub.add_parser(
+        "watch-queue", help="avisa quando a fila de stories está acabando"
+    )
+    fila.add_argument("--queue", default=inbox_mod.DRAFTS_PATH)
+    fila.add_argument("--state", default=state.STATE_PATH)
+    fila.add_argument("--minimo", type=int, default=vigia.MINIMO_NA_FILA)
+    fila.add_argument("--report", default="")
+    fila.add_argument("--title-file", default="")
+    fila.add_argument(
+        "--simular",
+        action="store_true",
+        help="dispara o alarme de propósito, para testar o aviso",
+    )
+    fila.set_defaults(func=cmd_watch_queue)
     watch.add_argument("--report", default="", help="corpo da issue neste caminho")
     watch.add_argument("--title-file", default="", help="título da issue neste caminho")
     watch.set_defaults(func=cmd_watch_stories)

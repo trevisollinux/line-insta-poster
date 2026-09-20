@@ -224,6 +224,55 @@ class RelatorioTest(unittest.TestCase):
         self.assertIn("queue/stories.yaml", texto)
 
 
+class EstoqueDaFilaTest(unittest.TestCase):
+    """Fila vazia vira uma issue por dia até alguém abastecer.
+
+    O alarme normal avisa depois do problema — o dia já passou sem story.
+    Este avisa antes, enquanto ainda dá tempo de subir foto.
+    """
+
+    def _itens(self, quantos):
+        from poster.queue_file import parse_queue
+
+        return parse_queue([
+            {"id": f"f{n}", "media_type": "STORIES", "url": f"https://x/{n}.jpg"}
+            for n in range(quantos)
+        ])
+
+    def test_fila_curta_dispara(self):
+        estoque = vigia.avaliar_fila(self._itens(3), [], minimo=4)
+
+        self.assertFalse(estoque.ok)
+        self.assertEqual(estoque.restantes, 3)
+        self.assertAlmostEqual(estoque.dias, 1.5)
+
+    def test_fila_folgada_fica_quieta(self):
+        self.assertTrue(vigia.avaliar_fila(self._itens(8), [], minimo=4).ok)
+
+    def test_conta_so_o_que_ainda_pode_sair(self):
+        """Item já publicado não é estoque.
+
+        A elegibilidade vem de `selection`, a mesma regra do publish. Contar
+        linhas do arquivo daria um número folgado com a fila já seca.
+        """
+        itens = self._itens(6)
+        publicados = [
+            PublishedEntry(
+                item_id=f"f{n}",
+                media_id=str(n),
+                container_id="c",
+                media_type="STORIES",
+                published_at="2026-09-19T20:00:00+00:00",
+            )
+            for n in range(3)
+        ]
+
+        estoque = vigia.avaliar_fila(itens, publicados, minimo=4)
+
+        self.assertEqual(estoque.restantes, 3)
+        self.assertFalse(estoque.ok)
+
+
 if __name__ == "__main__":
     unittest.main()
 
