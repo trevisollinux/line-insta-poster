@@ -21,6 +21,7 @@ from datetime import datetime, timedelta, timezone
 
 from . import (
     audiencia,
+    conta as conta_mod,
     curadoria,
     drive,
     inbox as inbox_mod,
@@ -378,6 +379,58 @@ def cmd_watch_stories(args: argparse.Namespace) -> int:
     if args.title_file:
         with open(args.title_file, "w", encoding="utf-8") as handle:
             handle.write(vigia.titulo(diagnostico))
+    return EXIT_OK
+
+
+def cmd_account_metrics(args: argparse.Namespace) -> int:
+    """Guarda um dia por linha das métricas da conta.
+
+    Pede uma janela de dias e regrava todas as datas que vierem: a captura que
+    o agendador perdeu ontem se conserta hoje sozinha. É o contrário do
+    coletor de story, onde o que não foi lido a tempo está perdido.
+    """
+    access_token, ig_user_id = env_str("IG_ACCESS_TOKEN"), env_str("IG_USER_ID")
+    if not (access_token and ig_user_id):
+        print("IG_ACCESS_TOKEN e IG_USER_ID são obrigatórios", file=sys.stderr)
+        return EXIT_FAIL
+
+    client = GraphClient(access_token, version=env_str("IG_GRAPH_VERSION", GRAPH_VERSION))
+
+    try:
+        series = conta_mod.insights(client, ig_user_id, dias=args.dias)
+    except GraphError as exc:
+        alert(f"não consegui ler as métricas da conta: {exc}")
+        return EXIT_FAIL
+
+    # O retrato é secundário: se ele falhar, a série ainda vale. Derrubar a
+    # captura inteira por causa do contador de seguidores seria perder o dado
+    # que não volta por causa do dado que volta.
+    retrato: dict[str, int] = {}
+    try:
+        retrato = conta_mod.perfil(client, ig_user_id)
+    except GraphError as exc:
+        print(f"aviso: não li seguidores/publicações ({exc})")
+
+    if not series:
+        print("a API não devolveu métrica de conta nesta janela")
+        return EXIT_NOTHING
+
+    novas = conta_mod.montar_linhas(series, retrato)
+    linhas = conta_mod.gravar(
+        conta_mod.mesclar(conta_mod.carregar(args.arquivo), novas), args.arquivo
+    )
+
+    ultima = linhas[-1]
+    print(f"{len(novas)} dia(s) atualizados em {args.arquivo}")
+    resumo = " · ".join(
+        f"{campo}: {ultima.get(campo) or '—'}"
+        for campo in ("seguidores", "reach", "profile_views", "website_clicks")
+    )
+    print(f"último dia ({ultima.get('data')}): {resumo}")
+    write_summary(
+        f"### Métricas da conta\n\n- dias atualizados: {len(novas)}\n"
+        f"- último dia ({ultima.get('data')}): {resumo}\n"
+    )
     return EXIT_OK
 
 
@@ -756,6 +809,18 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="dispara o alarme de propósito, para testar o aviso",
     )
+
+    conta = sub.add_parser(
+        "account-metrics", help="guarda as métricas diárias da conta"
+    )
+    conta.add_argument("--arquivo", default=conta_mod.CSV_PATH)
+    conta.add_argument(
+        "--dias",
+        type=int,
+        default=7,
+        help="janela pedida à API — janela maior conserta captura perdida",
+    )
+    conta.set_defaults(func=cmd_account_metrics)
 
     fila = sub.add_parser(
         "watch-queue", help="avisa quando a fila de stories está acabando"

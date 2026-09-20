@@ -40,7 +40,7 @@ Funcionando ponta a ponta:
 - Coletor de métricas de story no ar — mas com **25% de entrega**, ver a
   ressalva na seção 3.
 - Vigia de silêncio no ar, com alarme testado de verdade (issue #6).
-- **283 testes**, nenhum toca a rede.
+- **290 testes**, nenhum toca a rede.
 
 Stories publicados até agora:
 
@@ -324,7 +324,10 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
   `queue/posts.yaml`, que está vazia. Não faz nada hoje, mas vai publicar
   sozinho no dia em que alguém aprovar um item para lá. Decidir se é isso mesmo.
 - **`online_followers` não devolve dado** para esta conta. A métrica foi
-  descontinuada para parte das contas.
+  descontinuada para parte das contas. Desde 20/09 há coleta diária das outras
+  métricas de conta (`state/conta.csv`) — quais delas esta conta devolve de
+  fato só a primeira execução dirá, porque o código negocia a lista para baixo
+  em vez de falhar.
 - **Um story por dia:** descartado em 20/09. A medição pela API mostrou que o
   2º story entrega 87% do 1º na mesma idade — soma, não canibaliza. Cortar só se
   alguém medir que o 1º rende mais nos dias sem 2º, o que nunca foi feito.
@@ -344,7 +347,7 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
 
 ```bash
 pip install -r requirements.txt
-python -m unittest discover -s tests -t .    # 283 testes, nenhum usa rede
+python -m unittest discover -s tests -t .    # 290 testes, nenhum usa rede
 python -m poster.cli validate                # valida a fila, sem rede
 python -m poster.cli publish --dry-run       # escolhe sem publicar
 python -m poster.cli watch-stories --simular # ensaia o alarme

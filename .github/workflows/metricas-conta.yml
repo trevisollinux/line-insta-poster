@@ -1,0 +1,74 @@
+name: Métricas da conta
+
+# Seguidores, visitas ao perfil e cliques no link da bio — um dia por linha.
+#
+# O histórico dos posts diz quantas pessoas viram cada publicação. Não diz o
+# tamanho da conta nem se alguém foi da publicação para a loja. Sem isso, o
+# alcance é um número sem régua: 982 pode ser ótimo ou péssimo.
+#
+# Uma vez por dia basta, e a janela de 7 dias é o que torna essa frequência
+# suficiente: a API devolve os últimos dias a cada chamada, então a captura que
+# o agendador descartar hoje se conserta amanhã sozinha. É o contrário do
+# coletor de story, onde o que não for lido enquanto está no ar está perdido —
+# e é por isso que aquele roda de hora em hora e este não precisa.
+
+on:
+  schedule:
+    - cron: '0 10 * * *'   # 07h00 em Brasília (disparo; roda entre 10h20 e 12h24)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram-metricas-conta
+  cancel-in-progress: false
+
+jobs:
+  capturar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Instalar dependências
+        run: pip install --quiet -r requirements.txt
+
+      - name: Capturar
+        id: capturar
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+        run: |
+          set +e
+          python -m poster.cli account-metrics
+          codigo=$?
+          echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
+          # 2 = a API não devolveu métrica nesta janela. Acontece com conta
+          # pequena e com métrica descontinuada; não é falha do job.
+          if [ "$codigo" = "2" ]; then exit 0; fi
+          exit $codigo
+
+      - name: Commitar o histórico
+        run: |
+          git add -- state/conta.csv
+          if git diff --cached --quiet; then
+            echo "nada novo para registrar"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: métricas da conta'
+          # Divide o branch com o coletor de stories, que empurra de hora em
+          # hora: sem rebase, uma corrida normal viraria push rejeitado.
+          for tentativa in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && exit 0
+            sleep $((tentativa * 5))
+          done
+          echo "::error::não consegui publicar o histórico depois de 3 tentativas"
+          exit 1

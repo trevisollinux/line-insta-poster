@@ -81,6 +81,33 @@ Por que isto existe: horário e posição no dia mexem 10-15%; o tipo de conteú
 mexeu 5x (891 views de um bastidor contra 147-170 das fotos de produto). Sem o
 rótulo, o único fator que importa de verdade é invisível para a análise.
 
+### Métricas da conta
+
+`state/conta.csv` guarda um dia por linha: seguidores, publicações, alcance,
+visitas ao perfil, cliques no link da bio e contas engajadas. É a régua que
+faltava — sem saber o tamanho da conta, 982 de alcance não quer dizer nada.
+
+Roda uma vez por dia e pede **7 dias** de janela. Isso é o que torna a
+frequência baixa suficiente: a captura que o agendador descartar hoje se
+conserta amanhã sozinha. O oposto do coletor de story, onde o que não for lido
+enquanto está no ar está perdido — e é por isso que aquele roda de hora em
+hora e este não precisa.
+
+Duas armadilhas que estão resolvidas no código, com teste:
+
+- **`end_time` é o fim da janela, não o dia.** `2026-09-20T07:00:00+0000`
+  fecha o dia **19**. Sem o desconto, a série inteira fica um dia à frente.
+- **Seguidores entram só na data mais recente.** Carimbar a contagem de hoje
+  nos 7 dias da janela inventaria um histórico estável que ninguém mediu.
+
+Na mesclagem vale a **leitura mais recente**, não a maior — ao contrário das
+métricas de story. Seguidor pode cair, e leitura do meio do dia é parcial de
+propósito.
+
+Se alguma métrica não existir para esta conta, a API recusa o pedido inteiro
+citando o nome dela; o código tira a recusada e tenta de novo, em vez de perder
+as outras junto.
+
 ### O ponto zero da curva
 
 Além do coletor de hora em hora, o próprio run que publica captura as métricas
