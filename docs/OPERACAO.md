@@ -70,8 +70,17 @@ O que o GitHub documenta: o evento `schedule` é *best effort* e pode atrasar em
 períodos de carga alta, sendo o início de cada hora o pior momento; sob carga,
 uma execução pode até ser descartada, e não apenas adiada.
 
-O que não sei, e não dá para descobrir de fora: por que a carga produz
-justamente 3 a 4 horas aqui, quando o relatado mais comum são minutos. Uma
+Medido na noite de 19→20/09: o agendador não é lento, ele **acorda pouco**.
+Quando acorda, entrega em 12 a 51 min; o que varia é o intervalo entre
+despertares (34 a 352 min nos doze observados). Cron diário espera o próximo
+despertar — daí as 3-4h. Cron horário perde todas as ocorrências entre um
+despertar e outro: taxa de entrega medida de **25%**.
+
+**Madrugada é pior, não melhor.** Um cron único às 02:23 UTC disparou às 07:47,
+**5h24 depois** — o pior atraso da série.
+
+Por que este repositório recebe tão poucos despertares: não sei, e não dá para
+descobrir de fora. Uma
 primeira versão deste texto atribuía o atraso a despriorização de runner em
 repositório público — a medição de fila 0s desmentiu isso, e a explicação foi
 removida em vez de reescrita com outro palpite.

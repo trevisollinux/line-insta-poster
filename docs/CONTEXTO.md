@@ -91,6 +91,23 @@ ter ido ao ar.
 São contadores que só sobem. Valor menor numa captura seguinte é oscilação da
 API, não queda de audiência.
 
+### ⚠️ O coletor de hora em hora NÃO garante captura completa
+
+Isto corrige uma afirmação minha que estava errada. Eu disse que rodar de hora
+em hora garantiria que nenhum story expirasse sem medição. **Não garante.**
+
+Taxa de entrega medida nas primeiras 16 horas: **4 execuções de ~16 esperadas,
+25%**. O GitHub descarta as ocorrências que caem entre um despertar e outro do
+agendador, em vez de enfileirá-las.
+
+Consequência prática: um story pode nascer e expirar sem nunca ser lido, e o
+buraco no CSV fica indistinguível de um dia sem story. Quem for analisar
+`stories_curva.csv` precisa saber que **ausência de linha não significa
+ausência de story**.
+
+Continua valendo muito mais que print manual — mas não é a rede de segurança
+que eu descrevi.
+
 ### O vigia lê a agenda, não a copia
 
 `poster/vigia.py` lê os horários do próprio `publicar-stories-auto.yml`. Se
@@ -115,7 +132,27 @@ em todas. Não falta runner: o despachante de agendamentos do GitHub é que cria
 o run horas depois. O GitHub documenta que `schedule` é *best effort* e que sob
 carga a execução pode ser **descartada**, não só adiada.
 
-Por que 3-4h aqui, quando o relatado comum são minutos: **não sei**, e não dá
+### O modelo que explica os números (medido na noite de 19→20/09)
+
+O agendador não é *lento*: ele **acorda pouco e de forma irregular**. Quando
+acorda, entrega em 12 a 51 minutos. O que varia é o intervalo entre despertares.
+
+Doze despertares observados, com intervalos de **34 a 352 minutos**. Isso
+explica de uma vez os dois comportamentos que pareciam contraditórios:
+
+- **Cron diário** (13:00): o run nasce no primeiro despertar após o horário. Se
+  o próximo despertar é às 17:34, o "atraso" é de 4h34. Não é lentidão — é
+  espera pelo despertar.
+- **Cron horário**: quando o agendador acorda, encontra uma ocorrência recente
+  (no máximo 1h atrás), então o atraso *parece* pequeno. Mas todas as horas
+  entre um despertar e outro são **descartadas, não enfileiradas**.
+
+**A madrugada não ajuda — piora.** Testado com um cron único às 02:23 UTC
+(23h23 BRT): disparou às **07:47 UTC, 5h24 depois**. É o pior atraso já medido
+aqui, contra os 3h20-4h34 do horário comercial. E os intervalos entre
+despertares na madrugada foram os maiores da série (269 e 352 min).
+
+Por que este repositório recebe tão poucos despertares: **não sei**, e não dá
 para descobrir de fora. Uma versão anterior deste texto culpava despriorização
 de runner em repo público — a medição de fila 0s desmentiu.
 
@@ -195,8 +232,10 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
 
 ## 7. Coisas em aberto
 
-- **Primeiro disparo com o minuto 34** é 20/09 às 13h34. Ainda não se sabe se
-  ajuda no atraso.
+- **O minuto 34 ainda não foi avaliado.** O primeiro disparo é 20/09 às 13h34
+  BRT (16h34 UTC). Pelo modelo dos despertares, é improvável que o minuto
+  importe: o que decide é quando o agendador acorda, não em que minuto a
+  ocorrência estava marcada.
 - **Issue #6** (`[teste] Story não publicado`) é o ensaio do alarme e pode ser
   fechada.
 - **Issue #2** tem os 15 candidatos da curadoria esperando aprovação humana.
