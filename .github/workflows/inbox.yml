@@ -12,7 +12,16 @@ name: Importar fotos do Drive
 
 on:
   schedule:
-    - cron: '0 12 * * *'   # 9h no horário de Brasília
+    # ATENÇÃO: horários de DISPARO, não de importação. O cron deste
+    # repositório atrasa de 3h20 a 5h24, então o marcado fica ~4h adiantado:
+    #   05h00 BRT  →  importa entre 08h20 e 10h24
+    #   13h00 BRT  →  importa entre 16h20 e 18h24
+    #
+    # Duas vezes por dia porque a foto que a Lélia sobe de manhã esperava até
+    # o dia seguinte para entrar na fila. Importar não publica nada: só enche
+    # a fila, e a fila é servida nos horários dos stories.
+    - cron: '0 8 * * *'    # 05h00 em Brasília
+    - cron: '0 16 * * *'   # 13h00 em Brasília
   workflow_dispatch:
 
 permissions:

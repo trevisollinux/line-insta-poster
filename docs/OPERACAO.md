@@ -16,6 +16,15 @@ Códigos de saída da CLI: `0` sucesso, `1` falha (com alerta), `2` nada a fazer
 O workflow de publicação trata `2` como aviso, não como falha — fila vazia não é
 erro, mas aparece no Summary do run.
 
+### Horários da importação
+
+A importação roda duas vezes por dia, mirando **9h e 17h**. Os crons estão em
+05h00 e 13h00 BRT porque são horários de disparo, com o mesmo adiantamento de
+~4h dos stories: a foto entra na fila entre 08h20-10h24 e 16h20-18h24.
+
+Importar não publica nada — só enche `queue/stories.yaml`. Quem publica são os
+horários dos stories.
+
 ### Tipo de conteúdo pelas subpastas do Drive
 
 O nome da subpasta onde a foto está vira o campo `tipo` do item (`Bastidor da

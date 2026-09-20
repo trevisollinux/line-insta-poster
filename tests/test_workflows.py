@@ -55,6 +55,28 @@ class WorkflowTest(unittest.TestCase):
         self.assertNotIn("git checkout -b", conteudo)
 
 
+class HorarioDaImportacaoTest(unittest.TestCase):
+    """A importação mira 9h e 17h; o cron precisa ficar ~4h antes disso.
+
+    Alguém lendo `0 8 * * *` pensa "5h da manhã, que horário estranho" e
+    corrige para as 9h — e aí a foto passa a entrar na fila no meio da tarde.
+    O teste existe para essa correção bem-intencionada falhar aqui.
+    """
+
+    CAMINHO = os.path.join(RAIZ, ".github", "workflows", "inbox.yml")
+    DISPAROS_BRT = {(5, 0), (13, 0)}
+
+    def test_os_crons_ficam_quatro_horas_antes_do_alvo(self):
+        agenda = _gatilhos(_carregar(self.CAMINHO)).get("schedule") or []
+
+        disparos = set()
+        for entrada in agenda:
+            minuto, hora = entrada["cron"].split()[:2]
+            disparos.add(((int(hora) - 3) % 24, int(minuto)))
+
+        self.assertEqual(disparos, self.DISPAROS_BRT)
+
+
 class PontoZeroTest(unittest.TestCase):
     """A captura logo após publicar é o único ponto da curva que não depende
     do agendador — e o agendador entrega 25%.
