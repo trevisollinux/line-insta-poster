@@ -76,9 +76,19 @@ class NomeDeArquivoTest(unittest.TestCase):
         self.assertEqual(nome, "2026-09-19-satchel-conhaque-abc123.jpg")
 
     def test_acento_e_espaco_viram_slug(self):
+        """O esperado aqui era "bolsa-a-o-caf" — o teste guardava o defeito.
+
+        O filtro comia a letra acentuada inteira em vez de dobrar para a letra
+        base. Passou despercebido porque nome de arquivo feio ainda funciona;
+        só apareceu quando o mesmo slug virou rótulo de tipo de conteúdo, onde
+        "promo-o" seria uma categoria na análise.
+        """
         arquivo = DriveFile("id1234", "Bolsa Ação Café.jpg", "image/jpeg")
 
-        self.assertEqual(media_filename(arquivo, hoje="2026-09-19"), "2026-09-19-bolsa-a-o-caf-id1234.jpg")
+        self.assertEqual(
+            media_filename(arquivo, hoje="2026-09-19"),
+            "2026-09-19-bolsa-acao-cafe-id1234.jpg",
+        )
 
     def test_nome_vazio_nao_gera_arquivo_sem_nome(self):
         arquivo = DriveFile("id1234", "!!!.jpg", "image/jpeg")
@@ -224,6 +234,16 @@ class TipoDeConteudoTest(unittest.TestCase):
         item = draft(arquivo, "https://cdn/x/2026-09-20-foto.jpg")
 
         self.assertEqual(item["tipo"], "bastidor-da-oficina")
+
+    def test_acento_vira_a_letra_base(self):
+        """"Promoção" virava "promo-o": o filtro comia a letra acentuada.
+
+        Em nome de arquivo era feio; como rótulo de tipo, seria uma categoria
+        ilegível aparecendo na análise — e nomes de pasta em português têm
+        acento.
+        """
+        self.assertEqual(slugify("Promoção"), "promocao")
+        self.assertEqual(slugify("Últimas peças"), "ultimas-pecas")
 
     def test_arquivo_da_raiz_entra_sem_tipo(self):
         # A Lélia leva tempo para se organizar; foto na raiz precisa publicar

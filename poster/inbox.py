@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import unicodedata
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 
@@ -60,7 +61,17 @@ class Imported:
 
 
 def slugify(nome: str) -> str:
+    """Nome de arquivo e rótulo de tipo, sem acento e sem espaço.
+
+    O acento é dobrado para a letra base antes de filtrar. Sem isso,
+    "Promoção" virava "promo-o" e "Últimas peças" virava "ltimas-pe-as" — o
+    filtro comia a letra acentuada inteira. Passava despercebido em nome de
+    arquivo; como rótulo de tipo de conteúdo, seria uma categoria ilegível
+    aparecendo na análise.
+    """
     base = os.path.splitext(nome)[0].lower()
+    base = unicodedata.normalize("NFKD", base)
+    base = "".join(c for c in base if not unicodedata.combining(c))
     base = re.sub(r"[^a-z0-9]+", "-", base).strip("-")
     return base[:60] or "midia"
 
