@@ -25,6 +25,8 @@ from datetime import datetime, timezone
 
 import yaml
 
+from .queue_file import menciona_preco
+
 from . import REPO_ROOT
 from .drive import DriveFile
 from .rehost import public_url
@@ -122,9 +124,14 @@ def draft_feed(arquivo: DriveFile, url: str, texto: str) -> dict:
 
 POSTS_HEADER = """# Fila de publicação do feed e dos Reels.
 #
-# Item só é publicado se `reviewed_price: true`. A flag não é decoração: o
-# acervo tem post com preço pré-reajuste, e publicar um deles queima confiança
-# no DM. Quem marca a flag é quem conferiu o preço, não o script.
+# Item cuja LEGENDA fala de preço só é publicado se `reviewed_price: true`. A
+# flag não é decoração: o acervo tem post com preço pré-reajuste, e publicar um
+# deles queima confiança no DM. Quem marca a flag é quem conferiu o preço, não
+# o script.
+#
+# Legenda sem preço não precisa da marca — não há o que conferir. Exigir sempre
+# viraria ritual, e ritual vira hábito: a pessoa marca sem olhar, inclusive nos
+# posts que têm preço.
 #
 # Duas origens chegam aqui:
 #
@@ -262,6 +269,15 @@ def media_public_url(repo: str, branch: str, nome_arquivo: str) -> str:
     return public_url(repo, branch, f"{MEDIA_SUBDIR}/{nome_arquivo}")
 
 
+def _parado(item: dict) -> bool:
+    """Mesma régua da validação da fila — duas réguas diriam coisas diferentes.
+
+    Se o relatório dissesse "pronto" e a fila recusasse (ou o contrário),
+    ninguém confiaria em nenhum dos dois.
+    """
+    return menciona_preco(item.get("caption") or "") and not item.get("reviewed_price")
+
+
 def report_markdown(
     importados: list[tuple[DriveFile, str]],
     recusados: list[DriveFile],
@@ -312,20 +328,26 @@ def report_markdown(
             )
 
     if posts:
-        parados = [p for p in posts if not p.get("reviewed_price")]
+        parados = [p for p in posts if _parado(p)]
         linhas += ["", "### Posts de feed", ""]
         for item in posts:
-            marca = "pronto" if item.get("reviewed_price") else "**parado**"
+            marca = "**parado**" if _parado(item) else "pronto"
             trecho = (item.get("caption") or "").splitlines()
             resumo_cap = trecho[0][:60] if trecho else "_sem legenda_"
             linhas.append(f"- {marca} · {item['media_type']} · {resumo_cap}")
         if parados:
             linhas += [
                 "",
-                f"{len(parados)} post(s) **não** vão ao ar: falta a primeira linha "
-                "`preço conferido` no arquivo de texto. Corrija o texto no Drive e "
-                "rode a importação de novo, ou marque `reviewed_price: true` na fila.",
+                f"{len(parados)} post(s) **não** vão ao ar: a legenda fala de preço "
+                "e falta a primeira linha `preço conferido` no arquivo de texto. "
+                "Corrija o texto no Drive e rode a importação de novo, ou marque "
+                "`reviewed_price: true` na fila.",
             ]
+        linhas += [
+            "",
+            "Legenda sem preço não precisa da marca — sem preço não há o que "
+            "conferir.",
+        ]
 
     linhas += [
         "",

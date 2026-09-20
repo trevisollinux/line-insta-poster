@@ -27,13 +27,13 @@ class QueueValidationTest(unittest.TestCase):
         self.assertEqual(parsed.media_type, "STORIES")
         self.assertFalse(parsed.reviewed_price)
 
-    def test_formatos_com_legenda_continuam_exigindo(self):
+    def test_legenda_com_preco_continua_exigindo(self):
         for formato, extra in (
             ("IMAGE", {}),
             ("REELS", {"url": "https://media.example/v.mp4"}),
         ):
             with self.subTest(formato=formato):
-                payload = item(media_type=formato, **extra)
+                payload = item(media_type=formato, caption="Bolsa R$ 890", **extra)
                 payload.pop("reviewed_price")
 
                 with self.assertRaises(QueueError) as ctx:
@@ -41,14 +41,48 @@ class QueueValidationTest(unittest.TestCase):
 
                 self.assertIn("reviewed_price", str(ctx.exception))
 
+    def test_legenda_sem_preco_dispensa(self):
+        """Nem todo post traz preço — e sem preço não há o que conferir.
+
+        Exigir a marca sempre transforma a conferência em ritual, e ritual
+        repetido vira hábito: a pessoa marca sem olhar, inclusive nos posts que
+        realmente têm preço. A trava vale mais aplicada só onde protege.
+        """
+        payload = item(caption="Juniper 3 em 1 🥰")
+        payload.pop("reviewed_price")
+
+        [parsed] = parse_queue([payload])
+
+        self.assertFalse(parsed.reviewed_price)
+
+    def test_o_que_conta_como_preco_na_legenda(self):
+        for legenda in (
+            "R$ 890",
+            "890,00 no pix",
+            "6x de 148",
+            "consulte o preço na bio",
+            "à vista com desconto",
+        ):
+            with self.subTest(legenda=legenda):
+                payload = item(caption=legenda)
+                payload.pop("reviewed_price")
+                with self.assertRaises(QueueError):
+                    parse_queue([payload])
+
+        for legenda in ("Juniper 3 em 1 🥰", "#readytogo", "Nossa mochila de couro"):
+            with self.subTest(legenda=legenda):
+                payload = item(caption=legenda)
+                payload.pop("reviewed_price")
+                parse_queue([payload])
+
     def test_sem_reviewed_price_a_fila_inteira_falha(self):
         with self.assertRaises(QueueError) as ctx:
-            parse_queue([item(reviewed_price=False)])
+            parse_queue([item(reviewed_price=False, caption="Bolsa R$ 890")])
 
         self.assertIn("reviewed_price", str(ctx.exception))
 
     def test_reviewed_price_ausente_tambem_falha(self):
-        payload = item()
+        payload = item(caption="Bolsa R$ 890")
         payload.pop("reviewed_price")
 
         with self.assertRaises(QueueError):
@@ -122,7 +156,14 @@ class QueueValidationTest(unittest.TestCase):
 
     def test_erro_lista_todos_os_problemas_de_uma_vez(self):
         with self.assertRaises(QueueError) as ctx:
-            parse_queue([item(id="a", reviewed_price=False, url="http://x/a.jpg")])
+            parse_queue([
+                item(
+                    id="a",
+                    reviewed_price=False,
+                    caption="Bolsa R$ 890",
+                    url="http://x/a.jpg",
+                )
+            ])
 
         mensagem = str(ctx.exception)
         self.assertIn("reviewed_price", mensagem)

@@ -434,7 +434,12 @@ def cmd_inbox(args: argparse.Namespace) -> int:
                     print(f"  aviso: {exc}")
             item = inbox_mod.draft_feed(arquivo, url, texto)
             posts.append(item)
-            estado = "preço conferido" if item["reviewed_price"] else "PARADO (falta 'preço conferido')"
+            if item["reviewed_price"]:
+                estado = "preço conferido"
+            elif inbox_mod.menciona_preco(item["caption"]):
+                estado = "PARADO (legenda fala de preço e falta 'preço conferido')"
+            else:
+                estado = "sem preço na legenda — nada a conferir"
             print(f"  feed: {arquivo.name} → {estado}")
         else:
             rascunhos.append(inbox_mod.draft(arquivo, url))

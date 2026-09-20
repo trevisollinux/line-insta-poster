@@ -132,11 +132,17 @@ class DraftTest(unittest.TestCase):
         self.assertEqual(parsed.media_type, "STORIES")
 
     def test_item_de_story_nao_entra_no_feed_sem_aprovacao(self):
-        """Mudar o formato para IMAGE reativa a exigência de preço."""
+        """Mudar o formato para IMAGE reativa a exigência — se houver preço.
+
+        O rascunho de story não tem legenda. Copiá-lo para o feed com uma
+        legenda que traz preço é exatamente o caminho pelo qual um preço velho
+        chegaria ao perfil.
+        """
         from poster.queue_file import QueueError, parse_queue
 
         item = draft(FOTO, "https://cdn.example/x.jpg")
         item["media_type"] = "IMAGE"
+        item["caption"] = "Bolsa Juniper por R$ 890"
 
         with self.assertRaises(QueueError) as ctx:
             parse_queue([item])

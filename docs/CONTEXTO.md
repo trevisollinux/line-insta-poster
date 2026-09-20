@@ -39,7 +39,7 @@ Funcionando ponta a ponta:
 - Coletor de métricas de story no ar — mas com **25% de entrega**, ver a
   ressalva na seção 3.
 - Vigia de silêncio no ar, com alarme testado de verdade (issue #6).
-- **273 testes**, nenhum toca a rede.
+- **275 testes**, nenhum toca a rede.
 
 Stories publicados até agora:
 
@@ -84,6 +84,15 @@ depois seria uma segunda pessoa confirmando um número que ela não olhou.
 Só a primeira linha é lida como marca. Varrer o texto inteiro faria uma legenda
 que diz "preço ok" no meio da frase virar aprovação — e a trava é a única coisa
 entre um reajuste e um preço velho no perfil, que em feed não expira em 24h.
+
+E a exigência é **condicional à legenda ter preço**, não ao formato. É o mesmo
+raciocínio que já dispensava STORIES: a flag protege preço velho na legenda, e
+legenda sem preço não tem o que conferir. Exigir sempre viraria ritual, e
+ritual vira hábito — a pessoa marca sem olhar, inclusive onde importa.
+
+Três testes do repositório congelavam a regra antiga (formato com legenda
+sempre exige). Foram atualizados para dizer a regra nova com o gatilho
+explícito na própria chamada, em vez de escondido na fixture.
 
 ### O tipo de conteúdo vem da subpasta, não de um formulário
 
@@ -323,7 +332,7 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
 
 ```bash
 pip install -r requirements.txt
-python -m unittest discover -s tests -t .    # 273 testes, nenhum usa rede
+python -m unittest discover -s tests -t .    # 275 testes, nenhum usa rede
 python -m poster.cli validate                # valida a fila, sem rede
 python -m poster.cli publish --dry-run       # escolhe sem publicar
 python -m poster.cli watch-stories --simular # ensaia o alarme

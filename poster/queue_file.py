@@ -19,6 +19,29 @@ QUEUE_PATH = os.path.join(REPO_ROOT, "queue", "posts.yaml")
 
 MEDIA_TYPES = {"IMAGE", "REELS", "STORIES", "CAROUSEL"}
 CAPTIONED_TYPES = {"IMAGE", "REELS", "CAROUSEL"}  # STORIES não aceita legenda
+
+# O que faz uma legenda "ter preço". A flag reviewed_price existe para barrar
+# preço velho na legenda; legenda sem preço não tem o que conferir, e exigir a
+# marca ali seria ritual. Ritual repetido vira hábito, e hábito não confere
+# nada — exigir sempre enfraquece a trava justamente nos posts que importam.
+#
+# Erra para o lado seguro: "preço" e "valor" entram como gatilho mesmo em
+# frases que não trazem número, porque pedir uma conferência a mais é barato e
+# deixar passar um reajuste não é.
+PRECO_NA_LEGENDA = re.compile(
+    r"(r\$|\breais\b|\bpre[cç]o\b|\bvalor\b|\b[àa]\s+vista\b"
+    r"|\d+\s*x\s*(de\s*)?(r\$\s*)?\d|\d+[.,]\d{2}\b)",
+    re.IGNORECASE,
+)
+
+
+def menciona_preco(caption: str) -> bool:
+    """Se a legenda fala de preço, alguém precisa ter conferido esse preço.
+
+    O que ISTO não cobre, e nenhuma validação cobre: preço escrito por extenso
+    ("oitocentos e noventa") e preço queimado dentro da imagem.
+    """
+    return bool(PRECO_NA_LEGENDA.search(caption or ""))
 IMAGE_EXTENSIONS = (".jpg", ".jpeg")
 VIDEO_EXTENSIONS = (".mp4", ".mov")
 
@@ -124,15 +147,16 @@ def _parse_item(entry: dict[str, Any], label: str) -> QueueItem:
         problems.append("STORIES não aceita caption")
     problems.extend(_caption_problems(caption))
 
-    # A flag existe para impedir preço velho **na legenda**. STORIES não tem
-    # legenda, então exigi-la ali seria burocracia sem proteção. O risco que
-    # sobra — preço queimado dentro da imagem — nenhuma validação alcança.
+    # A flag existe para impedir preço velho **na legenda** — e só então. Duas
+    # dispensas, pelo mesmo motivo: STORIES não tem legenda, e legenda sem
+    # preço não tem o que conferir. O risco que sobra nos dois casos — preço
+    # queimado dentro da imagem — nenhuma validação alcança.
     reviewed_price = entry.get("reviewed_price")
-    exige_preco = media_type in CAPTIONED_TYPES
+    exige_preco = media_type in CAPTIONED_TYPES and menciona_preco(caption)
     if exige_preco and reviewed_price is not True:
         problems.append(
-            "reviewed_price precisa ser true — preço do post tem de ser conferido "
-            "à mão antes de publicar"
+            "a legenda menciona preço e reviewed_price não é true — quem escreveu "
+            "o preço precisa ter conferido que ele ainda vale"
         )
 
     weight = _parse_weight(entry.get("weight", 1), problems)

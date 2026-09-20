@@ -27,10 +27,20 @@ exporta o texto. Texto cujo nome não bate com nenhuma mídia vira aviso no
 e-mail, porque quase sempre é erro de digitação — e o sintoma sem o aviso
 seria um post publicado sem legenda.
 
-**A primeira linha do texto precisa ser `preço conferido`** para o post poder
-ir ao ar. Sem ela o item entra na fila com `reviewed_price: false` e fica
-parado. Valem também `preco ok`, `preço conferido: sim` e variações — sem
-acento e em qualquer caixa.
+**Se a legenda falar de preço, a primeira linha do texto precisa ser `preço
+conferido`** para o post poder ir ao ar. Sem ela o item entra na fila com
+`reviewed_price: false` e fica parado. Valem também `preco ok`, `preço
+conferido: sim` e variações — sem acento e em qualquer caixa.
+
+**Legenda sem preço não precisa da marca.** Nem todo post traz valor, e sem
+preço não há o que conferir. Exigir a marca sempre transformaria a conferência
+em ritual, e ritual vira hábito: a pessoa marca sem olhar, inclusive nos posts
+que realmente têm preço.
+
+Conta como preço: `R$`, "reais", "890,00", "6x de 148", "à vista", e as
+palavras "preço" e "valor" mesmo sem número — erra para o lado de pedir uma
+conferência a mais. **Não** alcança preço escrito por extenso nem preço
+queimado dentro da imagem; disso nenhuma validação dá conta.
 
 Só a primeira linha conta. Uma legenda que mencione "preço ok" no meio do
 texto **não** aprova nada: a trava é a única coisa entre um reajuste e um

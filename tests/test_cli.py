@@ -31,7 +31,10 @@ class CliTest(unittest.TestCase):
     def test_validate_reprova_fila_quebrada(self):
         caminho = os.path.join(self.dir.name, "quebrada.yaml")
         with open(caminho, "w", encoding="utf-8") as handle:
-            handle.write("- id: a\n  url: https://x/a.jpg\n")  # sem reviewed_price
+            # legenda com preço e sem reviewed_price: a trava tem de pegar
+            handle.write(
+                "- id: a\n  url: https://x/a.jpg\n  caption: 'Bolsa R$ 890'\n"
+            )
 
         self.assertEqual(
             main(["validate", "--queue", caminho, "--state", self.state]), EXIT_FAIL
