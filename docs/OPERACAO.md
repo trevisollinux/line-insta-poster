@@ -138,6 +138,35 @@ dá para confiar, e a parte que quebra calada não é a conta — é o caminho q
 cria a issue. Descobrir que ele parou de funcionar no dia do incidente é
 descobrir tarde demais.
 
+### O GitHub desativa cron parado — e o heartbeat
+
+Depois de **60 dias sem atividade no repositório**, o GitHub desativa os
+workflows agendados de repositório público. Desativa calado: o cron para de
+disparar e não sobra rastro. Levaria junto o próprio vigia, e o sistema
+inteiro ficaria mudo parecendo saudável — a pior falha possível aqui.
+
+O workflow **Heartbeat** pulsa segunda e quinta: grava a data em
+`state/heartbeat.txt` e empurra o commit, zerando o contador. Duas vezes por
+semana, e não uma vez por mês, porque o agendador descarta ocorrências — pulso
+marcado não é pulso dado. Mesmo perdendo a maioria, sobra folga dentro dos 60
+dias.
+
+**O que aqui é hipótese, não medição:** o commit sai como
+`github-actions[bot]`. Não está verificado que commit de bot conte como
+atividade para esse contador — há relato de que só push de pessoa conta. Se não
+contar, o repositório já estaria em risco hoje, porque tudo o que ele recebe
+são commits de bot.
+
+Por isso o segundo passo do heartbeat confere pela API se algum workflow está
+`disabled_inactivity`, reativa e abre issue. É essa issue que responde a
+pergunta: se ela aparecer, commit de bot não conta, e a saída é um PAT com
+Contents RW só deste repositório para o pulso sair como pessoa.
+
+O limite, dito de frente: se **todos** os agendados forem desativados de uma
+vez, o heartbeat morre junto e não sobra ninguém para reativar. Aí é manual —
+aba Actions, botão de reativar. Nenhuma automação dentro do GitHub cobre esse
+caso.
+
 ## Quando falha
 
 **Alerta chegou (ou o job ficou vermelho).** Abra o run, leia o Summary. O item
@@ -182,6 +211,7 @@ pendente. Não há como detectar por API; confirme no Business Suite.
 | Mídia duplicada entrega pior | `repeat_after_days` por item | legenda nova, corte diferente, áudio atual |
 | Bucket público expõe acervo | — | nome de arquivo com hash, ou migrar para resumable |
 | Falha silenciosa do Actions | alerta em toda falha + exit code | ausência de post não é detectável sozinha: o alerta é obrigatório |
+| Cron desativado após 60 dias sem atividade | heartbeat 2x/semana + reativação pela API | se todos os agendados caírem juntos, reativar na mão na aba Actions |
 
 ## Limites e depreciações da API
 
