@@ -41,6 +41,10 @@ DRAFTS_HEADER = """# Stories vindos da pasta do Drive — esta fila PUBLICA sozi
 # O que ela NÃO protege: preço queimado dentro da imagem. Se algo sair errado,
 # apague o story pelo app; ele dura 24h.
 #
+# O campo `tipo` vem do nome da subpasta do Drive (bastidor, cliente, produto).
+# Item sem tipo veio da raiz e publica igual — só não entra na comparação de
+# qual conteúdo rende.
+#
 # Para mandar uma destas mídias ao feed, copie o item para queue/posts.yaml,
 # troque media_type, escreva a legenda e marque reviewed_price: true.
 """
@@ -117,13 +121,22 @@ def triagem(
 
 
 def draft(arquivo: DriveFile, url: str) -> dict:
-    """Item de story pronto para publicar — um por execução, sem repetir."""
-    return {
+    """Item de story pronto para publicar — um por execução, sem repetir.
+
+    `tipo` vem do nome da subpasta do Drive, quando há. É o que permite
+    perguntar depois qual conteúdo rendeu: foto na raiz entra sem tipo, e
+    sem tipo ela não responde essa pergunta — mas publica igual.
+    """
+    item = {
         "id": os.path.splitext(os.path.basename(url))[0],
         "media_type": "STORIES",
         "url": url,
         "origem": f"Drive: {arquivo.name}",
     }
+    tipo = slugify(arquivo.pasta) if arquivo.pasta else ""
+    if tipo:
+        item["tipo"] = tipo
+    return item
 
 
 def load_drafts(path: str = DRAFTS_PATH) -> list[dict]:
@@ -157,14 +170,18 @@ def report_markdown(
     if importados:
         linhas += [
             f"{len(importados)} mídia(s) importada(s) e já hospedada(s). "
-            "PNG e WebP são convertidos para JPEG na importação:",
+            "PNG e WebP são convertidos para JPEG na importação. A coluna "
+            "*Conteúdo* vem do nome da subpasta do Drive:",
             "",
-            "| Arquivo | Tipo | Mídia |",
-            "|---|---|---|",
+            "| Arquivo | Formato | Conteúdo | Mídia |",
+            "|---|---|---|---|",
         ]
         for arquivo, url in importados:
-            tipo = "vídeo" if arquivo.mime_type.startswith("video/") else "foto"
-            linhas.append(f"| {arquivo.name} | {tipo} | [ver]({url}) |")
+            formato = "vídeo" if arquivo.mime_type.startswith("video/") else "foto"
+            conteudo = slugify(arquivo.pasta) if arquivo.pasta else "— (raiz)"
+            linhas.append(
+                f"| {arquivo.name} | {formato} | {conteudo} | [ver]({url}) |"
+            )
     else:
         linhas.append("Nenhuma mídia nova nesta rodada.")
 

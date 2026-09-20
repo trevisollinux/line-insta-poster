@@ -211,5 +211,29 @@ class ReportTest(unittest.TestCase):
         self.assertIn("timeout", texto)
 
 
+class TipoDeConteudoTest(unittest.TestCase):
+    """Sem tipo não há como perguntar qual conteúdo rendeu — e conteúdo é o
+    único fator que mexeu 5x. Com tipo errado é pior: a resposta vem confiante
+    e falsa."""
+
+    def test_subpasta_vira_tipo_no_rascunho(self):
+        arquivo = DriveFile(
+            id="1", name="foto.jpg", mime_type="image/jpeg", pasta="Bastidor da Oficina"
+        )
+
+        item = draft(arquivo, "https://cdn/x/2026-09-20-foto.jpg")
+
+        self.assertEqual(item["tipo"], "bastidor-da-oficina")
+
+    def test_arquivo_da_raiz_entra_sem_tipo(self):
+        # A Lélia leva tempo para se organizar; foto na raiz precisa publicar
+        # igual, só não entra na comparação.
+        arquivo = DriveFile(id="1", name="foto.jpg", mime_type="image/jpeg")
+
+        item = draft(arquivo, "https://cdn/x/2026-09-20-foto.jpg")
+
+        self.assertNotIn("tipo", item)
+
+
 if __name__ == "__main__":
     unittest.main()

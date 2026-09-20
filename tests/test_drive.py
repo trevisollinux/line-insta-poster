@@ -12,8 +12,11 @@ from poster.drive import (
     DriveFile,
     converter_para_jpeg,
     download,
+    FOLDER_MIME,
     folder_name,
     list_files,
+    list_subfolders,
+    list_tree,
 )
 
 PASTA = "1V5F60XSyFesdYiwSo_7JCgIV1Jiv22r_"
@@ -51,6 +54,43 @@ def opener_erro(codigo):
 
 def arquivo(nome="foto.jpg", mime="image/jpeg", id_="f1"):
     return {"id": id_, "name": nome, "mimeType": mime, "size": "2048", "modifiedTime": "2026-09-19T10:00:00Z"}
+
+
+class ArvoreTest(unittest.TestCase):
+    """O nome da subpasta é o tipo de conteúdo — o fator que mais mexeu no
+    alcance. Ler só a raiz jogaria esse dado fora sem avisar ninguém."""
+
+    def test_carimba_o_nome_da_subpasta_no_arquivo(self):
+        abrir = opener_json([
+            {"files": [arquivo("raiz.jpg", id_="r1")]},          # raiz
+            {"files": [{"id": "p1", "name": "Bastidor"}]},        # subpastas
+            {"files": [arquivo("oficina.jpg", id_="s1")]},        # dentro dela
+        ])
+
+        arquivos = list_tree("TOKEN", PASTA, opener=abrir)
+
+        self.assertEqual(
+            [(a.name, a.pasta) for a in arquivos],
+            [("raiz.jpg", ""), ("oficina.jpg", "Bastidor")],
+        )
+
+    def test_subpasta_nao_entra_como_arquivo(self):
+        # Sem isto, cada subpasta apareceria no relatório como mídia recusada
+        # por formato — ruído que treina quem lê a ignorar o relatório.
+        abrir = opener_json([
+            {"files": [arquivo("foto.jpg"), {"id": "p1", "name": "Bastidor", "mimeType": FOLDER_MIME}]},
+        ])
+
+        arquivos = list_files("TOKEN", PASTA, opener=abrir)
+
+        self.assertEqual([a.name for a in arquivos], ["foto.jpg"])
+
+    def test_pede_so_pastas_ao_listar_subpastas(self):
+        abrir = opener_json([{"files": []}])
+
+        list_subfolders("TOKEN", PASTA, opener=abrir)
+
+        self.assertIn(FOLDER_MIME.replace("/", "%2F"), abrir.chamadas[0])
 
 
 class ListFilesTest(unittest.TestCase):

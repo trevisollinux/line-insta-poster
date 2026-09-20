@@ -49,6 +49,9 @@ class QueueItem:
     repeat_after_days: int | None = None
     last_published: datetime | None = None
     notes: str = ""
+    # Tipo de conteúdo (bastidor, cliente, produto), vindo da subpasta do
+    # Drive. Não muda nada na publicação: existe para a análise.
+    tipo: str = ""
     raw: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
 
     @property
@@ -148,6 +151,7 @@ def _parse_item(entry: dict[str, Any], label: str) -> QueueItem:
     return QueueItem(
         id=item_id,
         media_type=media_type,
+        tipo=str(entry.get("tipo") or "").strip(),
         urls=tuple(urls),
         caption=caption,
         reviewed_price=reviewed_price is True,

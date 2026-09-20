@@ -39,7 +39,7 @@ Funcionando ponta a ponta:
 - Coletor de métricas de story no ar — mas com **25% de entrega**, ver a
   ressalva na seção 3.
 - Vigia de silêncio no ar, com alarme testado de verdade (issue #6).
-- **258 testes**, nenhum toca a rede.
+- **265 testes**, nenhum toca a rede.
 
 Stories publicados até agora:
 
@@ -71,6 +71,19 @@ certo. Está em `poster/rehost.py`.
 
 Também não funciona usar o `source_media_url` que a própria API devolve: é link
 assinado de player, expira em horas e dá erro 2207076 na publicação.
+
+### O tipo de conteúdo vem da subpasta, não de um formulário
+
+O nome da subpasta do Drive vira o campo `tipo` do item. Podia ser um campo
+para alguém preencher; não seria preenchido. A pasta já faz parte do gesto de
+subir a foto, e quem ainda não se organizou larga na raiz e publica sem tipo.
+
+Um nível só: `bastidor/setembro/` diria que o tipo é "setembro", e rótulo
+errado é pior que rótulo nenhum — a análise sai confiante e falsa.
+
+O tipo é copiado para `state/published.json` no momento da publicação. A fila
+é mexida e esvaziada; o estado é o que resta, e é ele que liga o `media_id` que
+a API mede ao tipo de foto que era.
 
 ### Caixa de entrada ≠ hospedagem
 
@@ -297,7 +310,7 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
 
 ```bash
 pip install -r requirements.txt
-python -m unittest discover -s tests -t .    # 258 testes, nenhum usa rede
+python -m unittest discover -s tests -t .    # 265 testes, nenhum usa rede
 python -m poster.cli validate                # valida a fila, sem rede
 python -m poster.cli publish --dry-run       # escolhe sem publicar
 python -m poster.cli watch-stories --simular # ensaia o alarme

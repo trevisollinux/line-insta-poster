@@ -47,6 +47,9 @@ class DriveError(RuntimeError):
 STORY_MAX_SECONDS = 60
 
 
+FOLDER_MIME = "application/vnd.google-apps.folder"
+
+
 @dataclass(frozen=True)
 class DriveFile:
     id: str
@@ -55,6 +58,11 @@ class DriveFile:
     size: int = 0
     modified: str = ""
     duration_ms: int = 0
+    # Subpasta onde o arquivo estava. Vazio = raiz da caixa de entrada.
+    # É daqui que sai o tipo de conteúdo (bastidor, cliente, produto), que é o
+    # fator que mais mexeu no alcance — e ninguém precisa preencher nada: basta
+    # largar a foto na pasta certa. Quem não se organizou deixa na raiz.
+    pasta: str = ""
 
     @property
     def precisa_converter(self) -> bool:
@@ -175,10 +183,16 @@ def list_files(
     token: str,
     folder_id: str,
     *,
+    pasta: str = "",
     page_size: int = 100,
     opener=urllib.request.urlopen,
 ) -> list[DriveFile]:
-    """Lista o conteúdo da pasta, do mais recente para o mais antigo."""
+    """Arquivos da pasta, do mais recente para o mais antigo.
+
+    Subpastas não entram na lista: elas são percorridas por `list_tree`. Sem
+    isso, cada subpasta viraria um "arquivo" recusado por formato no relatório,
+    o que é ruído puro.
+    """
     arquivos: list[DriveFile] = []
     pagina: str | None = None
     while True:
@@ -199,6 +213,8 @@ def list_files(
             f"{DRIVE_API}/files?{urllib.parse.urlencode(params)}", token, opener=opener
         )
         for linha in payload.get("files") or []:
+            if str(linha.get("mimeType") or "") == FOLDER_MIME:
+                continue
             arquivos.append(
                 DriveFile(
                     id=str(linha.get("id") or ""),
@@ -209,11 +225,65 @@ def list_files(
                     duration_ms=int(
                         (linha.get("videoMediaMetadata") or {}).get("durationMillis") or 0
                     ),
+                    pasta=pasta,
                 )
             )
         pagina = payload.get("nextPageToken")
         if not pagina:
             return arquivos
+
+
+def list_subfolders(
+    token: str,
+    folder_id: str,
+    *,
+    page_size: int = 100,
+    opener=urllib.request.urlopen,
+) -> list[tuple[str, str]]:
+    """Subpastas diretas, como (id, nome)."""
+    pastas: list[tuple[str, str]] = []
+    pagina: str | None = None
+    while True:
+        params = {
+            "q": (
+                f"'{folder_id}' in parents and trashed = false "
+                f"and mimeType = '{FOLDER_MIME}'"
+            ),
+            "fields": "nextPageToken,files(id,name)",
+            "orderBy": "name",
+            "pageSize": str(page_size),
+            "supportsAllDrives": "true",
+            "includeItemsFromAllDrives": "true",
+        }
+        if pagina:
+            params["pageToken"] = pagina
+        payload = _get(
+            f"{DRIVE_API}/files?{urllib.parse.urlencode(params)}", token, opener=opener
+        )
+        for linha in payload.get("files") or []:
+            pastas.append((str(linha.get("id") or ""), str(linha.get("name") or "")))
+        pagina = payload.get("nextPageToken")
+        if not pagina:
+            return pastas
+
+
+def list_tree(
+    token: str,
+    folder_id: str,
+    *,
+    opener=urllib.request.urlopen,
+) -> list[DriveFile]:
+    """A caixa de entrada inteira: raiz mais um nível de subpastas.
+
+    Um nível só, de propósito. O nome da subpasta é o tipo de conteúdo, e tipo
+    dentro de tipo não significa nada — `bastidor/setembro/` diria que o tipo é
+    "setembro". Quem largar foto em pasta mais funda não vê a foto ser
+    importada, que é melhor que importá-la com o rótulo errado.
+    """
+    arquivos = list_files(token, folder_id, opener=opener)
+    for sub_id, nome in list_subfolders(token, folder_id, opener=opener):
+        arquivos.extend(list_files(token, sub_id, pasta=nome, opener=opener))
+    return arquivos
 
 
 def download(

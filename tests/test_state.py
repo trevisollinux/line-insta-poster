@@ -69,5 +69,52 @@ class StateTest(unittest.TestCase):
         self.assertEqual(load_state(self.path)[0].item_id, "a")
 
 
+class TipoNoEstadoTest(unittest.TestCase):
+    """O tipo precisa sobreviver no estado, não na fila.
+
+    A fila é mexida e esvaziada; o estado é o que resta. Se o tipo morasse só
+    na fila, daqui a um mês ninguém conseguiria dizer que tipo de foto era o
+    story que rendeu — que é exatamente a pergunta que o campo existe para
+    responder.
+    """
+
+    def test_grava_e_rele_o_tipo(self):
+        caminho = os.path.join(tempfile.mkdtemp(), "published.json")
+        entrada = PublishedEntry(
+            item_id="a",
+            media_id="m",
+            container_id="c",
+            media_type="STORIES",
+            published_at="2026-09-20T18:00:00+00:00",
+            tipo="bastidor",
+        )
+
+        save_state([entrada], caminho)
+
+        self.assertEqual(load_state(caminho)[0].tipo, "bastidor")
+
+    def test_estado_antigo_sem_tipo_continua_lendo(self):
+        # published.json já tem quatro publicações gravadas sem o campo.
+        caminho = os.path.join(tempfile.mkdtemp(), "published.json")
+        with open(caminho, "w", encoding="utf-8") as handle:
+            json.dump(
+                {
+                    "version": 1,
+                    "published": [
+                        {
+                            "item_id": "a",
+                            "media_id": "m",
+                            "container_id": "c",
+                            "media_type": "STORIES",
+                            "published_at": "2026-09-20T18:00:00+00:00",
+                        }
+                    ],
+                },
+                handle,
+            )
+
+        self.assertEqual(load_state(caminho)[0].tipo, "")
+
+
 if __name__ == "__main__":
     unittest.main()

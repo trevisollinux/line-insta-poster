@@ -24,6 +24,9 @@ class PublishedEntry:
     media_type: str
     published_at: str
     permalink: str | None = None
+    # Copiado do item no momento da publicação. É a única ponte entre o que a
+    # API mede (media_id) e que tipo de foto era — a fila muda, o estado não.
+    tipo: str = ""
 
     @property
     def published_datetime(self) -> datetime:
@@ -48,6 +51,7 @@ def load_state(path: str = STATE_PATH) -> list[PublishedEntry]:
                 media_id=str(row.get("media_id", "")),
                 container_id=str(row.get("container_id", "")),
                 media_type=str(row.get("media_type", "")),
+                tipo=str(row.get("tipo", "") or ""),
                 published_at=str(row.get("published_at", "")),
                 permalink=row.get("permalink"),
             )

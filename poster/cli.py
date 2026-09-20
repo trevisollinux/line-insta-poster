@@ -379,7 +379,9 @@ def cmd_inbox(args: argparse.Namespace) -> int:
         # lista vazia, indistinguível de pasta sem fotos.
         nome_pasta = drive.folder_name(token, pasta)
         print(f"pasta: '{nome_pasta}'")
-        arquivos = drive.list_files(token, pasta)
+        # Raiz mais um nível de subpastas: o nome da subpasta vira o tipo de
+        # conteúdo do item. Quem larga na raiz continua sendo importado.
+        arquivos = drive.list_tree(token, pasta)
     except drive.DriveError as exc:
         alert(str(exc), webhook=webhook)
         return EXIT_FAIL

@@ -16,6 +16,23 @@ Códigos de saída da CLI: `0` sucesso, `1` falha (com alerta), `2` nada a fazer
 O workflow de publicação trata `2` como aviso, não como falha — fila vazia não é
 erro, mas aparece no Summary do run.
 
+### Tipo de conteúdo pelas subpastas do Drive
+
+O nome da subpasta onde a foto está vira o campo `tipo` do item (`Bastidor da
+Oficina` → `bastidor-da-oficina`). Foto largada na **raiz** entra sem tipo e
+publica igual — só não participa da comparação de qual conteúdo rende.
+
+É um nível só de profundidade. `bastidor/setembro/foto.jpg` não é importada:
+melhor não importar do que rotular como "setembro".
+
+O tipo viaja do rascunho para `state/published.json`, que é o que sobra depois
+que a fila esvazia — é por ele que se liga o `media_id` medido pela API ao tipo
+de foto que era.
+
+Por que isto existe: horário e posição no dia mexem 10-15%; o tipo de conteúdo
+mexeu 5x (891 views de um bastidor contra 147-170 das fotos de produto). Sem o
+rótulo, o único fator que importa de verdade é invisível para a análise.
+
 ### O ponto zero da curva
 
 Além do coletor de hora em hora, o próprio run que publica captura as métricas
