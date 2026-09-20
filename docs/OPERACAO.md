@@ -16,6 +16,22 @@ Códigos de saída da CLI: `0` sucesso, `1` falha (com alerta), `2` nada a fazer
 O workflow de publicação trata `2` como aviso, não como falha — fila vazia não é
 erro, mas aparece no Summary do run.
 
+### O ponto zero da curva
+
+Além do coletor de hora em hora, o próprio run que publica captura as métricas
+logo depois de o story entrar no ar. Esse ponto é o único que não depende do
+agendador — e o agendador entrega 25% das ocorrências, então a primeira leitura
+de um story podia chegar horas depois.
+
+Não duplica: a curva é indexada por (story, idade em horas arredondada) e a
+tabela tem uma linha por story, ficando sempre com o maior valor lido. Uma
+captura do coletor na mesma hora cai na mesma linha.
+
+Se essa captura falhar, o job da publicação **não** fica vermelho: o story já
+está no ar e já foi gravado, e um e-mail dizendo que a publicação falhou faria
+alguém procurar problema onde não tem. Fica um aviso no log, e o coletor de
+hora em hora pega o story depois.
+
 ### Por que a captura de story roda tanto
 
 Story expira em 24h e a Graph API não guarda nada depois disso: `/stories`

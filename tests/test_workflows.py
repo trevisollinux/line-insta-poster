@@ -55,6 +55,46 @@ class WorkflowTest(unittest.TestCase):
         self.assertNotIn("git checkout -b", conteudo)
 
 
+class PontoZeroTest(unittest.TestCase):
+    """A captura logo após publicar é o único ponto da curva que não depende
+    do agendador — e o agendador entrega 25%.
+
+    O risco dela não é falhar: é derrubar o job da publicação junto. Aí o
+    e-mail diria que a publicação falhou quando o story está no ar, e o
+    próximo a ler isso perde tempo procurando problema onde não tem.
+    """
+
+    CAMINHO = os.path.join(RAIZ, ".github", "workflows", "publish.yml")
+
+    def test_captura_o_ponto_zero_depois_de_publicar(self):
+        with open(self.CAMINHO, encoding="utf-8") as handle:
+            documento = yaml.safe_load(handle)
+
+        nomes = [s.get("name", "") for s in documento["jobs"]["publicar"]["steps"]]
+        self.assertIn("Capturar o ponto zero da curva", nomes)
+        self.assertGreater(
+            nomes.index("Capturar o ponto zero da curva"),
+            nomes.index("Publicar"),
+            "medir antes de publicar mede o story de ontem",
+        )
+
+    def test_falha_de_metrica_nao_derruba_a_publicacao(self):
+        with open(self.CAMINHO, encoding="utf-8") as handle:
+            documento = yaml.safe_load(handle)
+
+        passo = next(
+            s
+            for s in documento["jobs"]["publicar"]["steps"]
+            if s.get("name") == "Capturar o ponto zero da curva"
+        )
+        corpo = passo["run"]
+        # O bloco que trata código diferente de zero precisa terminar em
+        # `exit 0`: a publicação já aconteceu e já foi gravada.
+        trecho = corpo.split('if [ "$codigo" != "0" ]; then', 1)[1].split("fi", 1)[0]
+        self.assertIn("exit 0", trecho)
+        self.assertNotIn("exit 1", trecho)
+
+
 class HeartbeatTest(unittest.TestCase):
     """O heartbeat é o único workflow cuja falha não aparece em lugar nenhum.
 

@@ -39,7 +39,7 @@ Funcionando ponta a ponta:
 - Coletor de métricas de story no ar — mas com **25% de entrega**, ver a
   ressalva na seção 3.
 - Vigia de silêncio no ar, com alarme testado de verdade (issue #6).
-- **256 testes**, nenhum toca a rede.
+- **258 testes**, nenhum toca a rede.
 
 Stories publicados até agora:
 
@@ -120,6 +120,16 @@ ausência de story**.
 
 Continua valendo muito mais que print manual — mas não é a rede de segurança
 que eu descrevi.
+
+Medido de novo em 20/09, com 22h de runs: **5 execuções de ~21, 24%** — o
+número se sustenta. Os buracos entre capturas foram de 2h34 a **5h04**. Como o
+story vive 24h, na prática ele recebe 4 ou 5 leituras, e o cenário de "nasceu e
+expirou sem nenhuma medição" exigiria uma seca quatro vezes pior que a pior já
+vista. Improvável, não impossível — e o aviso acima continua de pé: buraco no
+CSV não é o mesmo que dia sem story.
+
+Desde 20/09 o run que publica captura as métricas logo depois de publicar. Esse
+ponto de idade 0 não passa pelo agendador, e é o começo da curva que faltava.
 
 ### O vigia lê a agenda, não a copia
 
@@ -285,7 +295,7 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
 
 ```bash
 pip install -r requirements.txt
-python -m unittest discover -s tests -t .    # 256 testes, nenhum usa rede
+python -m unittest discover -s tests -t .    # 258 testes, nenhum usa rede
 python -m poster.cli validate                # valida a fila, sem rede
 python -m poster.cli publish --dry-run       # escolhe sem publicar
 python -m poster.cli watch-stories --simular # ensaia o alarme
