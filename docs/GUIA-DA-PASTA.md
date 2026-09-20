@@ -25,7 +25,6 @@ Dentro da pasta compartilhada, existem estas:
 | **Cliente** | vira story · cliente usando, peça recebida, foto que cliente mandou |
 | **Produto** | vira story · a peça sozinha, detalhe, catálogo |
 | **Promoção** | vira story · preço, desconto, últimas peças |
-| **Feed** | vira post no feed ou Reels — leia a seção sobre isso abaixo |
 | (fora das pastas) | vira story normalmente, só não entra na comparação |
 
 As quatro primeiras existem por um motivo só: descobrir **que tipo de foto
@@ -59,52 +58,6 @@ recusa e avisa, em vez de publicar cortado.
 
 ---
 
-## Feed e Reels: foto mais um arquivo de texto
-
-Na pasta **Feed**, você põe duas coisas com o **mesmo nome**:
-
-```
-bolsa-juniper.jpg     ← a foto (ou o vídeo)
-bolsa-juniper.txt     ← a legenda
-```
-
-O nome tem que ser igual nos dois, senão o robô não sabe qual legenda é de
-qual foto. Vídeo vira Reels, foto vira post normal.
-
-O arquivo de texto é a legenda, e nada mais:
-
-```
-Juniper 3 em 1: bolsa, transversal e clutch na mesma peça. 🤎
-Link na bio pra garantir a sua.
-
-#couro #bolsadecouro #feitoamao
-```
-
-Não precisa de título, não precisa de formatação. O que estiver ali vira a
-legenda do post, do jeito que está.
-
-Se for mais fácil, **crie um Documento do Google** em vez de um arquivo de
-texto — o robô lê os dois.
-
-### A única regra extra: quando a legenda tem preço
-
-Se você escrever um **valor** na legenda (R$ 890, 6x de 148, "por 890"), a
-primeira linha do arquivo precisa ser:
-
-```
-preço conferido
-Juniper 3 em 1 por R$ 890 em até 6x. 🤎
-```
-
-É uma confirmação de que aquele valor ainda está certo. Sem essa linha, o post
-fica parado esperando — não é erro, é proteção: post de feed não some em 24
-horas como story, então preço desatualizado ficaria no perfil.
-
-**Legenda sem valor não precisa dessa linha.** "Valor no direct", "consulte o
-preço na bio", ou qualquer legenda sem número, é só escrever normalmente.
-
----
-
 ## Os horários
 
 | Quando | O que acontece |
@@ -127,8 +80,6 @@ seguinte.
 
 **Story errado:** apague pelo aplicativo do Instagram, como sempre. Ele dura 24
 horas de qualquer jeito.
-
-**Post de feed errado:** avise o Gustavo. Post de feed fica no perfil.
 
 **Foto que você subiu e não apareceu:** ou ainda não chegou a hora, ou o
 formato foi recusado (vídeo longo demais, arquivo que não é foto nem vídeo). O

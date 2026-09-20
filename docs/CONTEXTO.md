@@ -313,6 +313,12 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
   fechada.
 - **Issue #2** tem os 15 candidatos da curadoria esperando aprovação humana.
   Nada foi republicado do acervo ainda.
+- **O caminho do feed pelo Drive está pronto e desligado.** A subpasta `Feed/`,
+  o par mídia + arquivo de legenda e a linha `preço conferido` funcionam e têm
+  teste, mas a pasta **não foi criada no Drive** — decisão do Gustavo em 20/09,
+  para não jogar o feed no automático junto com o resto. Enquanto a pasta não
+  existir, nada chega em `queue/posts.yaml` por esse caminho. Não é código
+  morto: é código esperando uma decisão de operação.
 - **`publish.yml` ainda tem cron próprio** (`0 13 * * *`) apontando para
   `queue/posts.yaml`, que está vazia. Não faz nada hoje, mas vai publicar
   sozinho no dia em que alguém aprovar um item para lá. Decidir se é isso mesmo.
