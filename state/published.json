@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-09-20T07:48:46+00:00",
+  "updated_at": "2026-09-20T22:59:24+00:00",
   "published": [
     {
       "item_id": "teste-stories-line-baguete",
@@ -8,7 +8,8 @@
       "container_id": "18633818338043967",
       "media_type": "STORIES",
       "published_at": "2026-09-18T15:50:06+00:00",
-      "permalink": "https://www.instagram.com/stories/line_store/3989005563618064391"
+      "permalink": "https://www.instagram.com/stories/line_store/3989005563618064391",
+      "tipo": ""
     },
     {
       "item_id": "2026-09-19-img-20260812-083523-923-1wfosR",
@@ -16,7 +17,8 @@
       "container_id": "18634258234043967",
       "media_type": "STORIES",
       "published_at": "2026-09-19T20:33:21+00:00",
-      "permalink": "https://www.instagram.com/stories/line_store/3989872904094944590"
+      "permalink": "https://www.instagram.com/stories/line_store/3989872904094944590",
+      "tipo": ""
     },
     {
       "item_id": "2026-09-19-img-20260812-083519-097-1fMJiL",
@@ -24,7 +26,8 @@
       "container_id": "18634267735043967",
       "media_type": "STORIES",
       "published_at": "2026-09-19T21:09:21+00:00",
-      "permalink": "https://www.instagram.com/stories/line_store/3989891020964282686"
+      "permalink": "https://www.instagram.com/stories/line_store/3989891020964282686",
+      "tipo": ""
     },
     {
       "item_id": "2026-09-19-img-20260816-170125-643-1RsObi",
@@ -32,7 +35,17 @@
       "container_id": "18634420534043967",
       "media_type": "STORIES",
       "published_at": "2026-09-20T07:48:46+00:00",
-      "permalink": "https://www.instagram.com/stories/line_store/3990212832847005366"
+      "permalink": "https://www.instagram.com/stories/line_store/3990212832847005366",
+      "tipo": ""
+    },
+    {
+      "item_id": "2026-09-19-img-20260816-170135-099-1UvgV4",
+      "media_id": "18099435830369099",
+      "container_id": "18634651162043967",
+      "media_type": "STORIES",
+      "published_at": "2026-09-20T22:59:24+00:00",
+      "permalink": "https://www.instagram.com/stories/line_store/3990671692623889594",
+      "tipo": ""
     }
   ]
 }
