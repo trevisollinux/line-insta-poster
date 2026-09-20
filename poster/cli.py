@@ -75,6 +75,26 @@ def cmd_publish(args: argparse.Namespace) -> int:
     published = state.load_state(args.state)
     seed = env_str("IG_SELECTION_SEED")
     formatos = tuple(t for t in (args.media_type or "").upper().split(",") if t)
+
+    # A execução de recuperação existe para o dia que perdeu um horário — não
+    # para acrescentar publicação em dia normal. Sem este limite, ela viraria
+    # um terceiro story diário calado, em cima do horário pior de todos.
+    if args.max_por_dia > 0:
+        agora = datetime.now(timezone.utc)
+        ja_saiu = vigia.publicados_hoje(
+            published, agora, media_type=formatos[0] if len(formatos) == 1 else ""
+        )
+        if ja_saiu >= args.max_por_dia:
+            print(
+                f"o dia já tem {ja_saiu} publicação(ões) e o limite é "
+                f"{args.max_por_dia} — nada a recuperar"
+            )
+            write_summary(
+                "### Instagram — nada a recuperar\n\n"
+                f"O dia já tem {ja_saiu} publicação(ões), que é o esperado."
+            )
+            return EXIT_NOTHING
+        print(f"recuperação: o dia tem {ja_saiu} de {args.max_por_dia} — publicando")
     selection = select_next(
         items,
         published,
@@ -659,6 +679,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--media-type",
         default="",
         help="publica só este formato (REELS, STORIES, CAROUSEL, IMAGE)",
+    )
+    publish.add_argument(
+        "--max-por-dia",
+        type=int,
+        default=0,
+        help="não publica se o dia já tiver este tanto (0 = sem limite)",
     )
     publish.set_defaults(func=cmd_publish)
 

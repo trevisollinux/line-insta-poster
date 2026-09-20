@@ -223,6 +223,26 @@ dá para confiar, e a parte que quebra calada não é a conta — é o caminho q
 cria a issue. Descobrir que ele parou de funcionar no dia do incidente é
 descobrir tarde demais.
 
+### Recuperação: o story que faltou
+
+Em 20/09 nenhum dos dois disparos de story virou execução, e o dia terminaria
+com um story só. O vigia percebe e avisa — mas avisar não publica, e automação
+que depende de alguém abrir o Actions no fim do dia não é automação.
+
+O workflow **Recuperar story do dia** dispara às 18h BRT (cron `0 21 * * *`) e
+publica **só se o dia estiver devendo**: se já saíram os dois, ele sai sem
+fazer nada. O limite vem de `max_por_dia`, que a fila do publish respeita.
+
+Mora em arquivo separado de propósito. O vigia lê os horários de
+`publicar-stories-auto.yml` para saber quantos stories o dia devia ter; um
+terceiro cron ali dentro o faria cobrar três por dia, todo dia — o alarme
+viraria ruído diário, que é o defeito que ele existe para não ter. Há teste
+ligando o limite da recuperação ao tamanho daquela agenda.
+
+Com o atraso de 3h20 a 5h24, a recuperação sai à noite. Hora ruim é melhor que
+hora nenhuma. Se passar da meia-noite, ela conta para o dia seguinte — é o
+preço de não haver horário confiável.
+
 ### O GitHub desativa cron parado — e o heartbeat
 
 Depois de **60 dias sem atividade no repositório**, o GitHub desativa os

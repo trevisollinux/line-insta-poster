@@ -1,4 +1,7 @@
 """A CLI é o que o workflow chama — os códigos de saída são contrato."""
+import contextlib
+import io
+import json
 import os
 import tempfile
 import unittest
@@ -66,6 +69,81 @@ class CliTest(unittest.TestCase):
         codigo = main(["publish", "--queue", EXEMPLO, "--state", self.state])
 
         self.assertEqual(codigo, EXIT_FAIL)
+
+
+class MaxPorDiaTest(unittest.TestCase):
+    """O limite diário separa "recuperar o que faltou" de "publicar mais um".
+
+    Sem ele, a execução de recuperação vira um terceiro story diário, no pior
+    horário do dia, sem ninguém ter pedido.
+    """
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.dir.cleanup)
+        self.state = os.path.join(self.dir.name, "published.json")
+        # Fila própria, com item elegível de verdade. Apontar para a fila do
+        # repositório faria o teste passar por ela estar vazia, e não pelo
+        # limite — um verde que não prova nada.
+        self.fila = os.path.join(self.dir.name, "stories.yaml")
+        with open(self.fila, "w", encoding="utf-8") as handle:
+            handle.write(
+                "- id: teste-1\n"
+                "  media_type: STORIES\n"
+                "  url: https://media.example/foto.jpg\n"
+            )
+
+    def _estado(self, quantos):
+        from datetime import datetime, timedelta, timezone
+
+        agora = datetime.now(timezone(timedelta(hours=-3)))
+        entradas = [
+            {
+                "item_id": f"ja-{n}",
+                "media_id": f"m{n}",
+                "container_id": "c",
+                "media_type": "STORIES",
+                "published_at": agora.astimezone(timezone.utc).isoformat(),
+            }
+            for n in range(quantos)
+        ]
+        with open(self.state, "w", encoding="utf-8") as handle:
+            json.dump({"version": 1, "published": entradas}, handle)
+
+    def _rodar(self, limite):
+        saida = io.StringIO()
+        with contextlib.redirect_stdout(saida):
+            codigo = main([
+                "publish", "--dry-run", "--queue", self.fila, "--state", self.state,
+                "--media-type", "STORIES", "--max-por-dia", str(limite),
+            ])
+        return codigo, saida.getvalue()
+
+    def test_dia_completo_nao_publica(self):
+        self._estado(2)
+
+        codigo, texto = self._rodar(2)
+
+        self.assertEqual(codigo, EXIT_NOTHING)
+        self.assertIn("nada a recuperar", texto)
+        self.assertNotIn("escolhido:", texto)
+
+    def test_dia_devendo_segue_em_frente(self):
+        self._estado(1)
+
+        codigo, texto = self._rodar(2)
+
+        self.assertEqual(codigo, EXIT_OK)
+        self.assertIn("recuperação: o dia tem 1 de 2", texto)
+        self.assertIn("escolhido: teste-1", texto)
+
+    def test_sem_limite_publica_como_sempre(self):
+        self._estado(5)
+
+        codigo, texto = self._rodar(0)
+
+        self.assertEqual(codigo, EXIT_OK)
+        self.assertNotIn("nada a recuperar", texto)
 
 
 if __name__ == "__main__":

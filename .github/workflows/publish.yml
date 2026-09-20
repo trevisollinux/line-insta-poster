@@ -31,6 +31,10 @@ on:
         type: choice
         options: ['queue/posts.yaml', 'queue/stories.yaml']
         default: 'queue/posts.yaml'
+      max_por_dia:
+        description: 'não publica se o dia já tiver este tanto (0 = sem limite)'
+        type: string
+        default: '0'
   workflow_call:
     inputs:
       dry_run:
@@ -45,6 +49,9 @@ on:
       queue:
         type: string
         default: 'queue/posts.yaml'
+      max_por_dia:
+        type: string
+        default: '0'
 
 permissions:
   contents: write
@@ -82,6 +89,7 @@ jobs:
           set +e
           python -m poster.cli publish \
             --media-type "${{ inputs.media_type || '' }}" \
+            --max-por-dia "${{ inputs.max_por_dia || '0' }}" \
             --queue "${{ inputs.queue || 'queue/posts.yaml' }}"
           codigo=$?
           echo "codigo=$codigo" >> "$GITHUB_OUTPUT"

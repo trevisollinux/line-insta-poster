@@ -104,11 +104,15 @@ def horarios_vencidos(
 def publicados_hoje(
     entradas, agora: datetime, *, offset: int = BRT_OFFSET, media_type: str = "STORIES"
 ) -> int:
-    """Quantos itens do formato foram publicados na data local de `agora`."""
+    """Quantos itens do formato foram publicados na data local de `agora`.
+
+    `media_type` vazio conta todos os formatos — é o que a recuperação usa
+    quando não está olhando um formato específico.
+    """
     fuso = timezone(timedelta(hours=offset))
     total = 0
     for entrada in entradas:
-        if entrada.media_type.upper() != media_type:
+        if media_type and entrada.media_type.upper() != media_type:
             continue
         if not entrada.published_at:
             continue

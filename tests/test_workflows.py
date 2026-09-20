@@ -55,6 +55,37 @@ class WorkflowTest(unittest.TestCase):
         self.assertNotIn("git checkout -b", conteudo)
 
 
+class RecuperacaoTest(unittest.TestCase):
+    """A recuperação precisa ficar FORA de publicar-stories-auto.yml.
+
+    O vigia lê os horários daquele arquivo para saber quantos stories o dia
+    devia ter. Um terceiro cron lá dentro o faria cobrar três por dia, todo
+    dia — o alarme viraria ruído diário, que é o defeito que ele existe para
+    não ter.
+    """
+
+    CAMINHO = os.path.join(RAIZ, ".github", "workflows", "recuperar-stories.yml")
+
+    def test_recuperacao_mora_em_arquivo_proprio(self):
+        self.assertTrue(os.path.exists(self.CAMINHO))
+        agenda = _gatilhos(_carregar(self.CAMINHO)).get("schedule") or []
+        self.assertEqual([e["cron"] for e in agenda], ["0 21 * * *"])
+
+    def test_o_limite_acompanha_a_agenda_dos_stories(self):
+        """Sem o limite, a recuperação vira um terceiro story diário calado.
+
+        E o limite tem de valer o tamanho da agenda: passar a três horários
+        sem mexer aqui deixaria o dia sempre devendo um.
+        """
+        auto = os.path.join(RAIZ, ".github", "workflows", "publicar-stories-auto.yml")
+        horarios = len(_gatilhos(_carregar(auto)).get("schedule") or [])
+
+        job = _carregar(self.CAMINHO)["jobs"]["recuperar"]
+
+        self.assertEqual(int(job["with"]["max_por_dia"]), horarios)
+        self.assertEqual(job["with"]["queue"], "queue/stories.yaml")
+
+
 class HorarioDaImportacaoTest(unittest.TestCase):
     """A importação mira 9h e 17h; o cron precisa ficar ~4h antes disso.
 

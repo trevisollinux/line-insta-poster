@@ -1,0 +1,49 @@
+name: Recuperar story do dia
+
+# Publica o story que faltou — e só ele.
+#
+# O agendador do GitHub descarta ocorrências: em 20/09 nenhum dos dois
+# disparos de story chegou a virar execução, e o dia terminaria com um story
+# só. O vigia percebe e avisa, mas avisar não publica; alguém precisa abrir o
+# Actions e clicar. Automação que depende de clique no fim do dia não é
+# automação.
+#
+# Arquivo separado do publicar-stories-auto.yml DE PROPÓSITO: o vigia lê os
+# horários de lá para saber quantos stories o dia devia ter. Um terceiro cron
+# naquele arquivo faria o vigia passar a cobrar três stories por dia, todo dia
+# — o alarme viraria ruído diário, que é exatamente o defeito que ele existe
+# para não ter.
+#
+# 18h BRT é tarde de propósito: é depois da janela dos dois horários normais,
+# então em dia bom não há o que recuperar. Com o atraso de 3h20 a 5h24, a
+# recuperação sai à noite — hora ruim, que é melhor que hora nenhuma. Se
+# passar da meia-noite, ela conta para o dia seguinte; é o preço de não ter
+# horário confiável.
+
+on:
+  schedule:
+    - cron: '0 21 * * *'  # 18h00 em Brasília
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'escolher o item sem publicar'
+        type: choice
+        options: ['false', 'true']
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  recuperar:
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
+    with:
+      media_type: STORIES
+      queue: queue/stories.yaml
+      selection: order
+      max_por_dia: '2'
+      # Se o dia já tem os dois stories, esta execução sai sem publicar. O
+      # número acompanha a agenda de publicar-stories-auto.yml, e há teste
+      # ligando os dois: mudar a agenda sem mudar aqui falha.
+      dry_run: ${{ inputs.dry_run || 'false' }}
