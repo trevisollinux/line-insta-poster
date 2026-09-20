@@ -1,6 +1,6 @@
 # Stories — análise consolidada
 
-LINE STORE · dados de 24/08 a 18/09/2026 · atualizado em 19/09/2026
+LINE STORE · dados de 24/08 a 20/09/2026 · atualizado em 20/09/2026
 
 Origem: 24 prints do Insights do Instagram enviados ao longo da apuração, mais
 2 leituras automáticas pela Graph API. Das 24 imagens, 16 viraram medições
@@ -101,13 +101,80 @@ Há um padrão nisso: as melhores taxas estão de manhã e no meio-dia (3,2 % a
 audiência passiva.
 
 
+## Medição automática — 19 e 20/09
+
+Cinco stories lidos pela API, com a curva de acumulação que os prints nunca
+puderam dar. Amostra pequena, mas medida: posição correta, idade conhecida.
+
+| Publicado | Pos. | Views | Reach | `profile_visits` | Interações |
+|---|---|---|---|---|---|
+| 18/09 21:53 | 1º | 161 | 134 | 0 | 2 |
+| 18/09 22:18 | 2º | 148 | 117 | 3 | 3 |
+| 19/09 17:33 | 1º | 170 | 143 | 1 | 4 |
+| 19/09 18:09 | 2º | 147 | 124 | 0 | 3 |
+| 20/09 04:48 | 1º | 70 (7h de vida) | 59 | 0 | 2 |
+
+### A posição no dia não era artefato de medição
+
+Comparar totais podia enganar: se o 2º story fosse medido mais cedo que o 1º,
+ele pareceria pior sem ser. Com a curva dá para comparar **na mesma idade**, e
+a razão fica estável:
+
+- 18/09 — 88 % às 19h de vida, 91 % às 21h, 92 % no total.
+- 19/09 — 87 % às 4h, 88 % às 9h, 88 % às 14h, 86 % no total.
+
+O efeito é real e o tamanho dele (≈ 12 %) bate com os prints.
+
+### A curva: metade das visualizações chega depois da 4ª hora
+
+```
+17h33 →  2h: 28 %   4h: 44 %   9h: 74 %   14h: 81 %   18h: 100 %
+18h09 →  1h: 23 %   4h: 44 %   9h: 76 %   14h: 82 %   17h: 100 %
+```
+
+Isto **enfraquece o peso do horário**. Se o público chegasse na primeira hora,
+publicar às 21h seria fatal; como 56 % chega depois da 4ª hora, o story de uma
+hora ruim ainda é encontrado quando as pessoas abrem o app. Horário continua
+mexendo no total, menos do que os prints sugeriam.
+
+Confirma também a premissa do coletor: a leitura das 23h já está no número
+final.
+
+### O story das 4h48
+
+Saiu de madrugada por causa do atraso do cron. Com 7h de vida tinha 70 views;
+os dois da tarde, na mesma idade, estavam em ~106 e ~93 (interpolado). Cerca de
+30 % abaixo. É **um** caso e a comparação honesta é às 24h, mas aponta na
+direção esperada.
+
+### Dois números de sanidade
+
+`views / reach` ficou entre 1,19 e 1,26 nos cinco — as pessoas reveem ~20 %.
+Se essa razão sair muito dessa faixa um dia, algo mudou na conta ou na API, não
+no conteúdo.
+
+`replies` e `shares` foram **zero** nos cinco.
+
+### O que isso diz sobre a fila atual
+
+Os cinco fizeram 147–170 views e 0 a 3 visitas ao perfil. Os stories de
+bastidor/cliente dos prints fizeram 891 e 721 views com 24 atividades cada.
+Horário e posição mexem 10–15 %; o tipo de conteúdo mexeu 5×. A fila que vem do
+Drive é toda da categoria que não leva ninguém ao perfil.
+
+
 ## O que fazer com isso
 
-1. Um story por dia, não dois. O 2º custa cerca de 16 % do alcance do 1º e
-   rende, na média, 2 atividades de perfil. Dois stories não dobram nada.
-2. Mais conteúdo de cliente e bastidor. É o único fator com efeito grande.
-3. Suspeitar do slot das 21h — é o pior nas duas métricas entre os primeiros
-   do dia.
+1. **Mais conteúdo de cliente e bastidor.** É o único fator com efeito grande, e
+   a medição automática não mudou isso — só mostrou que os outros fatores são
+   ainda menores do que pareciam.
+2. **Dois stories por dia continuam valendo.** A recomendação anterior era um
+   só; os dados novos não a sustentam. O 2º entrega 87 % do 1º — ele soma,
+   não canibaliza. Para justificar cortar, seria preciso mostrar que o 1º rende
+   mais nos dias sem 2º, e isso nunca foi medido: nunca houve dia de story único
+   com medição. Decisão do Gustavo em 20/09: mantém dois.
+3. **Suspeitar do slot das 21h** — é o pior nas duas métricas entre os primeiros
+   do dia. Desde 20/09 a agenda põe os dois na tarde (11h54-14h e 15h54-18h).
 
 
 ## A ressalva que importa

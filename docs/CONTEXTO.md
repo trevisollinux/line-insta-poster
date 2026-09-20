@@ -278,7 +278,9 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
   sozinho no dia em que alguém aprovar um item para lá. Decidir se é isso mesmo.
 - **`online_followers` não devolve dado** para esta conta. A métrica foi
   descontinuada para parte das contas.
-- **Um story por dia em vez de dois** — recomendado pelos dados, não decidido.
+- **Um story por dia:** descartado em 20/09. A medição pela API mostrou que o
+  2º story entrega 87% do 1º na mesma idade — soma, não canibaliza. Cortar só se
+  alguém medir que o 1º rende mais nos dias sem 2º, o que nunca foi feito.
 - **Heartbeat dos 60 dias:** resolvido pela metade, de propósito. O workflow
   `heartbeat.yml` pulsa segunda e quinta (commit em `state/heartbeat.txt`) e
   confere pela API se algum agendado caiu por inatividade, reativando e abrindo
