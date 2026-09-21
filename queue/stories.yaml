@@ -7,6 +7,10 @@
 # O que ela NÃO protege: preço queimado dentro da imagem. Se algo sair errado,
 # apague o story pelo app; ele dura 24h.
 #
+# O campo `tipo` vem do nome da subpasta do Drive (bastidor, cliente, produto).
+# Item sem tipo veio da raiz e publica igual — só não entra na comparação de
+# qual conteúdo rende.
+#
 # Para mandar uma destas mídias ao feed, copie o item para queue/posts.yaml,
 # troque media_type, escreva a legenda e marque reviewed_price: true.
 
@@ -54,3 +58,7 @@
   media_type: STORIES
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260915-134400-998-1VOE8E.jpg
   origem: 'Drive: IMG_20260915_134400_998.jpg'
+- id: 2026-09-21-vid-20260920-162934-980-1Id6pi
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-21-vid-20260920-162934-980-1Id6pi.mp4
+  origem: 'Drive: VID_20260920_162934_980.mp4'
