@@ -98,12 +98,16 @@ jobs:
           exit $codigo
 
       - name: Commitar estado
-        if: steps.publicar.outputs.codigo == '0'
+        # Roda mesmo quando a publicação falha: o registro de falhas é
+        # justamente o que precisa sobreviver a um job vermelho.
+        if: always() && steps.publicar.outcome != 'skipped'
         run: |
           # Estagia antes de comparar: `git diff` não enxerga arquivo novo.
-          git add -- state/published.json
+          # falhas.json entra junto: sem ele commitado, o registro morre com
+          # o runner e a execução seguinte escolhe a mesma mídia recusada.
+          git add -- state/published.json state/falhas.json
           if git diff --cached --quiet; then
-            echo "nada mudou em state/published.json"
+            echo "nada mudou no estado"
             exit 0
           fi
           git config user.name 'github-actions[bot]'

@@ -23,6 +23,7 @@ from . import (
     audiencia,
     conta as conta_mod,
     curadoria,
+    falhas as falhas_mod,
     relatorio as relatorio_mod,
     drive,
     inbox as inbox_mod,
@@ -97,20 +98,87 @@ def cmd_publish(args: argparse.Namespace) -> int:
             )
             return EXIT_NOTHING
         print(f"recuperação: o dia tem {ja_saiu} de {args.max_por_dia} — publicando")
-    selection = select_next(
-        items,
-        published,
-        mode=config.selection_mode,
-        rng=random.Random(seed) if seed else None,
-        media_types=formatos or None,
-    )
-
+    registros = falhas_mod.carregar(args.falhas)
+    travados = dict(falhas_mod.bloqueados(registros))
     escopo = f" ({args.media_type.upper()})" if args.media_type else ""
-    print(f"fila{escopo}: {len(items)} itens, {len(selection.eligible)} elegíveis")
-    for pulado in selection.skipped:
-        print(f"  pulado {pulado.item_id}: {pulado.reason}")
 
-    if selection.item is None:
+    client = None
+    tentados: list[str] = []
+    ultimo_erro = ""
+    # Inicializados antes do laço de propósito: o `break` de "acabaram os
+    # elegíveis" pula o else do for, e sem isto a variável chega no fim sem
+    # valor. Foi assim que o teste pegou o defeito.
+    item = None
+    outcome = None
+    selection = None
+
+    # Tenta mais de um item na mesma execução. Uma mídia recusada pela Meta
+    # deixaria o dia sem story se a execução desistisse nela — e foi o que
+    # aconteceu em 23/09, com três fotos seguidas no mesmo formato ruim.
+    for _ in range(max(1, args.tentativas)):
+        selection = select_next(
+            items,
+            published,
+            mode=config.selection_mode,
+            rng=random.Random(seed) if seed else None,
+            media_types=formatos or None,
+            bloqueados=travados,
+        )
+
+        if not tentados:
+            print(f"fila{escopo}: {len(items)} itens, {len(selection.eligible)} elegíveis")
+            for pulado in selection.skipped:
+                print(f"  pulado {pulado.item_id}: {pulado.reason}")
+
+        if selection.item is None:
+            break
+
+        item = selection.item
+        print(f"escolhido: {item.id} ({item.media_type})")
+
+        if config.dry_run:
+            write_summary(
+                f"### Instagram — dry run\n\nEscolhido: `{item.id}` ({item.media_type})\n"
+            )
+            print("dry run — nada foi enviado à Graph API")
+            return EXIT_OK
+
+        if client is None:
+            client = GraphClient(config.access_token, version=config.graph_version)
+            log_token_validity(config)
+
+        try:
+            outcome = publish_item(
+                client,
+                config.ig_user_id,
+                item,
+                poll_interval=config.poll_interval,
+                poll_timeout=config.poll_timeout,
+                min_quota_left=config.min_quota_left,
+            )
+        except PublishError as exc:
+            ultimo_erro = str(exc)
+            tentados.append(item.id)
+            registros = falhas_mod.registrar(registros, item.id, ultimo_erro)
+            falhas_mod.gravar(registros, args.falhas)
+            travados[item.id] = "falhou nesta execução"
+            quantas = registros[item.id]["tentativas"]
+            print(f"  falhou ({quantas}x): {ultimo_erro}")
+            if falhas_mod.em_quarentena(registros[item.id]):
+                alert(
+                    f"item '{item.id}' entrou em quarentena depois de {quantas} "
+                    f"falhas e não será mais escolhido: {ultimo_erro}",
+                    webhook=config.alert_webhook,
+                    context={"item_id": item.id},
+                )
+            continue
+
+        # Publicou: o histórico de falhas dele não interessa mais.
+        registros = falhas_mod.limpar(registros, item.id)
+        falhas_mod.gravar(registros, args.falhas)
+        break
+
+    if not tentados and (selection is None or selection.item is None):
         write_summary(
             "### Instagram — nada a publicar\n\n"
             f"{len(items)} itens na fila, nenhum elegível. Abasteça `queue/posts.yaml`."
@@ -118,30 +186,18 @@ def cmd_publish(args: argparse.Namespace) -> int:
         print("nenhum item elegível — nada publicado")
         return EXIT_NOTHING
 
-    item = selection.item
-    print(f"escolhido: {item.id} ({item.media_type})")
-
-    if config.dry_run:
+    if outcome is None:
+        alert(
+            f"{len(tentados)} item(ns) tentado(s) e nenhum publicado. Último erro: "
+            f"{ultimo_erro or 'sem erro registrado'}",
+            webhook=config.alert_webhook,
+            context={"tentados": tentados},
+        )
         write_summary(
-            f"### Instagram — dry run\n\nEscolhido: `{item.id}` ({item.media_type})\n"
+            "### Instagram — nada publicado\n\n"
+            f"Tentei {len(tentados)}: {', '.join(f'`{i}`' for i in tentados)}.\n\n"
+            f"Último erro: {ultimo_erro}\n"
         )
-        print("dry run — nada foi enviado à Graph API")
-        return EXIT_OK
-
-    client = GraphClient(config.access_token, version=config.graph_version)
-    log_token_validity(config)
-
-    try:
-        outcome = publish_item(
-            client,
-            config.ig_user_id,
-            item,
-            poll_interval=config.poll_interval,
-            poll_timeout=config.poll_timeout,
-            min_quota_left=config.min_quota_left,
-        )
-    except PublishError as exc:
-        alert(str(exc), webhook=config.alert_webhook, context={"item_id": item.id})
         return EXIT_FAIL
 
     state.append_entry(outcome.to_entry(), args.state)
@@ -813,6 +869,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--media-type",
         default="",
         help="publica só este formato (REELS, STORIES, CAROUSEL, IMAGE)",
+    )
+    publish.add_argument("--falhas", default=falhas_mod.FALHAS_PATH)
+    publish.add_argument(
+        "--tentativas",
+        type=int,
+        default=4,
+        help="quantos itens tentar antes de desistir da execução",
     )
     publish.add_argument(
         "--max-por-dia",

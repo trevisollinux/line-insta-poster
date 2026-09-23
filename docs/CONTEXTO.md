@@ -40,7 +40,7 @@ Funcionando ponta a ponta:
 - Coletor de métricas de story no ar — mas com **25% de entrega**, ver a
   ressalva na seção 3.
 - Vigia de silêncio no ar, com alarme testado de verdade (issue #6).
-- **298 testes**, nenhum toca a rede.
+- **308 testes**, nenhum toca a rede.
 
 Stories publicados até agora:
 
@@ -134,11 +134,17 @@ dias`. Mediana porque um viral isolado não pode decidir o que é "normal" para
 aquele mês. Posts excluídos (promoção, últimas peças, reajuste) **continuam na
 base da mediana** — eles fizeram parte da época, só não entram como candidatos.
 
-### Só grava o estado depois que publicou
+### Só grava o estado depois que publicou — e o preço disso
 
 `state/published.json` só recebe o item depois que `media_publish` devolveu um
 id. Gravar antes gera post perdido em silêncio: o item sai da fila sem nunca
 ter ido ao ar.
+
+O preço apareceu em 23/09: mídia que a Meta recusa continua sendo a primeira
+elegível, então toda execução seguinte escolhe a mesma e a fila inteira para
+atrás dela. A resposta **não** foi gravar antes — foi `state/falhas.json`,
+que lembra quem falhou, segura o item por 6h e manda para quarentena depois de
+3 falhas. A regra de ouro continua de pé; o que faltava era memória do erro.
 
 ### Métricas de story ficam com o MAIOR valor lido
 
@@ -347,7 +353,7 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
 
 ```bash
 pip install -r requirements.txt
-python -m unittest discover -s tests -t .    # 298 testes, nenhum usa rede
+python -m unittest discover -s tests -t .    # 308 testes, nenhum usa rede
 python -m poster.cli validate                # valida a fila, sem rede
 python -m poster.cli publish --dry-run       # escolhe sem publicar
 python -m poster.cli watch-stories --simular # ensaia o alarme

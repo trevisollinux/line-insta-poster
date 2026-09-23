@@ -38,9 +38,15 @@ def select_next(
     now: datetime | None = None,
     rng: random.Random | None = None,
     media_types: tuple[str, ...] | None = None,
+    bloqueados: dict[str, str] | None = None,
 ) -> Selection:
     """`media_types` limita a escolha a um formato — é o que separa os workflows
-    de Reels, Stories e carrossel sem duplicar a lógica de publicação."""
+    de Reels, Stories e carrossel sem duplicar a lógica de publicação.
+
+    `bloqueados` mapeia id → motivo para itens que falharam ao publicar. Sem
+    ele, uma mídia que a Meta recusa é escolhida de novo em toda execução
+    seguinte, e a fila inteira para atrás dela.
+    """
     if mode not in MODES:
         raise ValueError(f"modo de seleção inválido: {mode} (use {', '.join(MODES)})")
     now = now or datetime.now(timezone.utc)
@@ -51,7 +57,11 @@ def select_next(
 
     permitidos = {t.upper() for t in media_types} if media_types else None
 
+    travados = bloqueados or {}
     for item in items:
+        if item.id in travados:
+            skipped.append(Skipped(item.id, travados[item.id]))
+            continue
         if permitidos and item.media_type not in permitidos:
             skipped.append(
                 Skipped(item.id, f"{item.media_type} fora do formato pedido")

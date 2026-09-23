@@ -3,6 +3,7 @@ import contextlib
 import io
 import json
 import os
+from unittest import mock
 import tempfile
 import unittest
 
@@ -144,6 +145,78 @@ class MaxPorDiaTest(unittest.TestCase):
 
         self.assertEqual(codigo, EXIT_OK)
         self.assertNotIn("nada a recuperar", texto)
+
+
+class PulaItemQueFalhaTest(unittest.TestCase):
+    """Em 23/09 três fotos seguidas eram recusadas pela Meta e o dia ficou sem
+    story: a execução desistia na primeira. Agora ela tenta a próxima."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.dir.cleanup)
+        self.state = os.path.join(self.dir.name, "published.json")
+        self.falhas = os.path.join(self.dir.name, "falhas.json")
+        self.fila = os.path.join(self.dir.name, "stories.yaml")
+        with open(self.fila, "w", encoding="utf-8") as handle:
+            for n in (1, 2, 3):
+                handle.write(
+                    f"- id: foto-{n}\n  media_type: STORIES\n"
+                    f"  url: https://media.example/{n}.jpg\n"
+                )
+        # order, não weighted: com sorteio o teste passaria ou falharia
+        # conforme a moeda, e um teste que às vezes passa não prova nada.
+        for chave, valor in (
+            ("IG_USER_ID", "1"), ("IG_ACCESS_TOKEN", "t"), ("IG_SELECTION", "order")
+        ):
+            os.environ[chave] = valor
+            self.addCleanup(os.environ.pop, chave, None)
+        os.environ.pop("IG_DRY_RUN", None)
+
+    def _rodar(self, publicar):
+        saida = io.StringIO()
+        with mock.patch("poster.cli.publish_item", side_effect=publicar), \
+                mock.patch("poster.cli.log_token_validity"), \
+                contextlib.redirect_stdout(saida):
+            codigo = main([
+                "publish", "--queue", self.fila, "--state", self.state,
+                "--falhas", self.falhas, "--media-type", "STORIES",
+            ])
+        return codigo, saida.getvalue()
+
+    def test_falha_na_primeira_e_publica_a_seguinte(self):
+        from poster.publisher import PublishError, PublishOutcome
+        from datetime import datetime, timezone
+
+        def publicar(cliente, ig_user_id, item, **kwargs):
+            if item.id == "foto-1":
+                raise PublishError("item 'foto-1' não publicado: HTTP 400 subcode 2207006")
+            return PublishOutcome(
+                item_id=item.id, media_id="m", container_id="c",
+                media_type="STORIES", published_at=datetime.now(timezone.utc),
+            )
+
+        codigo, texto = self._rodar(publicar)
+
+        self.assertEqual(codigo, EXIT_OK)
+        self.assertIn("escolhido: foto-2", texto)
+        with open(self.state, encoding="utf-8") as handle:
+            self.assertEqual(json.load(handle)["published"][0]["item_id"], "foto-2")
+
+    def test_a_falha_fica_registrada_para_a_proxima_execucao(self):
+        """Sem o registro, a execução seguinte escolheria a mesma foto — que é
+        exatamente como a fila travou."""
+        from poster.publisher import PublishError
+
+        def publicar(cliente, ig_user_id, item, **kwargs):
+            raise PublishError(f"item '{item.id}' não publicado: recusado")
+
+        codigo, _ = self._rodar(publicar)
+
+        self.assertEqual(codigo, EXIT_FAIL)
+        with open(self.falhas, encoding="utf-8") as handle:
+            registros = json.load(handle)["falhas"]
+        self.assertEqual(sorted(registros), ["foto-1", "foto-2", "foto-3"])
+        self.assertEqual(registros["foto-1"]["tentativas"], 1)
 
 
 if __name__ == "__main__":

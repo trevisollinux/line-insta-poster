@@ -318,6 +318,36 @@ que mexe em workflow de verdade poderia desfazer um `disabled_manually` de
 alguém. Vale repetir de vez em quando, pela mesma razão do vigia: o caminho que
 abre a issue só roda no dia do problema.
 
+## Quando uma mídia é recusada pela Meta
+
+Aconteceu em 23/09: três fotos em 1440x1851 (proporção 0,778) contra as 9:16
+que sempre funcionaram. A Meta aceitou criar o container e recusou a
+publicação com `code=24, subcode=2207006`.
+
+O efeito colateral foi pior que a falha: como o item só entra em
+`state/published.json` depois de publicar, ele continuava sendo o primeiro
+elegível — **toda** execução seguinte escolhia a mesma foto. Uma mídia ruim
+segurava a fila inteira.
+
+Agora `state/falhas.json` guarda quem falhou:
+
+- **Falhou agora** → fica de fora por 6h. Erro transitório não merece
+  quarentena, e a espera dá tempo de passar sozinho.
+- **Falhou 3 vezes** → entra em quarentena, sai da rotação e gera alerta. Nesse
+  ponto o problema é a mídia, e tempo não conserta mídia.
+- **Publicou** → o registro dele é apagado.
+
+E a execução tenta **até 4 itens** antes de desistir, em vez de parar no
+primeiro erro. Foi o que faltava no dia: as três fotos ruins estavam em
+sequência, e a quarta mídia da fila era boa.
+
+O arquivo é commitado mesmo quando o job fica vermelho — sem isso o registro
+morreria com o runner e a execução seguinte repetiria o erro.
+
+**Quando aparecer uma quarentena:** a foto está em `queue/stories.yaml` e em
+`state/falhas.json` com o motivo. Se for proporção, peça uma versão 9:16; se
+foi engano, apague a linha do item em `falhas.json` e ele volta à rotação.
+
 ## O resumo da semana
 
 Toda segunda de manhã, uma issue com o que aconteceu: stories publicados,
