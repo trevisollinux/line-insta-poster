@@ -320,9 +320,19 @@ abre a issue só roda no dia do problema.
 
 ## Quando uma mídia é recusada pela Meta
 
-Aconteceu em 23/09: três fotos em 1440x1851 (proporção 0,778) contra as 9:16
-que sempre funcionaram. A Meta aceitou criar o container e recusou a
-publicação com `code=24, subcode=2207006`.
+Aconteceu em 23/09: a Meta aceitou criar o container e recusou a publicação
+com `code=24, subcode=2207006`.
+
+**Era erro transitório, e eu quase registrei outra coisa aqui.** No calor da
+apuração montei a hipótese de que a culpa era da proporção da imagem
+(1440x1851, ou 0,778, contra as 9:16 de todas as que já tinham publicado) e
+cheguei a escrever isso como fato. A mesma foto, mesmo arquivo, mesma URL,
+publicou sete horas depois sem nenhuma alteração. A correlação existia porque
+as fotos fora de formato eram as últimas da fila: a primeira falha *tinha* que
+cair numa delas. Confundi "a próxima da fila" com "a de formato diferente".
+
+Fica a lição, que é mais útil que a hipótese: **um segundo disparo responderia
+em dois minutos** o que eu tentei deduzir de uma amostra de um caso.
 
 O efeito colateral foi pior que a falha: como o item só entra em
 `state/published.json` depois de publicar, ele continuava sendo o primeiro
@@ -345,8 +355,10 @@ O arquivo é commitado mesmo quando o job fica vermelho — sem isso o registro
 morreria com o runner e a execução seguinte repetiria o erro.
 
 **Quando aparecer uma quarentena:** a foto está em `queue/stories.yaml` e em
-`state/falhas.json` com o motivo. Se for proporção, peça uma versão 9:16; se
-foi engano, apague a linha do item em `falhas.json` e ele volta à rotação.
+`state/falhas.json` com o motivo. Três falhas seguidas já descartam soluço da
+API, então vale olhar a mídia — mas **não há formato comprovadamente recusado
+até hoje**; a suspeita da proporção não se sustentou. Se for engano, apague a
+linha do item em `falhas.json` e ele volta à rotação.
 
 ## O resumo da semana
 

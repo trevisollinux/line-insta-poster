@@ -140,8 +140,9 @@ base da mediana** — eles fizeram parte da época, só não entram como candida
 id. Gravar antes gera post perdido em silêncio: o item sai da fila sem nunca
 ter ido ao ar.
 
-O preço apareceu em 23/09: mídia que a Meta recusa continua sendo a primeira
-elegível, então toda execução seguinte escolhe a mesma e a fila inteira para
+O preço apareceu em 23/09, com uma recusa transitória da Meta (subcode
+2207006, que funcionou na tentativa seguinte): mídia recusada continua sendo a
+primeira elegível, então toda execução seguinte escolhe a mesma e a fila inteira para
 atrás dela. A resposta **não** foi gravar antes — foi `state/falhas.json`,
 que lembra quem falhou, segura o item por 6h e manda para quarentena depois de
 3 falhas. A regra de ouro continua de pé; o que faltava era memória do erro.
