@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-09-29T17:00:02+00:00",
+  "updated_at": "2026-09-29T20:12:19+00:00",
   "published": [
     {
       "item_id": "teste-stories-line-baguete",
@@ -198,6 +198,15 @@
       "media_type": "STORIES",
       "published_at": "2026-09-29T17:00:02+00:00",
       "permalink": "https://www.instagram.com/stories/line_store/3997013285144481113",
+      "tipo": ""
+    },
+    {
+      "item_id": "2026-09-29-cymera-20251114-111507-1eF-Et",
+      "media_id": "18093773153535122",
+      "container_id": "18637649656043967",
+      "media_type": "STORIES",
+      "published_at": "2026-09-29T20:12:19+00:00",
+      "permalink": "https://www.instagram.com/stories/line_store/3997110544687996337",
       "tipo": ""
     }
   ]
