@@ -1,11 +1,5 @@
 {
-  "falhas": {
-    "2026-09-29-photoroom-20260313-161215875-1CQUm7": {
-      "em": "2026-09-29T20:12:04+00:00",
-      "tentativas": 1,
-      "ultimo_erro": "item '2026-09-29-photoroom-20260313-161215875-1CQUm7' não publicado: POST /17841401318995903/media_publish → HTTP 400: Media ID is not available (code=9007, subcode=2207027)"
-    }
-  },
-  "updated_at": "2026-09-30T00:05:29+00:00",
+  "falhas": {},
+  "updated_at": "2026-09-30T16:58:43+00:00",
   "version": 1
 }
