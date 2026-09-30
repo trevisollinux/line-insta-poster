@@ -147,9 +147,8 @@ class MaxPorDiaTest(unittest.TestCase):
         self.assertNotIn("nada a recuperar", texto)
 
 
-class PulaItemQueFalhaTest(unittest.TestCase):
-    """Em 23/09 três fotos seguidas eram recusadas pela Meta e o dia ficou sem
-    story: a execução desistia na primeira. Agora ela tenta a próxima."""
+class FilaDeStoriesBase(unittest.TestCase):
+    """Fila de três fotos de story e a publicação trocada por um dublê."""
 
     def setUp(self):
         self.dir = tempfile.TemporaryDirectory()
@@ -172,9 +171,12 @@ class PulaItemQueFalhaTest(unittest.TestCase):
             self.addCleanup(os.environ.pop, chave, None)
         os.environ.pop("IG_DRY_RUN", None)
 
-    def _rodar(self, publicar):
+    def _rodar(self, publicar, medir=lambda url: (1080, 1920)):
+        # A medição da foto baixa da internet; aqui ela devolve 9:16 por
+        # padrão para os testes que não são sobre proporção.
         saida = io.StringIO()
         with mock.patch("poster.cli.publish_item", side_effect=publicar), \
+                mock.patch("poster.cli.proporcao.medir_url", side_effect=medir), \
                 mock.patch("poster.cli.log_token_validity"), \
                 contextlib.redirect_stdout(saida):
             codigo = main([
@@ -182,6 +184,11 @@ class PulaItemQueFalhaTest(unittest.TestCase):
                 "--falhas", self.falhas, "--media-type", "STORIES",
             ])
         return codigo, saida.getvalue()
+
+
+class PulaItemQueFalhaTest(FilaDeStoriesBase):
+    """Em 23/09 três fotos seguidas eram recusadas pela Meta e o dia ficou sem
+    story: a execução desistia na primeira. Agora ela tenta a próxima."""
 
     def test_falha_na_primeira_e_publica_a_seguinte(self):
         from poster.publisher import PublishError, PublishOutcome
@@ -217,6 +224,82 @@ class PulaItemQueFalhaTest(unittest.TestCase):
             registros = json.load(handle)["falhas"]
         self.assertEqual(sorted(registros), ["foto-1", "foto-2", "foto-3"])
         self.assertEqual(registros["foto-1"]["tentativas"], 1)
+
+
+class PulaFotoTortaTest(FilaDeStoriesBase):
+    """A API aceita foto fora de 9:16 e estica em silêncio — não há falha para
+    a memória de falhas pegar. A checagem vem antes de publicar."""
+
+    def _publicar_ok(self, cliente, ig_user_id, item, **kwargs):
+        from datetime import datetime, timezone
+        from poster.publisher import PublishOutcome
+
+        return PublishOutcome(
+            item_id=item.id, media_id="m", container_id="c",
+            media_type="STORIES", published_at=datetime.now(timezone.utc),
+        )
+
+    def _rodar_medindo(self, medir):
+        publicados = []
+
+        def publicar(cliente, ig_user_id, item, **kwargs):
+            publicados.append(item.id)
+            return self._publicar_ok(cliente, ig_user_id, item, **kwargs)
+
+        with mock.patch("poster.cli.alert") as alerta:
+            codigo, texto = self._rodar(publicar, medir)
+        return codigo, texto, publicados, alerta
+
+    def test_foto_torta_nao_vai_ao_ar_e_a_seguinte_sai(self):
+        def medir(url):
+            return (2688, 4119) if url.endswith("/1.jpg") else (1080, 1920)
+
+        codigo, texto, publicados, alerta = self._rodar_medindo(medir)
+
+        self.assertEqual(codigo, EXIT_OK)
+        self.assertEqual(publicados, ["foto-2"])
+        self.assertIn("2688x4119", texto)
+        alerta.assert_called_once()
+        self.assertIn("foto-1", alerta.call_args.args[0])
+
+    def test_foto_torta_sai_da_rotacao_de_uma_vez(self):
+        """Esperar três falhas seria publicar três fotos esticadas."""
+        from poster import falhas as falhas_mod
+
+        def medir(url):
+            return (2688, 4119) if url.endswith("/1.jpg") else (1080, 1920)
+
+        self._rodar_medindo(medir)
+
+        registros = falhas_mod.carregar(self.falhas)
+        self.assertTrue(falhas_mod.em_quarentena(registros["foto-1"]))
+        self.assertIn("foto-1", falhas_mod.bloqueados(registros))
+
+    def test_sem_conseguir_medir_publica_mesmo_assim(self):
+        from poster.proporcao import ProporcaoError
+
+        def medir(url):
+            raise ProporcaoError("sem rede")
+
+        codigo, texto, publicados, alerta = self._rodar_medindo(medir)
+
+        self.assertEqual(codigo, EXIT_OK)
+        self.assertEqual(publicados, ["foto-1"])
+        self.assertIn("não consegui medir", texto)
+        alerta.assert_not_called()
+
+    def test_video_de_story_nao_e_medido(self):
+        with open(self.fila, "w", encoding="utf-8") as handle:
+            handle.write("- id: video-1\n  media_type: STORIES\n"
+                         "  url: https://media.example/1.mp4\n")
+
+        def medir(url):
+            raise AssertionError("vídeo não deveria ser medido")
+
+        codigo, _, publicados, _ = self._rodar_medindo(medir)
+
+        self.assertEqual(codigo, EXIT_OK)
+        self.assertEqual(publicados, ["video-1"])
 
 
 if __name__ == "__main__":

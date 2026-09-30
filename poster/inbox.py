@@ -27,7 +27,7 @@ import yaml
 
 from .queue_file import menciona_preco
 
-from . import REPO_ROOT
+from . import REPO_ROOT, proporcao
 from .drive import DriveFile
 from .rehost import public_url
 
@@ -154,6 +154,9 @@ class Imported:
     path: str
     url: str
     imported_at: str
+    # Motivo quando a mídia foi barrada (hoje, só foto fora de 9:16). Fica no
+    # registro para ser avisada uma vez, não a cada importação.
+    recusado: str = ""
 
 
 def slugify(nome: str) -> str:
@@ -193,6 +196,7 @@ def load_imported(path: str = IMPORTED_PATH) -> dict[str, Imported]:
             path=str(linha.get("path", "")),
             url=str(linha.get("url", "")),
             imported_at=str(linha.get("imported_at", "")),
+            recusado=str(linha.get("recusado", "")),
         )
         for linha in dados.get("imported", [])
     }
@@ -225,6 +229,14 @@ def triagem(
         else:
             novos.append(arquivo)
     return novos, repetidos, recusados
+
+
+def problema_de_story(arquivo: DriveFile, caminho: str) -> str:
+    """Motivo para a foto não ir ao story, ou vazio. Vídeo não é medido."""
+    if not arquivo.mime_type.startswith("image/"):
+        return ""
+    largura, altura = proporcao.medir_arquivo(caminho)
+    return proporcao.problema(largura, altura)
 
 
 def draft(arquivo: DriveFile, url: str) -> dict:
@@ -286,6 +298,7 @@ def report_markdown(
     *,
     orfas: list[DriveFile] | None = None,
     posts: list[dict] | None = None,
+    tortas: list[tuple[DriveFile, str]] | None = None,
 ) -> str:
     linhas = ["## Fotos novas na pasta do Drive", ""]
     if importados:
@@ -310,6 +323,19 @@ def report_markdown(
         linhas += ["", "### Recusados pelo formato", ""]
         for arquivo in recusados:
             linhas.append(f"- **{arquivo.name}** — {arquivo.motivo_recusa}")
+
+    if tortas:
+        linhas += [
+            "",
+            "### Fora do formato de story (9:16)",
+            "",
+            "O Instagram estica foto de story que não é vertical 9:16. Estas "
+            "ficaram de fora da fila — reenquadre para 1080x1920 e largue de "
+            "novo na pasta, que entram sozinhas:",
+            "",
+        ]
+        for arquivo, motivo in tortas:
+            linhas.append(f"- **{arquivo.name}** — {motivo}")
 
     if falhas:
         linhas += ["", "### Falharam no download", ""]

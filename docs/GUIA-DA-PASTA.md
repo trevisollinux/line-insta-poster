@@ -56,6 +56,14 @@ como sempre fez — os dois caminhos convivem sem problema.
 Vídeo em MP4 ou MOV, de até 60 segundos. Vídeo mais longo que isso o robô
 recusa e avisa, em vez de publicar cortado.
 
+**A foto precisa ser vertical de tela cheia (9:16, como 1080x1920).** É o
+formato do story. O Instagram não recusa foto em outro formato — ele **estica**
+a imagem até encher a tela, e a bolsa sai deformada. Foi o que aconteceu em
+23/09 e 29/09. Por isso o robô agora mede cada foto e deixa de fora a que não
+é 9:16, com aviso. Foto de celular tirada em pé e print de story já saem no
+formato certo; foto recortada, quadrada ou de câmera costuma não sair. Para
+aproveitar uma dessas, reenquadre para 9:16 no editor e suba de novo.
+
 ---
 
 ## Os horários
@@ -82,7 +90,8 @@ seguinte.
 horas de qualquer jeito.
 
 **Foto que você subiu e não apareceu:** ou ainda não chegou a hora, ou o
-formato foi recusado (vídeo longo demais, arquivo que não é foto nem vídeo). O
+formato foi recusado (foto que não é vertical 9:16, vídeo longo demais,
+arquivo que não é foto nem vídeo). O
 Gustavo recebe um aviso por e-mail a cada importação, dizendo o que entrou e o
 que foi recusado, com o motivo.
 

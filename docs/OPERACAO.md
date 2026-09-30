@@ -357,8 +357,42 @@ morreria com o runner e a execução seguinte repetiria o erro.
 **Quando aparecer uma quarentena:** a foto está em `queue/stories.yaml` e em
 `state/falhas.json` com o motivo. Três falhas seguidas já descartam soluço da
 API, então vale olhar a mídia — mas **não há formato comprovadamente recusado
-até hoje**; a suspeita da proporção não se sustentou. Se for engano, apague a
-linha do item em `falhas.json` e ele volta à rotação.
+até hoje**; a suspeita da proporção não se sustentou *como causa da recusa*.
+Se for engano, apague a linha do item em `falhas.json` e ele volta à rotação.
+
+## Foto fora de 9:16: não falha, estica
+
+A proporção não fazia a Meta recusar — fazia pior: **publica e estica** a foto
+até encher a tela vertical, sem erro nenhum. Saíram assim a de 23/09
+(1440x1851) e a de 29/09 (2688x4119, da Cymera); as duas foram apagadas à mão.
+Como não há falha, a memória de falhas acima não enxerga o caso.
+
+A trava (`poster/proporcao.py`) mede a foto em dois pontos:
+
+- **Na importação do Drive.** Foto de story fora de 9:16 não entra na fila nem
+  no repositório de mídia. Fica registrada em `state/inbox.json` com o campo
+  `recusado`, para o aviso sair **uma vez** — sem o registro, ela seria
+  baixada e recusada a cada importação. A importação devolve código 0 quando
+  houve recusa, porque é o código que faz o workflow abrir a issue. A pasta
+  `Feed/` não é medida: feed aceita 4:5 e quadrado.
+- **Na publicação.** Antes de publicar um story de foto, baixa a imagem e mede.
+  Fora de 9:16, o item vai **direto para a quarentena** (não espera três
+  falhas: seriam três fotos esticadas no ar), gera alerta e a execução segue
+  para o próximo. Se a medição falhar por rede, publica assim mesmo — URL
+  quebrada a API recusa sozinha, e travar por falha de medição trocaria um
+  risco pequeno por um dia sem story.
+
+A folga é de **3 %** em torno de 9:16. As fotos do Photoroom em 768x1344
+ficam 1,6 % acima e passam — não se vê a diferença. As esticadas estavam 16 %
+e 38 % fora. Vídeo não é medido: fora de 9:16 o Instagram põe tarja, não
+estica.
+
+Não há correção automática (faixa, fundo desfocado, recorte). Decisão de
+23/09: "não queremos com branco ou embaçado ao fundo". O conserto é
+reenquadrar e subir de novo — é outro arquivo no Drive, e entra sozinho.
+
+Na mesma mudança saíram da fila, à mão, as duas fotos 2:3 (832x1248) do
+Photoroom que estavam para sair.
 
 ## O resumo da semana
 

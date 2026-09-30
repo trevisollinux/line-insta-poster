@@ -56,6 +56,21 @@ class QuarentenaTest(unittest.TestCase):
 
         self.assertIn("a", falhas.bloqueados(registros, agora=AGORA + timedelta(days=365)))
 
+    def test_quarentenar_nao_espera_as_tres_falhas(self):
+        registros = falhas.quarentenar({}, "torta", "fora de 9:16", agora=AGORA)
+
+        motivo = falhas.bloqueados(registros, agora=AGORA + timedelta(days=30))["torta"]
+
+        self.assertIn("quarentena", motivo)
+        self.assertIn("fora de 9:16", motivo)
+
+    def test_quarentenar_nao_apaga_o_historico(self):
+        registros = falhas.registrar({}, "a", "soluço", agora=AGORA)
+        registros = falhas.quarentenar(registros, "a", "torta", agora=AGORA, limite=5)
+
+        self.assertEqual(registros["a"]["tentativas"], 5)
+        self.assertEqual(registros["a"]["ultimo_erro"], "torta")
+
 
 class LimpezaTest(unittest.TestCase):
     def test_publicar_apaga_o_historico_do_item(self):

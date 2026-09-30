@@ -110,6 +110,10 @@ def publicados_hoje(
     quando não está olhando um formato específico.
     """
     fuso = timezone(timedelta(hours=offset))
+    # O "hoje" também é local. Com `agora` em UTC, das 21h à meia-noite de
+    # Brasília a data UTC já é amanhã e a conta dava zero — e a recuperação,
+    # que o cron costuma atrasar para depois das 21h, publicava um story a mais.
+    hoje = agora.astimezone(fuso).date()
     total = 0
     for entrada in entradas:
         if media_type and entrada.media_type.upper() != media_type:
@@ -117,7 +121,7 @@ def publicados_hoje(
         if not entrada.published_at:
             continue
         local = entrada.published_datetime.astimezone(fuso)
-        if local.date() == agora.date():
+        if local.date() == hoje:
             total += 1
     return total
 

@@ -28,6 +28,7 @@ from . import (
     drive,
     inbox as inbox_mod,
     metricas_stories,
+    proporcao,
     queue_file,
     rehost as rehost_mod,
     state,
@@ -60,6 +61,23 @@ def cmd_validate(args: argparse.Namespace) -> int:
     for pulado in selection.skipped:
         print(f"  pulado    {pulado.item_id}: {pulado.reason}")
     return EXIT_OK
+
+
+def proporcao_de_story(item: queue_file.QueueItem) -> str:
+    """Motivo para a foto de story não ir ao ar, ou vazio.
+
+    Se a medição falhar (rede, arquivo), deixa passar: a URL quebrada a API
+    recusa sozinha, e travar a publicação por falha de medição trocaria um
+    risco pequeno por um dia sem story.
+    """
+    if item.media_type != "STORIES" or item.is_video:
+        return ""
+    try:
+        largura, altura = proporcao.medir_url(item.url)
+    except proporcao.ProporcaoError as exc:
+        print(f"  aviso: não consegui medir a foto ({exc}) — segue sem a checagem")
+        return ""
+    return proporcao.problema(largura, altura)
 
 
 def cmd_publish(args: argparse.Namespace) -> int:
@@ -142,6 +160,24 @@ def cmd_publish(args: argparse.Namespace) -> int:
             )
             print("dry run — nada foi enviado à Graph API")
             return EXIT_OK
+
+        # A API aceita foto de story em qualquer proporção e estica em silêncio
+        # a que não é 9:16. A importação já barra; isto pega o que entrou na
+        # fila antes da trava ou foi posto à mão.
+        torta = proporcao_de_story(item)
+        if torta:
+            ultimo_erro = torta
+            tentados.append(item.id)
+            registros = falhas_mod.quarentenar(registros, item.id, torta)
+            falhas_mod.gravar(registros, args.falhas)
+            travados[item.id] = torta
+            print(f"  pulado, não vai ao ar: {torta}")
+            alert(
+                f"story '{item.id}' tirado da fila: {torta}",
+                webhook=config.alert_webhook,
+                context={"item_id": item.id, "url": item.url},
+            )
+            continue
 
         if client is None:
             client = GraphClient(config.access_token, version=config.graph_version)
@@ -614,6 +650,7 @@ def cmd_inbox(args: argparse.Namespace) -> int:
 
     importados: list[tuple[drive.DriveFile, str]] = []
     falhas: list[tuple[str, str]] = []
+    tortas: list[tuple[drive.DriveFile, str]] = []
     rascunhos: list[dict] = []
     posts: list[dict] = []
     destino_midia = os.path.join(args.media_dir, inbox_mod.MEDIA_SUBDIR)
@@ -621,18 +658,37 @@ def cmd_inbox(args: argparse.Namespace) -> int:
     for arquivo in novos:
         nome = inbox_mod.media_filename(arquivo)
         destino = os.path.join(destino_midia, nome)
+        para_feed = inbox_mod.slugify(arquivo.pasta) == inbox_mod.PASTA_FEED
         try:
             drive.download(token, arquivo, destino)
             if arquivo.precisa_converter:
                 drive.converter_para_jpeg(destino)
                 print(f"  convertido para JPEG: {arquivo.name}")
-        except drive.DriveError as exc:
+            # Feed aceita 4:5 e quadrado; só o story estica o que não é 9:16.
+            motivo = "" if para_feed else inbox_mod.problema_de_story(arquivo, destino)
+        except (drive.DriveError, proporcao.ProporcaoError) as exc:
             falhas.append((arquivo.name, str(exc)))
+            continue
+        if motivo:
+            # Fica fora da fila e do repositório de mídia, mas entra no
+            # registro: assim é avisada uma vez, e não a cada importação.
+            # A versão reenquadrada é outro arquivo no Drive e entra sozinha.
+            os.remove(destino)
+            tortas.append((arquivo, motivo))
+            ja_importados[arquivo.id] = inbox_mod.Imported(
+                drive_id=arquivo.id,
+                name=arquivo.name,
+                path="",
+                url="",
+                imported_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                recusado=motivo,
+            )
+            print(f"  recusado {arquivo.name}: {motivo}")
             continue
         url = inbox_mod.media_public_url(args.media_repo, args.branch, nome)
         importados.append((arquivo, url))
 
-        if inbox_mod.slugify(arquivo.pasta) == inbox_mod.PASTA_FEED:
+        if para_feed:
             texto = ""
             legenda = legendas.get(arquivo.base)
             if legenda is not None:
@@ -677,14 +733,20 @@ def cmd_inbox(args: argparse.Namespace) -> int:
             header=inbox_mod.POSTS_HEADER,
         )
 
-    if rascunhos or posts:
+    if rascunhos or posts or tortas:
         inbox_mod.save_imported(ja_importados, args.state_file)
 
     if args.report:
         with open(args.report, "w", encoding="utf-8") as handle:
             handle.write(
                 inbox_mod.report_markdown(
-                    importados, recusados, repetidos, falhas, orfas=orfas, posts=posts
+                    importados,
+                    recusados,
+                    repetidos,
+                    falhas,
+                    orfas=orfas,
+                    posts=posts,
+                    tortas=tortas,
                 )
             )
 
@@ -693,6 +755,7 @@ def cmd_inbox(args: argparse.Namespace) -> int:
         f"- arquivos na pasta: {len(arquivos)}\n"
         f"- importados agora: {len(importados)} ({len(posts)} para o feed)\n"
         f"- recusados pelo formato: {len(recusados)}\n"
+        f"- recusados por não serem 9:16: {len(tortas)}\n"
         f"- falharam no download: {len(falhas)}\n"
     )
     if falhas:
@@ -702,7 +765,9 @@ def cmd_inbox(args: argparse.Namespace) -> int:
             context={"falhas": [nome for nome, _ in falhas]},
         )
         return EXIT_FAIL
-    return EXIT_OK if importados else EXIT_NOTHING
+    # Recusa também é novidade: o workflow só abre a issue (e só commita o
+    # registro) com código 0, e sem isso a foto barrada sumiria calada.
+    return EXIT_OK if importados or tortas else EXIT_NOTHING
 
 
 def cmd_rehost(args: argparse.Namespace) -> int:

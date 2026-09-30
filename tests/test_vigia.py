@@ -202,6 +202,24 @@ class AvaliarTest(unittest.TestCase):
         self.assertEqual(d.faltando, 0)
 
 
+class PublicadosHojeTest(unittest.TestCase):
+    """A recuperação chama com `agora` em UTC, e o cron dela costuma atrasar
+    para depois das 21h de Brasília — quando a data UTC já é amanhã."""
+
+    DIA_BRT = [entrada("2026-09-29T14:00"), entrada("2026-09-29T17:12")]
+
+    def test_noite_de_brasilia_com_agora_em_utc_conta_o_dia_local(self):
+        # 23h de 29/09 em Brasília = 02h de 30/09 em UTC.
+        agora = datetime(2026, 9, 30, 2, 0, tzinfo=timezone.utc)
+
+        self.assertEqual(vigia.publicados_hoje(self.DIA_BRT, agora), 2)
+
+    def test_meia_noite_de_brasilia_vira_o_dia(self):
+        agora = datetime(2026, 9, 30, 3, 30, tzinfo=timezone.utc)  # 00h30 BRT
+
+        self.assertEqual(vigia.publicados_hoje(self.DIA_BRT, agora), 0)
+
+
 class RelatorioTest(unittest.TestCase):
     def diagnostico(self):
         # Depois do último horário vencer, calculado da agenda — não um

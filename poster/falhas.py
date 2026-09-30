@@ -77,6 +77,24 @@ def registrar(
     return novos
 
 
+def quarentenar(
+    registros: dict[str, dict],
+    item_id: str,
+    motivo: str,
+    *,
+    agora: datetime | None = None,
+    limite: int = LIMITE,
+) -> dict[str, dict]:
+    """Tira o item da rotação de uma vez, sem esperar as tentativas.
+
+    Para defeito que não passa sozinho — foto fora de 9:16 continua fora de
+    9:16 amanhã. Esperar três falhas seria publicar três fotos esticadas.
+    """
+    novos = registrar(registros, item_id, motivo, agora=agora)
+    novos[item_id]["tentativas"] = max(int(novos[item_id]["tentativas"]), limite)
+    return novos
+
+
 def limpar(registros: dict[str, dict], item_id: str) -> dict[str, dict]:
     novos = dict(registros)
     novos.pop(item_id, None)
