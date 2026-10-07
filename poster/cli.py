@@ -31,6 +31,7 @@ from . import (
     proporcao,
     queue_file,
     rehost as rehost_mod,
+    repeticao,
     state,
     vigia,
 )
@@ -129,6 +130,8 @@ def cmd_publish(args: argparse.Namespace) -> int:
     item = None
     outcome = None
     selection = None
+    metricas = None
+    repetindo = False
 
     # Tenta mais de um item na mesma execução. Uma mídia recusada pela Meta
     # deixaria o dia sem story se a execução desistisse nela — e foi o que
@@ -148,15 +151,36 @@ def cmd_publish(args: argparse.Namespace) -> int:
             for pulado in selection.skipped:
                 print(f"  pulado {pulado.item_id}: {pulado.reason}")
 
+        # Foto nova sempre ganha: a repetição só entra quando a seleção normal
+        # não achou nada. Ver poster/repeticao.py.
+        if selection.item is None and args.repetir_apos_dias > 0:
+            if metricas is None:
+                metricas = metricas_stories.carregar(args.metricas)
+            selection = repeticao.selecionar(
+                items,
+                published,
+                metricas,
+                apos_dias=args.repetir_apos_dias,
+                media_types=formatos or None,
+                bloqueados=travados,
+            )
+            if not repetindo:
+                repetindo = True
+                print(
+                    f"nada novo na fila — repetição liberada após "
+                    f"{args.repetir_apos_dias} dias: {len(selection.eligible)} candidato(s)"
+                )
+
         if selection.item is None:
             break
 
         item = selection.item
-        print(f"escolhido: {item.id} ({item.media_type})")
+        marca = " — repetição" if repetindo else ""
+        print(f"escolhido: {item.id} ({item.media_type}){marca}")
 
         if config.dry_run:
             write_summary(
-                f"### Instagram — dry run\n\nEscolhido: `{item.id}` ({item.media_type})\n"
+                f"### Instagram — dry run\n\nEscolhido: `{item.id}` ({item.media_type}){marca}\n"
             )
             print("dry run — nada foi enviado à Graph API")
             return EXIT_OK
@@ -245,7 +269,7 @@ def cmd_publish(args: argparse.Namespace) -> int:
     print(f"publicado: {outcome.media_id} ({outcome.permalink or 'sem permalink'})")
     write_summary(
         "### Instagram — publicado\n\n"
-        f"- item: `{item.id}` ({item.media_type})\n"
+        f"- item: `{item.id}` ({item.media_type}){' — repetição' if repetindo else ''}\n"
         f"- media id: `{outcome.media_id}`\n"
         f"- permalink: {outcome.permalink or '—'}\n"
         f"- limite 24h: {quota}\n"
@@ -947,6 +971,17 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=0,
         help="não publica se o dia já tiver este tanto (0 = sem limite)",
+    )
+    publish.add_argument(
+        "--repetir-apos-dias",
+        type=int,
+        default=0,
+        help="sem item novo, repete o que saiu há pelo menos N dias (0 = nunca)",
+    )
+    publish.add_argument(
+        "--metricas",
+        default=metricas_stories.CSV_PATH,
+        help="métricas dos stories, para escolher o que repetir",
     )
     publish.set_defaults(func=cmd_publish)
 

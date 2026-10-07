@@ -43,6 +43,7 @@ jobs:
       queue: queue/stories.yaml
       selection: order
       max_por_dia: '2'
+      repetir_apos_dias: '21'
       # Se o dia já tem os dois stories, esta execução sai sem publicar. O
       # número acompanha a agenda de publicar-stories-auto.yml, e há teste
       # ligando os dois: mudar a agenda sem mudar aqui falha.

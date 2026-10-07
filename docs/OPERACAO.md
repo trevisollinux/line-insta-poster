@@ -253,6 +253,27 @@ A contagem usa a elegibilidade de `selection`, a mesma do publish. Contar
 linhas do arquivo daria um número folgado com a fila já seca, porque o
 publicado continua lá.
 
+O aviso continua valendo com a repetição ligada (seção seguinte), de
+propósito: ele conta só foto **nova**. Repetir tapa o buraco, mas o perfil só
+de reprise envelhece — o aviso é o lembrete de subir foto no Drive.
+
+### Repetição quando acaba foto nova
+
+Desde 07/10 os workflows automático e de recuperação passam
+`repetir_apos_dias: '21'`. Sem foto nova elegível, o publish repete um story
+que saiu há pelo menos 21 dias, na ordem:
+
+1. mais visitas ao perfil (média das vezes em que o item saiu);
+2. mais visualizações, para desempatar;
+3. sem nenhuma medição, por último — o mais antigo primeiro.
+
+Foto nova sempre passa na frente: a repetição só é consultada quando a seleção
+normal não acha nada. O log e o resumo do run marcam `— repetição`.
+
+A primeira repetição possível é em **10/10 à noite**: o primeiro story da fila
+saiu em 19/09, e 21 dias antes disso nada está liberado. Para mudar o
+intervalo, troque o número nos dois workflows. Para desligar, `'0'`.
+
 ### Testar o alarme
 
 Actions → *Vigia dos stories* → *Run workflow* → **simular: true**. Abre uma
