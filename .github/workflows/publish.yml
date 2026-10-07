@@ -35,6 +35,10 @@ on:
         description: 'não publica se o dia já tiver este tanto (0 = sem limite)'
         type: string
         default: '0'
+      repetir_apos_dias:
+        description: 'sem item novo, repete o que saiu há N dias (0 = nunca)'
+        type: string
+        default: '0'
   workflow_call:
     inputs:
       dry_run:
@@ -50,6 +54,9 @@ on:
         type: string
         default: 'queue/posts.yaml'
       max_por_dia:
+        type: string
+        default: '0'
+      repetir_apos_dias:
         type: string
         default: '0'
 
@@ -90,6 +97,7 @@ jobs:
           python -m poster.cli publish \
             --media-type "${{ inputs.media_type || '' }}" \
             --max-por-dia "${{ inputs.max_por_dia || '0' }}" \
+            --repetir-apos-dias "${{ inputs.repetir_apos_dias || '0' }}" \
             --queue "${{ inputs.queue || 'queue/posts.yaml' }}"
           codigo=$?
           echo "codigo=$codigo" >> "$GITHUB_OUTPUT"

@@ -9,7 +9,9 @@ name: Curadoria do acervo
 
 on:
   schedule:
-    - cron: '0 11 1 * *'   # dia 1, 8h no horário de Brasília
+    # Dias 1 e 15, 8h em Brasília: a cada duas semanas sai uma rodada de
+    # candidatos para escolher Reels a repostar com legenda nova.
+    - cron: '0 11 1,15 * *'
   workflow_dispatch:
     inputs:
       max_pages:

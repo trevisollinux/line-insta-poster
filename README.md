@@ -97,6 +97,11 @@ Pelo celular: aba **Actions** → *Publicar no Instagram* → *Run workflow*.
 | `queue/posts.yaml` | feed, Reels, carrossel | só com `reviewed_price: true` e legenda escrita |
 | `queue/stories.yaml` | fotos da pasta do Drive | **sozinha**, um story por execução |
 
+Quando a fila de stories não tem foto nova, o workflow automático **repete** um
+story que já saiu há pelo menos 21 dias, começando pelo que mais levou gente ao
+perfil (média das vezes em que saiu). Foto nova do Drive sempre passa na frente.
+Detalhes e limites em `poster/repeticao.py`.
+
 A diferença não é rigor a mais ou a menos: é o que cada formato carrega. A flag
 `reviewed_price` existe para impedir preço velho **na legenda**, e story não tem
 legenda — a API nem aceita o campo. Exigir a conferência ali seria burocracia
