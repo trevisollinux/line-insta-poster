@@ -20,3 +20,30 @@
 # Os itens são preservados; comentário escrito no meio da lista, não.
 #
 # Formato completo e comentado: queue/posts.example.yaml
+
+# Rodada 1 de repost de Reels (07/10/2026), da curadoria de 20/09.
+# Antes do merge: conferir se o vídeo bate com a legenda e se o modelo segue
+# em produção. Legenda sem preço, então não precisa de reviewed_price.
+- id: repost-2026-01-13-18123504487536253
+  media_type: REELS
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/2026-01-13-18123504487536253.mp4
+  notes: Repost de https://www.instagram.com/reel/DTeA95rjZlB/ (Juniper 3 em 1, score 11.16)
+  caption: |
+    Uma bolsa. Três jeitos de usar. 🥰
+    Transversal, de ombro ou na mão: a Juniper acompanha você do trabalho ao fim de semana.
+
+    💬 Qual jeito é o seu: 1, 2 ou 3? Conta aqui nos comentários!
+    E se quiser a sua, chama no direct 📩
+
+    #juniper #bolsadecouro #linestore
+- id: repost-2023-05-15-17966329439387352
+  media_type: REELS
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/2023-05-15-17966329439387352.mp4
+  notes: Repost de https://www.instagram.com/reel/CsRxeW9AvZM/ (O que cabe na Satchel M, score 11.36)
+  caption: |
+    A pergunta que mais chega no nosso direct: "mas cabe o quê?" 👀
+    Tá aqui a resposta, item por item, na Satchel tamanho M.
+
+    💬 Comenta "SATCHEL" que a gente te manda os tamanhos e as cores.
+
+    #satchel #bolsadecouro #linestore

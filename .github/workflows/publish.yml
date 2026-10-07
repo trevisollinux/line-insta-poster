@@ -8,7 +8,10 @@ name: Publicar no Instagram
 
 on:
   schedule:
-    - cron: '0 13 * * *'   # 10h no horário de Brasília
+    # Toda terça, 10h em Brasília (sai à tarde: o cron daqui atrasa 3-5h).
+    # Um por semana casa com a curadoria quinzenal, que traz 2 Reels por
+    # rodada. Diário publicaria a rodada inteira em dias seguidos.
+    - cron: '0 13 * * 2'
   workflow_dispatch:
     inputs:
       dry_run:
