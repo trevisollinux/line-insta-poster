@@ -21,7 +21,8 @@
 #
 # Formato completo e comentado: queue/posts.example.yaml
 
-# Rodada 1 de repost de Reels (07/10/2026), da curadoria de 20/09.
+# Rodada 1 de repost de Reels (07/10/2026), da curadoria de 20/09. Saem na
+# ordem da lista, um por terça.
 # Antes do merge: conferir se o vídeo bate com a legenda e se o modelo segue
 # em produção. Legenda sem preço, então não precisa de reviewed_price.
 - id: repost-2026-01-13-18123504487536253
@@ -36,14 +37,25 @@
     E se quiser a sua, chama no direct 📩
 
     #juniper #bolsadecouro #linestore
-- id: repost-2023-05-15-17966329439387352
+- id: repost-2023-05-12-18059573383403744
   media_type: REELS
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/2023-05-15-17966329439387352.mp4
-  notes: Repost de https://www.instagram.com/reel/CsRxeW9AvZM/ (O que cabe na Satchel M, score 11.36)
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/2023-05-12-18059573383403744.mp4
+  notes: Repost de https://www.instagram.com/reel/CsJ2v7SAwn6/ (Tour pela Big Case, score 12.71)
   caption: |
-    A pergunta que mais chega no nosso direct: "mas cabe o quê?" 👀
-    Tá aqui a resposta, item por item, na Satchel tamanho M.
+    Ela parece pequena por fora. Por dentro, cabe o seu dia inteiro. 🕶️
+    Big Case em couro legítimo, feita à mão, peça por peça.
 
-    💬 Comenta "SATCHEL" que a gente te manda os tamanhos e as cores.
+    💬 Comenta "EU QUERO" que a gente te chama no direct com todos os detalhes.
 
-    #satchel #bolsadecouro #linestore
+    #bolsadecouro #feitoamao #linestore
+- id: repost-2024-06-29-17928213920906900
+  media_type: REELS
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/2024-06-29-17928213920906900.mp4
+  notes: Repost de https://www.instagram.com/reel/C8z3byexJpa/ (Mochila London, score 6.97). Vídeo recomprimido para 15 MB (o jsDelivr não serve arquivo acima de 20 MB).
+  caption: |
+    A Satchel é a nossa best-seller, mas a London tem fã-clube próprio. 🎒
+    Mochila em couro legítimo, feita à mão e sob encomenda, do jeito que você quiser.
+
+    💬 Comenta "LONDON" que a gente te chama no direct.
+
+    #mochiladecouro #feitoamao #linestore
