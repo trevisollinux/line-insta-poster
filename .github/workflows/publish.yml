@@ -8,10 +8,12 @@ name: Publicar no Instagram
 
 on:
   schedule:
-    # Toda terça, 10h em Brasília (sai à tarde: o cron daqui atrasa 3-5h).
-    # Um por semana casa com a curadoria quinzenal, que traz 2 Reels por
-    # rodada. Diário publicaria a rodada inteira em dias seguidos.
-    - cron: '0 13 * * 2'
+    # Todo sábado, 10h em Brasília (sai entre ~13h e 15h30: o cron daqui
+    # atrasa 3-5h). Sábado porque é o melhor dia nos dados: no acervo de
+    # 2022-2026, posts de sábado fazem 1,37x a mediana da época (n=43), contra
+    # ~1,0 de segunda a sexta; e é o dia de maior alcance da conta em set-out.
+    # Um por semana casa com a curadoria quinzenal, que traz 2 Reels por rodada.
+    - cron: '0 13 * * 6'
   workflow_dispatch:
     inputs:
       dry_run:

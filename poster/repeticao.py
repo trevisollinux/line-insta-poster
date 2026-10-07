@@ -6,7 +6,7 @@ saiu é melhor que silêncio, desde que:
 
 1. **Foto nova sempre ganha.** A repetição só é consultada quando a seleção
    normal não achou nada. Ela não compete com o Drive; tapa o buraco.
-2. **Há um intervalo mínimo** desde a última vez que o item saiu (21 dias no
+2. **Há um intervalo mínimo** desde a última vez que o item saiu (14 dias no
    workflow), para o seguidor não reconhecer a foto da semana passada.
 3. **Repete primeiro o que levou gente ao perfil.** Visualização engana — um
    story com 174 views levou 9 pessoas ao perfil, outro com 260 levou 5 (ver

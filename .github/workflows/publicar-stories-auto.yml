@@ -62,7 +62,8 @@ jobs:
       queue: queue/stories.yaml
       selection: order
       # Sem foto nova do Drive, repete o story que mais levou gente ao perfil,
-      # desde que tenha saído há pelo menos 3 semanas. Foto nova sempre ganha.
-      # Ver poster/repeticao.py.
-      repetir_apos_dias: '21'
+      # desde que tenha saído há pelo menos 2 semanas. Foto nova sempre ganha.
+      # Ver poster/repeticao.py. (Era 21; baixado em 07/10 para o perfil não
+      # ficar uma semana sem story esperando a primeira liberação.)
+      repetir_apos_dias: '14'
       dry_run: ${{ inputs.dry_run || 'false' }}

@@ -260,8 +260,8 @@ de reprise envelhece — o aviso é o lembrete de subir foto no Drive.
 ### Repetição quando acaba foto nova
 
 Desde 07/10 os workflows automático e de recuperação passam
-`repetir_apos_dias: '21'`. Sem foto nova elegível, o publish repete um story
-que saiu há pelo menos 21 dias, na ordem:
+`repetir_apos_dias: '14'`. Sem foto nova elegível, o publish repete um story
+que saiu há pelo menos 14 dias, na ordem:
 
 1. mais visitas ao perfil (média das vezes em que o item saiu);
 2. mais visualizações, para desempatar;
@@ -270,9 +270,9 @@ que saiu há pelo menos 21 dias, na ordem:
 Foto nova sempre passa na frente: a repetição só é consultada quando a seleção
 normal não acha nada. O log e o resumo do run marcam `— repetição`.
 
-A primeira repetição possível é em **10/10 à noite**: o primeiro story da fila
-saiu em 19/09, e 21 dias antes disso nada está liberado. Para mudar o
-intervalo, troque o número nos dois workflows. Para desligar, `'0'`.
+O intervalo começou em 21 dias e foi baixado para 14 no mesmo dia: com 21, a
+primeira liberação só vinha em 10/10 e o perfil ficaria uma semana sem story.
+Para mudar o intervalo, troque o número nos dois workflows. Para desligar, `'0'`.
 
 ### Testar o alarme
 

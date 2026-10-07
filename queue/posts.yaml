@@ -22,7 +22,7 @@
 # Formato completo e comentado: queue/posts.example.yaml
 
 # Rodada 1 de repost de Reels (07/10/2026), da curadoria de 20/09. Saem na
-# ordem da lista, um por terça.
+# ordem da lista, um por sábado.
 # Antes do merge: conferir se o vídeo bate com a legenda e se o modelo segue
 # em produção. Legenda sem preço, então não precisa de reviewed_price.
 - id: repost-2026-01-13-18123504487536253
