@@ -8,7 +8,10 @@ name: Publicar no Instagram
 
 on:
   schedule:
-    - cron: '0 13 * * *'   # 10h no horário de Brasília
+    # Toda terça, 10h em Brasília (sai à tarde: o cron daqui atrasa 3-5h).
+    # Um por semana casa com a curadoria quinzenal, que traz 2 Reels por
+    # rodada. Diário publicaria a rodada inteira em dias seguidos.
+    - cron: '0 13 * * 2'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -91,7 +94,9 @@ jobs:
           META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
           IG_ALERT_WEBHOOK: ${{ secrets.IG_ALERT_WEBHOOK }}
           IG_DRY_RUN: ${{ inputs.dry_run || 'false' }}
-          IG_SELECTION: ${{ inputs.selection || 'weighted' }}
+          # Sem input (o cron semanal), publica na ordem da fila: quem escolhe a
+          # rodada de Reels também escolhe a sequência, e sorteio desfaria isso.
+          IG_SELECTION: ${{ inputs.selection || 'order' }}
         run: |
           set +e
           python -m poster.cli publish \

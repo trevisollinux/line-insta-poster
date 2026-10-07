@@ -20,3 +20,31 @@
 # Os itens são preservados; comentário escrito no meio da lista, não.
 #
 # Formato completo e comentado: queue/posts.example.yaml
+
+# Rodada 1 de repost de Reels (07/10/2026), da curadoria de 20/09. Saem na
+# ordem da lista, um por terça.
+# Antes do merge: conferir se o vídeo bate com a legenda e se o modelo segue
+# em produção. Legenda sem preço, então não precisa de reviewed_price.
+- id: repost-2026-01-13-18123504487536253
+  media_type: REELS
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/2026-01-13-18123504487536253.mp4
+  notes: Repost de https://www.instagram.com/reel/DTeA95rjZlB/ (Juniper 3 em 1, score 11.16)
+  caption: |
+    Uma bolsa. Três jeitos de usar. 🥰
+    Transversal, de ombro ou na mão: a Juniper acompanha você do trabalho ao fim de semana.
+
+    💬 Qual jeito é o seu: 1, 2 ou 3? Conta aqui nos comentários!
+    E se quiser a sua, chama no direct 📩
+
+    #juniper #bolsadecouro #linestore
+- id: repost-2023-05-12-18059573383403744
+  media_type: REELS
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/2023-05-12-18059573383403744.mp4
+  notes: Repost de https://www.instagram.com/reel/CsJ2v7SAwn6/ (Tour pela Big Case, score 12.71)
+  caption: |
+    Ela parece pequena por fora. Por dentro, cabe o seu dia inteiro. 🕶️
+    Big Case em couro legítimo, feita à mão, peça por peça.
+
+    💬 Comenta "EU QUERO" que a gente te chama no direct com todos os detalhes.
+
+    #bolsadecouro #feitoamao #linestore
