@@ -98,7 +98,7 @@ Pelo celular: aba **Actions** → *Publicar no Instagram* → *Run workflow*.
 | `queue/stories.yaml` | fotos da pasta do Drive | **sozinha**, um story por execução |
 
 Quando a fila de stories não tem foto nova, o workflow automático **repete** um
-story que já saiu há pelo menos 21 dias, começando pelo que mais levou gente ao
+story que já saiu há pelo menos 14 dias, começando pelo que mais levou gente ao
 perfil (média das vezes em que saiu). Foto nova do Drive sempre passa na frente.
 Detalhes e limites em `poster/repeticao.py`.
 

@@ -327,8 +327,8 @@ que "atividade do perfil" do app, que soma visitas + cliques em link + seguidas.
   para não jogar o feed no automático junto com o resto. Enquanto a pasta não
   existir, nada chega em `queue/posts.yaml` por esse caminho. Não é código
   morto: é código esperando uma decisão de operação.
-- **`publish.yml` publica um item de `queue/posts.yaml` por semana** (terça,
-  cron `0 13 * * 2`). Decidido em 07/10: a cada 15 dias a curadoria traz
+- **`publish.yml` publica um item de `queue/posts.yaml` por semana** (sábado,
+  cron `0 13 * * 6`; sábado é o melhor dia no acervo — ver o comentário do cron). Decidido em 07/10: a cada 15 dias a curadoria traz
   candidatos, o Gustavo escolhe 2 Reels com legenda nova, e eles saem um por
   semana. O merge do PR que põe os itens na fila é a aprovação.
 - **`online_followers` não devolve dado** para esta conta. A métrica foi
