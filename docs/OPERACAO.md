@@ -81,6 +81,13 @@ Por que isto existe: horário e posição no dia mexem 10-15%; o tipo de conteú
 mexeu 5x (891 views de um bastidor contra 147-170 das fotos de produto). Sem o
 rótulo, o único fator que importa de verdade é invisível para a análise.
 
+
+**Segurar uma pasta.** Subpasta listada em `queue/pastas_ignoradas.yaml` é
+pulada pela importação: nada dela vai para a fila e nada é marcado como
+importado. Quando o nome sai da lista, o conteúdo entra na importação
+seguinte como se tivesse acabado de chegar. Desde 11/10, `produto` está
+segurada.
+
 ### Métricas da conta
 
 `state/conta.csv` guarda um dia por linha: seguidores, publicações, alcance,

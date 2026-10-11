@@ -1,0 +1,13 @@
+# Subpastas do Drive que a importação PULA por enquanto.
+#
+# O que está numa pasta daqui não é importado nem marcado como importado:
+# continua no Drive, intacto, e entra normalmente na primeira importação
+# depois que a pasta sair desta lista. Serve para guardar material sem
+# mandar para o ar.
+#
+# O nome é comparado sem acento e sem diferença de maiúscula ("Produto",
+# "produto" e "PRODUTO" são a mesma pasta).
+#
+# 11/10/2026: "produto" segurada a pedido do Gustavo — o vídeo de Reels que
+# está lá foi postado há pouco; a ideia é acumular e liberar depois.
+- produto

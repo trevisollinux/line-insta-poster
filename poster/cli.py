@@ -656,6 +656,18 @@ def cmd_inbox(args: argparse.Namespace) -> int:
         alert(str(exc), webhook=webhook)
         return EXIT_FAIL
 
+    # Pasta segurada (queue/pastas_ignoradas.yaml) sai antes de tudo, e sem
+    # registro: o conteúdo dela entra sozinho quando a pasta for liberada.
+    arquivos, segurados = inbox_mod.separar_ignorados(
+        arquivos, inbox_mod.load_ignoradas(args.ignoradas)
+    )
+    if segurados:
+        pastas = sorted({a.pasta for a in segurados})
+        print(
+            f"pasta: {len(segurados)} arquivo(s) segurado(s) em "
+            f"{', '.join(pastas)} (queue/pastas_ignoradas.yaml)"
+        )
+
     # Legenda não é mídia: sai da lista antes da triagem, senão todo .txt
     # apareceria como "recusado pelo formato" e o aviso perderia o sentido.
     midias, legendas, orfas = inbox_mod.separar_legendas(arquivos)
@@ -1068,6 +1080,7 @@ def build_parser() -> argparse.ArgumentParser:
     inbox.add_argument("--branch", default="main")
     inbox.add_argument("--drafts", default=inbox_mod.DRAFTS_PATH)
     inbox.add_argument("--state-file", default=inbox_mod.IMPORTED_PATH)
+    inbox.add_argument("--ignoradas", default=inbox_mod.IGNORADAS_PATH, help="subpastas puladas")
     inbox.add_argument("--report", default="", help="relatório markdown neste caminho")
     inbox.set_defaults(func=cmd_inbox)
 
