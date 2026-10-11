@@ -335,3 +335,48 @@ class TipoDeConteudoTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PastasIgnoradasTest(unittest.TestCase):
+    """Pasta segurada não vai à fila nem fica marcada como importada."""
+
+    def test_pula_so_a_pasta_segurada(self):
+        from poster.inbox import separar_ignorados
+
+        produto = DriveFile("p1", "reels.mp4", "video/mp4", pasta="Produto")
+        bastidor = DriveFile("b1", "foto.jpg", "image/jpeg", pasta="bastidor")
+        raiz = DriveFile("r1", "raiz.jpg", "image/jpeg")
+
+        seguem, pulados = separar_ignorados([produto, bastidor, raiz], {"produto"})
+
+        self.assertEqual([a.id for a in seguem], ["b1", "r1"])
+        self.assertEqual([a.id for a in pulados], ["p1"])
+
+    def test_lista_vazia_nao_pula_nada(self):
+        from poster.inbox import separar_ignorados
+
+        produto = DriveFile("p1", "reels.mp4", "video/mp4", pasta="produto")
+
+        seguem, pulados = separar_ignorados([produto], set())
+
+        self.assertEqual((len(seguem), len(pulados)), (1, 0))
+
+    def test_le_o_arquivo_sem_acento_nem_maiuscula(self):
+        from poster.inbox import load_ignoradas
+
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = os.path.join(pasta, "ignoradas.yaml")
+            with open(caminho, "w", encoding="utf-8") as handle:
+                handle.write("- Produto\n- Promoção\n")
+
+            self.assertEqual(load_ignoradas(caminho), {"produto", "promocao"})
+
+    def test_arquivo_ausente_nao_pula_nada(self):
+        from poster.inbox import load_ignoradas
+
+        self.assertEqual(load_ignoradas("/caminho/que/nao/existe.yaml"), set())
+
+    def test_a_lista_versionada_segura_produto(self):
+        from poster.inbox import load_ignoradas
+
+        self.assertIn("produto", load_ignoradas())

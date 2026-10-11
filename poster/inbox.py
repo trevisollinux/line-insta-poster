@@ -34,6 +34,7 @@ from .rehost import public_url
 IMPORTED_PATH = os.path.join(REPO_ROOT, "state", "inbox.json")
 DRAFTS_PATH = os.path.join(REPO_ROOT, "queue", "stories.yaml")
 POSTS_PATH = os.path.join(REPO_ROOT, "queue", "posts.yaml")
+IGNORADAS_PATH = os.path.join(REPO_ROOT, "queue", "pastas_ignoradas.yaml")
 
 # Subpasta cujo conteúdo vai para o feed em vez do story.
 PASTA_FEED = "feed"
@@ -212,6 +213,36 @@ def save_imported(registros: dict[str, Imported], path: str = IMPORTED_PATH) -> 
     with open(path, "w", encoding="utf-8") as handle:
         json.dump(payload, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
+
+
+def load_ignoradas(path: str = IGNORADAS_PATH) -> set[str]:
+    """Subpastas que a importação pula, já normalizadas como `slugify`."""
+    if not os.path.exists(path):
+        return set()
+    with open(path, "r", encoding="utf-8") as handle:
+        dados = yaml.safe_load(handle) or []
+    return {slugify(str(nome)) for nome in dados if str(nome).strip()}
+
+
+def separar_ignorados(
+    arquivos: list[DriveFile], ignoradas: set[str]
+) -> tuple[list[DriveFile], list[DriveFile]]:
+    """Divide em (seguem para a importação, pulados por pasta ignorada).
+
+    Pulado não vira registro em state/inbox.json: é o que garante que o
+    arquivo entra sozinho quando a pasta sair da lista, em vez de ficar
+    marcado como já importado sem nunca ter ido para a fila.
+    """
+    if not ignoradas:
+        return list(arquivos), []
+    seguem: list[DriveFile] = []
+    pulados: list[DriveFile] = []
+    for arquivo in arquivos:
+        if arquivo.pasta and slugify(arquivo.pasta) in ignoradas:
+            pulados.append(arquivo)
+        else:
+            seguem.append(arquivo)
+    return seguem, pulados
 
 
 def triagem(
