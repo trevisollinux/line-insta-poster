@@ -9,6 +9,7 @@
 | Renovar token | dia 1, 6h BRT | renova o long-lived token e regrava o secret |
 | Curadoria do acervo | dia 1, 8h BRT | ranqueia o acervo e abre PR com candidatos |
 | Capturar métricas dos stories | de hora em hora | lê os stories no ar e grava em `state/stories_metrics.csv` e `state/stories_curva.csv` |
+| Métricas dos Reels | diário, disparo 09h20 BRT | mede os Reels dos últimos 60 dias e grava em `state/reels_metrics.csv` e `state/reels_curva.csv` |
 | Vigia dos stories | de hora em hora | abre issue quando o dia passou sem o story esperado |
 | Testes | push e PR | suíte + validação da fila versionada |
 
@@ -87,6 +88,26 @@ pulada pela importação: nada dela vai para a fila e nada é marcado como
 importado. Quando o nome sai da lista, o conteúdo entra na importação
 seguinte como se tivesse acabado de chegar. Desde 11/10, `produto` está
 segurada.
+
+### Métricas dos Reels
+
+Curtida, que é o que o app mostra, mede pouco. Para escolher o que repostar na
+rodada quinzenal, o que conta é quantos viram e quantos foram ao perfil. Uma
+vez por dia o coletor lê cada Reel publicado nos últimos 60 dias, seja pelo
+robô ou à mão, e grava:
+
+- `state/reels_metrics.csv` — uma linha por Reel: views, alcance, curtidas,
+  comentários, compartilhamentos, salvos, visitas ao perfil, follows e tempo
+  médio assistido (ms). A coluna `origem` diz `robo` (está em
+  `state/published.json`) ou `manual`.
+- `state/reels_curva.csv` — um ponto por Reel por dia de vida (`idade_dias`).
+
+Compare Reels **pela mesma idade** (o resumo do run mostra D+1 e D+7), nunca
+pelo total: o mais velho sempre teve mais tempo para juntar view. Reel não
+expira como story, então uma captura perdida só abre um buraco na curva; o
+total se recupera no dia seguinte. Se a API recusar alguma métrica (as visitas
+ao perfil, por exemplo, nem sempre vêm para Reel), ela sai da lista e o resto
+é gravado.
 
 ### Métricas da conta
 

@@ -7,6 +7,7 @@ Comandos
   refresh-token  renova o long-lived token e (opcional) grava no secret do repo
   curate         coleta o acervo, ranqueia e escreve queue/candidates.yaml
   story-metrics  captura as métricas dos stories no ar antes de expirarem
+  reel-metrics   guarda views, alcance e visitas ao perfil dos Reels recentes
   watch-stories  avisa quando o dia passou sem o story esperado
 
 Códigos de saída: 0 sucesso, 1 falha (com alerta), 2 nada a fazer.
@@ -27,6 +28,7 @@ from . import (
     relatorio as relatorio_mod,
     drive,
     inbox as inbox_mod,
+    metricas_reels,
     metricas_stories,
     proporcao,
     queue_file,
@@ -455,6 +457,68 @@ def cmd_story_metrics(args: argparse.Namespace) -> int:
 
     if not ativos:
         # Nada no ar não é erro: é o estado normal da conta fora da janela de 24h.
+        return EXIT_NOTHING
+    return EXIT_OK
+
+
+def cmd_reel_metrics(args: argparse.Namespace) -> int:
+    """Mede os Reels da janela recente e guarda total e curva em CSV.
+
+    Reel não expira, então perder uma execução só abre um buraco na curva — a
+    próxima captura recupera o total. Por isso Reel sem insight não derruba os
+    outros: fica com curtida e comentário da listagem e segue.
+    """
+    access_token, ig_user_id = env_str("IG_ACCESS_TOKEN"), env_str("IG_USER_ID")
+    if not (access_token and ig_user_id):
+        print("IG_ACCESS_TOKEN e IG_USER_ID são obrigatórios", file=sys.stderr)
+        return EXIT_FAIL
+
+    client = GraphClient(access_token, version=env_str("IG_GRAPH_VERSION", GRAPH_VERSION))
+    try:
+        reels = metricas_reels.listar_reels(client, ig_user_id, janela_dias=args.janela_dias)
+    except GraphError as exc:
+        alert(f"não consegui listar os Reels: {exc}")
+        return EXIT_FAIL
+
+    robo = metricas_reels.origens(state.load_state(args.state))
+    agora = datetime.now(timezone.utc)
+    novas: list[dict[str, str]] = []
+    falhas: list[str] = []
+    for reel in reels:
+        try:
+            medidas = metricas_reels.insights(client, reel.id)
+        except GraphError as exc:
+            falhas.append(f"{reel.id}: {exc}")
+            medidas = {}
+        novas.append(
+            metricas_reels.montar_linha(
+                reel, medidas, robo=robo, offset=args.utc_offset, agora=agora
+            )
+        )
+
+    linhas = metricas_reels.gravar(
+        metricas_reels.mesclar(metricas_reels.carregar(args.csv), novas), args.csv
+    )
+    curva = metricas_reels.gravar_curva(
+        metricas_reels.anexar_curva(
+            metricas_reels.carregar_curva(args.curva),
+            [metricas_reels.montar_ponto(linha) for linha in novas],
+        ),
+        args.curva,
+    )
+
+    print(f"{len(reels)} Reels na janela | {len(linhas)} no histórico | {len(curva)} pontos de curva")
+    for falha in falhas:
+        print(f"  sem insights  {falha}", file=sys.stderr)
+
+    texto = metricas_reels.resumo(linhas, curva)
+    write_summary(texto)
+    if args.report:
+        os.makedirs(os.path.dirname(args.report) or ".", exist_ok=True)
+        with open(args.report, "w", encoding="utf-8") as handle:
+            handle.write(texto)
+
+    if not reels:
         return EXIT_NOTHING
     return EXIT_OK
 
@@ -1019,6 +1083,22 @@ def build_parser() -> argparse.ArgumentParser:
     story_metrics.add_argument("--metric", default="views", help="métrica do resumo")
     story_metrics.add_argument("--report", default="", help="resumo markdown neste caminho")
     story_metrics.set_defaults(func=cmd_story_metrics)
+
+    reel_metrics = sub.add_parser(
+        "reel-metrics", help="guarda as métricas dos Reels recentes"
+    )
+    reel_metrics.add_argument("--csv", default=metricas_reels.CSV_PATH)
+    reel_metrics.add_argument("--curva", default=metricas_reels.CURVA_PATH)
+    reel_metrics.add_argument("--state", default=state.STATE_PATH)
+    reel_metrics.add_argument(
+        "--janela-dias",
+        type=int,
+        default=metricas_reels.JANELA_DIAS,
+        help="mede os Reels publicados nestes últimos dias",
+    )
+    reel_metrics.add_argument("--utc-offset", type=int, default=metricas_reels.BRT_OFFSET)
+    reel_metrics.add_argument("--report", default="", help="resumo markdown neste caminho")
+    reel_metrics.set_defaults(func=cmd_reel_metrics)
 
     watch = sub.add_parser(
         "watch-stories", help="avisa quando o dia passou sem o story esperado"
