@@ -85,7 +85,11 @@ def stories_ativos(client: GraphClient, ig_user_id: str) -> list[dict[str, str]]
 
 
 def insights(
-    client: GraphClient, media_id: str, *, metricas: tuple[str, ...] = METRICAS
+    client: GraphClient,
+    media_id: str,
+    *,
+    metricas: tuple[str, ...] = METRICAS,
+    minimas: tuple[str, ...] = METRICAS_MINIMAS,
 ) -> dict[str, int]:
     """Insights de um story, negociando a lista de métricas quando a API recusa.
 
@@ -108,8 +112,8 @@ def insights(
             if recusadas:
                 tentativa = [m for m in tentativa if m not in recusadas]
                 continue
-            if tentativa != list(METRICAS_MINIMAS):
-                tentativa = list(METRICAS_MINIMAS)
+            if tentativa != list(minimas):
+                tentativa = list(minimas)
                 continue
             break
         return _valores(payload)

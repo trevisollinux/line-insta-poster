@@ -1,0 +1,71 @@
+name: Métricas dos Reels
+
+# Views, alcance, visitas ao perfil, compartilhamentos e salvos de cada Reel dos
+# últimos 60 dias — postado pelo robô ou à mão.
+#
+# Curtida, que é o que aparece no app e pelo acesso de anúncios, mede pouco: a
+# rodada de reposts precisa escolher pelo Reel que mais gente viu e que mais
+# levou ao perfil.
+#
+# Uma vez por dia basta. Reel não expira como story: o total pode ser lido a
+# qualquer momento, e uma captura que o agendador descartar se recupera no dia
+# seguinte. O que a captura diária acrescenta é a curva (views em D+1, D+7…),
+# que é o único jeito justo de comparar um Reel de ontem com um de três semanas.
+
+on:
+  schedule:
+    - cron: '20 12 * * *'   # 09h20 em Brasília (disparo; o runner atrasa algumas horas)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram-metricas-reels
+  cancel-in-progress: false
+
+jobs:
+  capturar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Instalar dependências
+        run: pip install --quiet -r requirements.txt
+
+      - name: Capturar
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+        run: |
+          set +e
+          python -m poster.cli reel-metrics
+          codigo=$?
+          # 2 = nenhum Reel na janela. Não é falha do job.
+          if [ "$codigo" = "2" ]; then exit 0; fi
+          exit $codigo
+
+      - name: Commitar o histórico
+        run: |
+          git add -- state/reels_metrics.csv state/reels_curva.csv
+          if git diff --cached --quiet; then
+            echo "nada novo para registrar"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: métricas dos reels'
+          # Divide o branch com o coletor de stories, que empurra de hora em
+          # hora: sem rebase, uma corrida normal viraria push rejeitado.
+          for tentativa in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push && exit 0
+            sleep $((tentativa * 5))
+          done
+          echo "::error::não consegui publicar o histórico depois de 3 tentativas"
+          exit 1
