@@ -1,11 +1,5 @@
 {
-  "falhas": {
-    "2026-09-23-img-20260923-161110-1qt_4h": {
-      "em": "2026-10-11T16:44:31+00:00",
-      "tentativas": 1,
-      "ultimo_erro": "item '2026-09-23-img-20260923-161110-1qt_4h' não publicado: POST /17841401318995903/media_publish → HTTP 400: The requested resource does not exist (code=24, subcode=2207006)"
-    }
-  },
-  "updated_at": "2026-10-13T18:29:33+00:00",
+  "falhas": {},
+  "updated_at": "2026-10-13T20:49:44+00:00",
   "version": 1
 }
