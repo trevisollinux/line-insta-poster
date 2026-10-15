@@ -1,10 +1,5 @@
 {
   "falhas": {
-    "2026-09-19-img-20260812-083523-923-1wfosR": {
-      "em": "2026-10-14T15:59:43+00:00",
-      "tentativas": 1,
-      "ultimo_erro": "item '2026-09-19-img-20260812-083523-923-1wfosR' não publicado: POST /17841401318995903/media → HTTP 400: Only photo or video can be accepted as media type. (code=9004, subcode=2207052)"
-    },
     "2026-09-19-img-20260913-194822-461-1cvRAE": {
       "em": "2026-10-14T16:27:47+00:00",
       "tentativas": 1,
@@ -21,6 +16,6 @@
       "ultimo_erro": "item '2026-09-23-img-20260923-161611-1rR5Sz' não publicado: POST /17841401318995903/media → HTTP 400: Only photo or video can be accepted as media type. (code=9004, subcode=2207052)"
     }
   },
-  "updated_at": "2026-10-15T15:43:56+00:00",
+  "updated_at": "2026-10-15T19:22:32+00:00",
   "version": 1
 }
