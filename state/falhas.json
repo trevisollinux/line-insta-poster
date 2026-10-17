@@ -14,8 +14,13 @@
       "em": "2026-10-15T15:43:43+00:00",
       "tentativas": 2,
       "ultimo_erro": "item '2026-09-23-img-20260923-161611-1rR5Sz' não publicado: POST /17841401318995903/media → HTTP 400: Only photo or video can be accepted as media type. (code=9004, subcode=2207052)"
+    },
+    "repost-2023-05-12-18059573383403744": {
+      "em": "2026-10-17T16:07:30+00:00",
+      "tentativas": 1,
+      "ultimo_erro": "container 18644158885043967 terminou como ERROR. Error: Media upload has failed with error code 2207077"
     }
   },
-  "updated_at": "2026-10-17T14:23:20+00:00",
+  "updated_at": "2026-10-17T16:07:30+00:00",
   "version": 1
 }
