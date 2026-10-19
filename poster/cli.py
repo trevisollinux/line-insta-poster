@@ -15,6 +15,7 @@ Códigos de saída: 0 sucesso, 1 falha (com alerta), 2 nada a fazer.
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import os
 import random
 import sys
@@ -24,6 +25,7 @@ from . import (
     audiencia,
     conta as conta_mod,
     curadoria,
+    espelho,
     falhas as falhas_mod,
     relatorio as relatorio_mod,
     drive,
@@ -186,6 +188,13 @@ def cmd_publish(args: argparse.Namespace) -> int:
             )
             print("dry run — nada foi enviado à Graph API")
             return EXIT_OK
+
+        # jsDelivr às vezes devolve 404 para arquivo que existe, e a Meta
+        # recusa a página de erro como "não é foto nem vídeo" (14/10).
+        if len(item.urls) == 1:
+            url = espelho.url_que_funciona(item.url, is_video=item.is_video)
+            if url != item.url:
+                item = dataclasses.replace(item, urls=(url,))
 
         # A API aceita foto de story em qualquer proporção e estica em silêncio
         # a que não é 9:16. A importação já barra; isto pega o que entrou na
