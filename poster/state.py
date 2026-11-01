@@ -27,6 +27,9 @@ class PublishedEntry:
     # Copiado do item no momento da publicação. É a única ponte entre o que a
     # API mede (media_id) e que tipo de foto era — a fila muda, o estado não.
     tipo: str = ""
+    # Ação do CTA gravado na imagem; vazio = saiu sem CTA. Mesma lógica do
+    # tipo: é o que permite comparar, depois, story com e sem chamado.
+    cta: str = ""
 
     @property
     def published_datetime(self) -> datetime:
@@ -52,6 +55,7 @@ def load_state(path: str = STATE_PATH) -> list[PublishedEntry]:
                 container_id=str(row.get("container_id", "")),
                 media_type=str(row.get("media_type", "")),
                 tipo=str(row.get("tipo", "") or ""),
+                cta=str(row.get("cta", "") or ""),
                 published_at=str(row.get("published_at", "")),
                 permalink=row.get("permalink"),
             )

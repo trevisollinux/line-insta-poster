@@ -85,6 +85,9 @@ class QueueItem:
     # Tipo de conteúdo (bastidor, cliente, produto), vindo da subpasta do
     # Drive. Não muda nada na publicação: existe para a análise.
     tipo: str = ""
+    # Texto da ação do CTA gravado na imagem, quando a imagem já foi gerada
+    # (`cta_render`). Vazio = story sem CTA. Também só serve para a análise.
+    cta: str = ""
     raw: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
 
     @property
@@ -179,6 +182,8 @@ def _parse_item(entry: dict[str, Any], label: str) -> QueueItem:
     if cover_url and media_type != "REELS":
         problems.append("cover_url só vale para REELS")
 
+    cta_texto = _parse_cta(entry, media_type, urls, problems)
+
     if problems:
         raise QueueError(f"{label}: " + "; ".join(problems))
 
@@ -186,6 +191,7 @@ def _parse_item(entry: dict[str, Any], label: str) -> QueueItem:
         id=item_id,
         media_type=media_type,
         tipo=str(entry.get("tipo") or "").strip(),
+        cta=cta_texto,
         urls=tuple(urls),
         caption=caption,
         reviewed_price=reviewed_price is True,
@@ -197,6 +203,29 @@ def _parse_item(entry: dict[str, Any], label: str) -> QueueItem:
         notes=str(entry.get("notes") or "").strip(),
         raw=entry,
     )
+
+
+def _parse_cta(
+    entry: dict[str, Any], media_type: str, urls: list[str], problems: list[str]
+) -> str:
+    """Valida `cta` e devolve a ação, se a imagem com CTA já foi gerada.
+
+    Item com `cta` e sem `cta_render` ainda publica a foto original: o texto
+    foi escrito, mas a imagem não foi gerada (`python -m poster.cli stories-cta`).
+    """
+    bruto = entry.get("cta")
+    if bruto is None:
+        return ""
+    from .cta import problemas_do_cta  # Pillow só é preciso quando há CTA
+
+    problems.extend(problemas_do_cta(bruto))
+    if media_type != "STORIES":
+        problems.append("cta só vale para STORIES — no feed, o CTA vai na legenda")
+    elif looks_like_video(str(entry.get("url_original") or (urls[0] if urls else ""))):
+        problems.append("cta só em foto: vídeo não é gerado com texto por cima")
+    if not entry.get("cta_render") or not isinstance(bruto, dict):
+        return ""
+    return str(bruto.get("acao") or "").strip()
 
 
 def _parse_urls(

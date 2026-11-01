@@ -1,0 +1,71 @@
+name: CTA dos stories
+
+# Grava na foto o CTA escrito em queue/stories.yaml (`cta: {titulo, acao}`).
+#
+# Por que no pixel: a Graph API publica story sem sticker nenhum — nem link,
+# nem enquete, nem texto. O chamado tem que estar na própria imagem.
+#
+# Dispara sozinho quando alguém edita a fila em main (inclusive pelo celular).
+# As imagens ficam em media/stories-cta/ deste repositório e a fila passa a
+# apontar para elas; a foto original fica em `url_original`.
+#
+# Não entra em loop: o commit feito aqui usa o GITHUB_TOKEN, e push desse
+# token não dispara workflow.
+
+on:
+  push:
+    branches: [main]
+    paths: [queue/stories.yaml]
+  workflow_dispatch:
+    inputs:
+      forcar:
+        description: 'gerar todas as imagens de novo'
+        type: choice
+        options: ['false', 'true']
+        default: 'false'
+
+permissions:
+  contents: write
+
+concurrency:
+  # Mesmo grupo da importação do Drive: os dois reescrevem queue/stories.yaml.
+  group: instagram-inbox
+  cancel-in-progress: false
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Instalar dependências
+        run: pip install --quiet -r requirements.txt
+
+      - name: Gerar imagens com CTA
+        run: |
+          extra=""
+          if [ "${{ inputs.forcar }}" = "true" ]; then extra="--forcar"; fi
+          python -m poster.cli stories-cta --repo "$GITHUB_REPOSITORY" $extra
+
+      - name: Commitar imagens e fila
+        if: always()
+        run: |
+          git add -A -- media/stories-cta/ queue/stories.yaml
+          if git diff --cached --quiet; then
+            echo "nada novo"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore: CTA gravado nos stories'
+          for tentativa in 1 2 3; do
+            git pull --rebase origin main && git push && exit 0
+            sleep $((tentativa * 5))
+          done
+          exit 1

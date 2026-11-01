@@ -11,69 +11,149 @@
 # Item sem tipo veio da raiz e publica igual — só não entra na comparação de
 # qual conteúdo rende.
 #
+# CTA na imagem: escreva no item
+#
+#   cta:
+#     titulo: Caramelo ou marinho?        # opcional, fala da foto
+#     acao: Responda com a sua cor ↓      # obrigatória, diz o que fazer
+#
+# e o workflow "CTA dos stories" grava o texto na foto, troca a `url` pela
+# imagem nova e guarda a original em `url_original`. Apagar o `cta` volta a
+# foto original. Sem preço e sem urgência — a validação recusa os dois.
+#
 # Para mandar uma destas mídias ao feed, copie o item para queue/posts.yaml,
 # troque media_type, escreva a legenda e marque reviewed_price: true.
 
 - id: 2026-09-19-img-20260812-083523-923-1wfosR
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260812-083523-923-1wfosR.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260812-083523-923-1wfosR-991bc4edffb2.jpg
   origem: 'Drive: IMG_20260812_083523_923.jpg'
+  cta:
+    titulo: Caramelo ou marinho?
+    acao: Responda com a sua cor ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260812-083523-923-1wfosR.jpg
+  cta_render: 991bc4edffb2
 - id: 2026-09-19-img-20260812-083519-097-1fMJiL
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260812-083519-097-1fMJiL.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260812-083519-097-1fMJiL-fb99dc347fe5.jpg
   origem: 'Drive: IMG_20260812_083519_097.jpg'
+  cta:
+    titulo: Um coração de couro para levar junto.
+    acao: Quer na sua cor? Responda ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260812-083519-097-1fMJiL.jpg
+  cta_render: fb99dc347fe5
 - id: 2026-09-19-img-20260816-170125-643-1RsObi
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260816-170125-643-1RsObi.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260816-170125-643-1RsObi-e1fba67e6754.jpg
   origem: 'Drive: IMG_20260816_170125_643.jpg'
+  cta:
+    titulo: Feita para acompanhar a cidade.
+    acao: Responda e peça a sua ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260816-170125-643-1RsObi.jpg
+  cta_render: e1fba67e6754
 - id: 2026-09-19-img-20260816-170135-099-1UvgV4
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260816-170135-099-1UvgV4.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260816-170135-099-1UvgV4-b48d43d70cfa.jpg
   origem: 'Drive: IMG_20260816_170135_099.jpg'
+  cta:
+    titulo: De cima, do meio ou de baixo?
+    acao: Responda com a sua favorita ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260816-170135-099-1UvgV4.jpg
+  cta_render: b48d43d70cfa
 - id: 2026-09-19-img-20260913-194822-461-1cvRAE
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260913-194822-461-1cvRAE.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260913-194822-461-1cvRAE-28afd8470a87.jpg
   origem: 'Drive: IMG_20260913_194822_461.jpg'
+  cta:
+    titulo: A mochila que vai com tudo.
+    acao: Toque em @line_store e veja as cores
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260913-194822-461-1cvRAE.jpg
+  cta_render: 28afd8470a87
 - id: 2026-09-19-img-20260915-132418-425-1q9C7a
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260915-132418-425-1q9C7a.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260915-132418-425-1q9C7a-e8ff069c8e77.jpg
   origem: 'Drive: IMG_20260915_132418_425.jpg'
+  cta:
+    titulo: Mãos livres, estilo inteiro.
+    acao: Responda e escolha a sua cor ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260915-132418-425-1q9C7a.jpg
+  cta_render: e8ff069c8e77
 - id: 2026-09-19-img-20251127-174200-337-1ggRrR
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20251127-174200-337-1ggRrR.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20251127-174200-337-1ggRrR-04782e532b28.jpg
   origem: 'Drive: IMG_20251127_174200_337.webp'
+  cta:
+    titulo: Qual dessas você usaria hoje?
+    acao: Responda este story ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20251127-174200-337-1ggRrR.jpg
+  cta_render: 04782e532b28
 - id: 2026-09-19-file-00000000b2c4720e9c965fa2a5bd99e8-1JVCmy
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-file-00000000b2c4720e9c965fa2a5bd99e8-1JVCmy.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-file-00000000b2c4720e9c965fa2a5bd99e8-1JVCmy-7982b7f53e88.jpg
   origem: 'Drive: file_00000000b2c4720e9c965fa2a5bd99e8.png'
+  cta:
+    titulo: Espaço para tudo o que importa.
+    acao: Toque em @line_store e conheça
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-file-00000000b2c4720e9c965fa2a5bd99e8-1JVCmy.jpg
+  cta_render: 7982b7f53e88
 - id: 2026-09-19-img-20260915-134401-009-1Jpii5
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260915-134401-009-1Jpii5.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260915-134401-009-1Jpii5-0b8326408c47.jpg
   origem: 'Drive: IMG_20260915_134401_009.jpg'
+  cta:
+    titulo: Sob encomenda, do jeito que você imaginou.
+    acao: Responda e monte a sua ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-19-img-20260915-134401-009-1Jpii5.jpg
+  cta_render: 0b8326408c47
 - id: 2026-09-21-vid-20260920-162934-980-1Id6pi
   media_type: STORIES
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-21-vid-20260920-162934-980-1Id6pi.mp4
   origem: 'Drive: VID_20260920_162934_980.mp4'
 - id: 2026-09-23-img-20260923-161646-1HW7tS
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161646-1HW7tS.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161646-1HW7tS-74f136a609e2.jpg
   origem: 'Drive: IMG_20260923_161646.png'
+  cta:
+    titulo: Preta, de couro, para todo dia.
+    acao: Responda “EU QUERO” ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161646-1HW7tS.jpg
+  cta_render: 74f136a609e2
 - id: 2026-09-23-file-000000008e40820e9f83cd8b4fc62937-1c5aBo
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-file-000000008e40820e9f83cd8b4fc62937-1c5aBo.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-file-000000008e40820e9f83cd8b4fc62937-1c5aBo-c4d644fd36f4.jpg
   origem: 'Drive: file_000000008e40820e9f83cd8b4fc62937.png'
+  cta:
+    titulo: Para quem leva o dia nas costas.
+    acao: Toque em @line_store e conheça
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-file-000000008e40820e9f83cd8b4fc62937-1c5aBo.jpg
+  cta_render: c4d644fd36f4
 - id: 2026-09-23-img-20260923-161603-1K_tir
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161603-1K_tir.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161603-1K_tir-8a786e50719c.jpg
   origem: 'Drive: IMG_20260923_161603.jpg'
+  cta:
+    titulo: Couro que ganha história com o tempo.
+    acao: Responda e saiba mais ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161603-1K_tir.jpg
+  cta_render: 8a786e50719c
 - id: 2026-09-23-img-20260923-161611-1rR5Sz
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161611-1rR5Sz.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161611-1rR5Sz-22824978052c.jpg
   origem: 'Drive: IMG_20260923_161611.jpg'
+  cta:
+    titulo: O detalhe faz a diferença.
+    acao: Quer ver de perto? Responda ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161611-1rR5Sz.jpg
+  cta_render: 22824978052c
 - id: 2026-09-23-img-20260923-161542-1yMZeU
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161542-1yMZeU.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161542-1yMZeU-bc4698692a45.jpg
   origem: 'Drive: IMG_20260923_161542.png'
+  cta:
+    titulo: Simples. De couro. Sua.
+    acao: Responda e peça a sua ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161542-1yMZeU.jpg
+  cta_render: bc4698692a45
 - id: 2026-09-23-vid-20260918-182149-677-1x75Kh
   media_type: STORIES
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-vid-20260918-182149-677-1x75Kh.mp4
@@ -84,64 +164,129 @@
   origem: 'Drive: VID_20260918_182154_465.mp4'
 - id: 2026-09-23-img-20260923-161110-1qt_4h
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161110-1qt_4h.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161110-1qt_4h-001986bbc839.jpg
   origem: 'Drive: IMG_20260923_161110.jpg'
+  cta:
+    titulo: Combina com a sua rotina?
+    acao: Responda este story ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161110-1qt_4h.jpg
+  cta_render: 001986bbc839
 - id: 2026-09-23-img-20260923-161122-1IDzH2
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161122-1IDzH2.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161122-1IDzH2-3830f471fb46.jpg
   origem: 'Drive: IMG_20260923_161122.jpg'
+  cta:
+    titulo: No tamanho e na cor que você escolher.
+    acao: Responda e monte a sua ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161122-1IDzH2.jpg
+  cta_render: 3830f471fb46
 - id: 2026-09-23-img-20260923-161137-1vsjqy
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161137-1vsjqy.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161137-1vsjqy-d044deab3098.jpg
   origem: 'Drive: IMG_20260923_161137.jpg'
+  cta:
+    titulo: Um clássico que não sai de moda.
+    acao: Toque em @line_store e veja as cores
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-img-20260923-161137-1vsjqy.jpg
+  cta_render: d044deab3098
 - id: 2026-09-29-vid-20260929-071102-659-1965FS
   media_type: STORIES
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-vid-20260929-071102-659-1965FS.mp4
   origem: 'Drive: VID_20260929_071102_659.mp4'
 - id: 2026-09-29-photoroom-20260313-161215875-1CQUm7
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-photoroom-20260313-161215875-1CQUm7.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-photoroom-20260313-161215875-1CQUm7-f36492846035.jpg
   origem: 'Drive: Photoroom-20260313_161215875.png'
+  cta:
+    titulo: Vermelho ou outra cor?
+    acao: Responda com a sua ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-photoroom-20260313-161215875-1CQUm7.jpg
+  cta_render: f36492846035
 - id: 2026-09-29-cymera-20251114-111507-1eF-Et
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-cymera-20251114-111507-1eF-Et.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-cymera-20251114-111507-1eF-Et-d4735cd064ae.jpg
   origem: 'Drive: CYMERA_20251114_111507.jpg'
+  cta:
+    titulo: Momento sereia.
+    acao: Você usaria? Responda ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-cymera-20251114-111507-1eF-Et.jpg
+  cta_render: d4735cd064ae
 - id: 2026-09-29-hrdhddddd-1ek6AI
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-hrdhddddd-1ek6AI.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-hrdhddddd-1ek6AI-a4ccb67ee3b0.jpg
   origem: 'Drive: hrdhddddd.jpg'
+  cta:
+    titulo: Leve como um passeio de domingo.
+    acao: Toque em @line_store e conheça
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-hrdhddddd-1ek6AI.jpg
+  cta_render: a4ccb67ee3b0
 - id: 2026-09-29-photoroom-20260208-203212653-1sHM1_
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-photoroom-20260208-203212653-1sHM1_.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-photoroom-20260208-203212653-1sHM1_-156507b92462.jpg
   origem: 'Drive: Photoroom-20260208_203212653.png'
+  cta:
+    titulo: Marinho que combina com tudo.
+    acao: Responda e peça a sua ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-photoroom-20260208-203212653-1sHM1_.jpg
+  cta_render: 156507b92462
 - id: 2026-09-29-photoroom-20260312-134532440-16Mn18
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-photoroom-20260312-134532440-16Mn18.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-photoroom-20260312-134532440-16Mn18-121cba64b15d.jpg
   origem: 'Drive: Photoroom-20260312_134532440.png'
+  cta:
+    titulo: Um presente para durar anos.
+    acao: Responda e escolha a sua ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-photoroom-20260312-134532440-16Mn18.jpg
+  cta_render: 121cba64b15d
 - id: 2026-09-29-img-20260923-161542-1w_Onm
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-img-20260923-161542-1w_Onm.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-img-20260923-161542-1w_Onm-295b7affe2ce.jpg
   origem: 'Drive: IMG_20260923_161542.png'
+  cta:
+    titulo: Sua próxima companheira de rotina.
+    acao: Toque em @line_store e conheça
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-img-20260923-161542-1w_Onm.jpg
+  cta_render: 295b7affe2ce
 - id: 2026-09-29-story-sex-26-12-2025-12-09-44-14jr1i
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-story-sex-26-12-2025-12-09-44-14jr1i.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-story-sex-26-12-2025-12-09-44-14jr1i-4826eafdc413.jpg
   origem: 'Drive: Story_sex._26_12_2025_12_09_44.png'
+  cta:
+    titulo: Qual combina mais com você?
+    acao: Responda este story ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-story-sex-26-12-2025-12-09-44-14jr1i.jpg
+  cta_render: 4826eafdc413
 - id: 2026-09-29-story-sex-26-12-2025-12-02-21-1MD25U
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-story-sex-26-12-2025-12-02-21-1MD25U.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-story-sex-26-12-2025-12-02-21-1MD25U-b408a6f6813f.jpg
   origem: 'Drive: Story_sex._26_12_2025_12_02_21.png'
+  cta:
+    titulo: De cima, do meio ou de baixo?
+    acao: Responda com a sua ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-29-story-sex-26-12-2025-12-02-21-1MD25U.jpg
+  cta_render: b408a6f6813f
 - id: 2026-10-11-vid-20261011-115336-936-1jxCg9
   media_type: STORIES
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-10-11-vid-20261011-115336-936-1jxCg9.mp4
   origem: 'Drive: VID_20261011_115336_936.mp4'
 - id: 2026-10-11-img-20261011-151242-1c3QBH
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-10-11-img-20261011-151242-1c3QBH.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-10-11-img-20261011-151242-1c3QBH-f29f1afa4baf.jpg
   origem: 'Drive: IMG_20261011_151242.png'
+  cta:
+    titulo: Pequena no tamanho. Grande no estilo.
+    acao: Responda e peça a sua ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-10-11-img-20261011-151242-1c3QBH.jpg
+  cta_render: f29f1afa4baf
 - id: 2026-10-11-img-20261011-150727-353-1B7diJ
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-10-11-img-20261011-150727-353-1B7diJ.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-10-11-img-20261011-150727-353-1B7diJ-ac31c8c5cf89.jpg
   origem: 'Drive: IMG_20261011_150727_353.webp'
+  cta:
+    titulo: Essa você levaria aonde?
+    acao: Responda este story ↓
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-10-11-img-20261011-150727-353-1B7diJ.jpg
+  cta_render: ac31c8c5cf89
 - id: 2026-10-16-364474011-1791764458020247-1lqoOK
   media_type: STORIES
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-10-16-364474011-1791764458020247-1lqoOK.mp4
@@ -164,5 +309,10 @@
   origem: 'Drive: Sem título 2026-10-19 21.13.06.mp4'
 - id: 2026-10-21-photoroom-20260920-172645949-1cClUd
   media_type: STORIES
-  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-10-21-photoroom-20260920-172645949-1cClUd.jpg
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-10-21-photoroom-20260920-172645949-1cClUd-d520e6792aeb.jpg
   origem: 'Drive: Photoroom-20260920_172645949.png'
+  cta:
+    titulo: Branco que é puro charme.
+    acao: Toque em @line_store e conheça
+  url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-10-21-photoroom-20260920-172645949-1cClUd.jpg
+  cta_render: d520e6792aeb

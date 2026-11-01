@@ -37,6 +37,7 @@ class PublishOutcome:
     published_at: datetime
     permalink: str | None = None
     tipo: str = ""
+    cta: str = ""
     quota_usage: int | None = None
     quota_total: int | None = None
     children: list[str] = field(default_factory=list)
@@ -50,6 +51,7 @@ class PublishOutcome:
             published_at=self.published_at.isoformat(timespec="seconds"),
             permalink=self.permalink,
             tipo=self.tipo,
+            cta=self.cta,
         )
 
 
@@ -226,6 +228,7 @@ def publish_item(
         published_at=now(),
         permalink=fetch_permalink(client, media_id),
         tipo=item.tipo,
+        cta=item.cta,
         quota_usage=usage,
         quota_total=total,
         children=children,
