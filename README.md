@@ -125,7 +125,13 @@ texto. Então o chamado para a ação vai gravado na própria foto:
   cta:
     titulo: Caramelo ou marinho?       # opcional — fala da foto
     acao: Responda com a sua cor ↓     # obrigatória — diz o que fazer
+    layout: faixa                      # opcional — ver abaixo
 ```
+
+`layout: sobre` (padrão) põe o texto em cima da foto, que ocupa a tela toda.
+`layout: faixa` mostra a foto inteira em cima e o texto numa faixa própria
+embaixo: use em **colagem e em foto com a bolsa na parte de baixo**, onde o
+texto cobriria o produto.
 
 Editou a fila em `main` (pelo celular, inclusive)? O workflow *CTA dos
 stories* gera a imagem 1080×1920 em `media/stories-cta/`, troca a `url` e
