@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-11-01T23:02:27+00:00",
+  "updated_at": "2026-11-01T23:51:26+00:00",
   "published": [
     {
       "item_id": "teste-stories-line-baguete",
@@ -841,6 +841,16 @@
       "permalink": "https://www.instagram.com/stories/line_store/4021113305360200021",
       "tipo": "",
       "cta": "Responda este story ↓"
+    },
+    {
+      "item_id": "2026-11-01-satchel-classica-1-pergunta",
+      "media_id": "18116518094009928",
+      "container_id": "18650053279043967",
+      "media_type": "STORIES",
+      "published_at": "2026-11-01T23:51:25+00:00",
+      "permalink": "https://www.instagram.com/stories/line_store/4021137941410032274",
+      "tipo": "produto",
+      "cta": ""
     }
   ]
 }
