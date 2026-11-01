@@ -88,6 +88,39 @@ class CliTest(unittest.TestCase):
         self.assertEqual(codigo, EXIT_OK)
         self.assertIn("escolhido: b", saida.getvalue())
 
+    def test_item_manual_so_sai_por_disparo_manual(self):
+        fila = os.path.join(self.dir.name, "fila.yaml")
+        with open(fila, "w", encoding="utf-8") as handle:
+            handle.write(
+                "- id: seq\n  media_type: STORIES\n  url: https://x/a.jpg\n  manual: true\n"
+            )
+        with contextlib.redirect_stdout(io.StringIO()):
+            automatico = main(["publish", "--dry-run", "--queue", fila, "--state", self.state])
+        saida = io.StringIO()
+        with contextlib.redirect_stdout(saida):
+            manual = main([
+                "publish", "--dry-run", "--queue", fila, "--state", self.state, "--item", "seq",
+            ])
+        self.assertEqual(automatico, EXIT_NOTHING)
+        self.assertEqual(manual, EXIT_OK)
+        self.assertIn("escolhido: seq", saida.getvalue())
+
+    def test_item_manual_nunca_repete(self):
+        from datetime import datetime, timezone
+        from poster import queue_file, repeticao, state
+
+        itens = queue_file.parse_queue([
+            {"id": "seq", "media_type": "STORIES", "url": "https://x/a.jpg", "manual": True}
+        ])
+        publicado = [state.PublishedEntry(
+            "seq", "1", "c", "STORIES", "2026-01-01T12:00:00+00:00"
+        )]
+        escolha = repeticao.selecionar(
+            itens, publicado, [], apos_dias=14,
+            now=datetime(2026, 11, 1, tzinfo=timezone.utc),
+        )
+        self.assertIsNone(escolha.item)
+
     def test_publish_item_inexistente_falha(self):
         with contextlib.redirect_stderr(io.StringIO()), contextlib.redirect_stdout(io.StringIO()):
             codigo = main([

@@ -88,6 +88,10 @@ class QueueItem:
     # Texto da ação do CTA gravado na imagem, quando a imagem já foi gerada
     # (`cta_render`). Vazio = story sem CTA. Também só serve para a análise.
     cta: str = ""
+    # Só sai por disparo manual (`publish --item`). Para story que faz parte de
+    # uma sequência ("veja no próximo story"): sozinho, fora de ordem ou numa
+    # repetição avulsa, ele promete um próximo story que não vem.
+    manual: bool = False
     raw: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
 
     @property
@@ -192,6 +196,7 @@ def _parse_item(entry: dict[str, Any], label: str) -> QueueItem:
         media_type=media_type,
         tipo=str(entry.get("tipo") or "").strip(),
         cta=cta_texto,
+        manual=entry.get("manual") is True,
         urls=tuple(urls),
         caption=caption,
         reviewed_price=reviewed_price is True,

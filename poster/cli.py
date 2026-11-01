@@ -165,6 +165,7 @@ def cmd_publish(args: argparse.Namespace) -> int:
             rng=random.Random(seed) if seed else None,
             media_types=formatos or None,
             bloqueados=travados,
+            incluir_manuais=bool(args.item),
         )
 
         if not tentados:
