@@ -66,6 +66,35 @@ class CliTest(unittest.TestCase):
 
         self.assertEqual(codigo, EXIT_NOTHING)
 
+    def test_publish_item_escolhido_sai_mesmo_ja_publicado(self):
+        fila = os.path.join(self.dir.name, "fila.yaml")
+        with open(fila, "w", encoding="utf-8") as handle:
+            handle.write(
+                "- id: a\n  media_type: STORIES\n  url: https://x/a.jpg\n"
+                "- id: b\n  media_type: STORIES\n  url: https://x/b.jpg\n"
+            )
+        with open(self.state, "w", encoding="utf-8") as handle:
+            json.dump({"published": [{
+                "item_id": "b", "media_id": "1", "container_id": "c",
+                "media_type": "STORIES", "published_at": "2026-11-01T12:00:00+00:00",
+            }]}, handle)
+
+        saida = io.StringIO()
+        with contextlib.redirect_stdout(saida):
+            codigo = main([
+                "publish", "--dry-run", "--queue", fila, "--state", self.state, "--item", "b",
+            ])
+
+        self.assertEqual(codigo, EXIT_OK)
+        self.assertIn("escolhido: b", saida.getvalue())
+
+    def test_publish_item_inexistente_falha(self):
+        with contextlib.redirect_stderr(io.StringIO()), contextlib.redirect_stdout(io.StringIO()):
+            codigo = main([
+                "publish", "--dry-run", "--queue", EXEMPLO, "--state", self.state, "--item", "nao-existe",
+            ])
+        self.assertEqual(codigo, EXIT_FAIL)
+
     def test_publish_sem_credencial_falha_com_alerta(self):
         codigo = main(["publish", "--queue", EXEMPLO, "--state", self.state])
 

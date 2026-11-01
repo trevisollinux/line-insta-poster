@@ -18,6 +18,10 @@ on:
         type: choice
         options: ['weighted', 'order']
         default: 'weighted'
+      item_id:
+        description: 'publicar este id de queue/stories.yaml (vazio = escolha normal)'
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -30,3 +34,5 @@ jobs:
       media_type: STORIES
       dry_run: ${{ inputs.dry_run || 'false' }}
       selection: ${{ inputs.selection || 'weighted' }}
+      queue: queue/stories.yaml
+      item_id: ${{ inputs.item_id || '' }}

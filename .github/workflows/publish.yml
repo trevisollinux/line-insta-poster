@@ -44,6 +44,10 @@ on:
         description: 'sem item novo, repete o que saiu há N dias (0 = nunca)'
         type: string
         default: '0'
+      item_id:
+        description: 'publicar este id da fila (vazio = escolha normal)'
+        type: string
+        default: ''
   workflow_call:
     inputs:
       dry_run:
@@ -64,6 +68,9 @@ on:
       repetir_apos_dias:
         type: string
         default: '0'
+      item_id:
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -105,6 +112,7 @@ jobs:
             --media-type "${{ inputs.media_type || '' }}" \
             --max-por-dia "${{ inputs.max_por_dia || '0' }}" \
             --repetir-apos-dias "${{ inputs.repetir_apos_dias || '0' }}" \
+            --item "${{ inputs.item_id || '' }}" \
             --queue "${{ inputs.queue || 'queue/posts.yaml' }}"
           codigo=$?
           echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
