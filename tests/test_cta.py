@@ -74,7 +74,7 @@ class DesenhoTest(unittest.TestCase):
             cta.renderizar(branca, cta.Cta("Responda ↓", "Título", layout="faixa"))
         )).convert("L")
         # a foto inteira (branca) aparece; o texto começa abaixo dela
-        linhas_brancas = [y for y in range(0, 1920, 10) if saida.getpixel((540, y)) > 245]
+        linhas_brancas = [y for y in range(0, 1920, 10) if saida.getpixel((540, y)) > 252]
         self.assertTrue(linhas_brancas)
         self.assertLess(max(linhas_brancas), cta.BASE_SEGURA - 200)
 
