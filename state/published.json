@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-11-01T23:51:26+00:00",
+  "updated_at": "2026-11-01T23:53:17+00:00",
   "published": [
     {
       "item_id": "teste-stories-line-baguete",
@@ -849,6 +849,16 @@
       "media_type": "STORIES",
       "published_at": "2026-11-01T23:51:25+00:00",
       "permalink": "https://www.instagram.com/stories/line_store/4021137941410032274",
+      "tipo": "produto",
+      "cta": ""
+    },
+    {
+      "item_id": "2026-11-01-satchel-classica-2-detalhes",
+      "media_id": "18415275724091873",
+      "container_id": "18650053879043967",
+      "media_type": "STORIES",
+      "published_at": "2026-11-01T23:53:16+00:00",
+      "permalink": "https://www.instagram.com/stories/line_store/4021138886277479948",
       "tipo": "produto",
       "cta": ""
     }
