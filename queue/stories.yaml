@@ -16,6 +16,7 @@
 #   cta:
 #     titulo: Caramelo ou marinho?        # opcional, fala da foto
 #     acao: Responda com a sua cor ↓      # obrigatória, diz o que fazer
+#     layout: faixa                       # opcional: foto inteira, texto embaixo
 #
 # e o workflow "CTA dos stories" grava o texto na foto, troca a `url` pela
 # imagem nova e guarda a original em `url_original`. Apagar o `cta` volta a
@@ -333,3 +334,15 @@
     layout: faixa
   url_original: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-10-21-photoroom-20260920-172645949-1cClUd.jpg
   cta_render: 3277ca4b9932
+- id: 2026-11-01-satchel-classica-1-pergunta
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-arte/2026-11-01-satchel-classica-1-pergunta.jpg
+  origem: 'Arte: foto IMG_20260923_161137 + pergunta (sequência Satchel Clássica, 1 de 2)'
+  tipo: produto
+  manual: true
+- id: 2026-11-01-satchel-classica-2-detalhes
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-arte/2026-11-01-satchel-classica-2-detalhes.jpg
+  origem: 'Arte: ilustração da Satchel Clássica com detalhes (sequência, 2 de 2)'
+  tipo: produto
+  manual: true

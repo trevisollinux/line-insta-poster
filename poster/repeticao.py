@@ -110,6 +110,8 @@ def selecionar(
             continue
         if permitidos and item.media_type not in permitidos:
             continue
+        if item.manual:  # parte de sequência: nunca repete sozinho
+            continue
         ultima = last_published_at(published, item.id) or item.last_published
         if ultima is None:
             continue

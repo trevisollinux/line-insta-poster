@@ -39,6 +39,7 @@ def select_next(
     rng: random.Random | None = None,
     media_types: tuple[str, ...] | None = None,
     bloqueados: dict[str, str] | None = None,
+    incluir_manuais: bool = False,
 ) -> Selection:
     """`media_types` limita a escolha a um formato — é o que separa os workflows
     de Reels, Stories e carrossel sem duplicar a lógica de publicação.
@@ -61,6 +62,9 @@ def select_next(
     for item in items:
         if item.id in travados:
             skipped.append(Skipped(item.id, travados[item.id]))
+            continue
+        if item.manual and not incluir_manuais:
+            skipped.append(Skipped(item.id, "só por disparo manual"))
             continue
         if permitidos and item.media_type not in permitidos:
             skipped.append(
