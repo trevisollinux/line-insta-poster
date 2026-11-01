@@ -27,6 +27,8 @@ class Publicado:
     views: int | None = None
     reach: int | None = None
     visitas_perfil: int | None = None
+    respostas: int | None = None
+    cta: str = ""
 
 
 @dataclass(frozen=True)
@@ -75,6 +77,8 @@ def juntar(entradas, metricas: list[dict[str, str]]) -> list[Publicado]:
                 views=_numero(medida.get("views")),
                 reach=_numero(medida.get("reach")),
                 visitas_perfil=_numero(medida.get("profile_visits")),
+                respostas=_numero(medida.get("replies")),
+                cta=(getattr(entrada, "cta", "") or ""),
             )
         )
     return sorted(saida, key=lambda p: p.quando)
@@ -95,6 +99,34 @@ def por_tipo(publicados: list[Publicado]) -> dict[str, dict[str, float]]:
     return {
         tipo: {"n": len(valores), "mediana": statistics.median(valores)}
         for tipo, valores in sorted(grupos.items())
+    }
+
+
+def com_e_sem_cta(publicados: list[Publicado]) -> dict[str, dict[str, float]]:
+    """Medianas de quem saiu com CTA contra quem saiu sem, com o `n`.
+
+    Views quase não deveriam mudar — o CTA não aparece antes de a pessoa abrir
+    o story. O que ele pretende mexer são respostas (o direct) e visitas ao
+    perfil, e é ali que a comparação vale.
+    """
+    grupos: dict[str, list[Publicado]] = {}
+    for item in publicados:
+        if item.views is None:
+            continue
+        grupos.setdefault("com CTA" if item.cta else "sem CTA", []).append(item)
+
+    def mediana(valores: list[int | None]) -> float | None:
+        validos = [v for v in valores if v is not None]
+        return statistics.median(validos) if validos else None
+
+    return {
+        nome: {
+            "n": len(itens),
+            "views": mediana([i.views for i in itens]),
+            "respostas": mediana([i.respostas for i in itens]),
+            "visitas_perfil": mediana([i.visitas_perfil for i in itens]),
+        }
+        for nome, itens in sorted(grupos.items())
     }
 
 
@@ -180,6 +212,29 @@ def markdown(resumo: Resumo) -> str:
             "_Nenhum story tinha tipo._ Enquanto as fotos não vierem das "
             "subpastas do Drive, não dá para comparar conteúdo — que é o fator "
             "que mais mexeu no alcance.",
+            "",
+        ]
+
+    grupos_cta = com_e_sem_cta(publicados)
+    if len(grupos_cta) > 1:
+        def celula(valor) -> str:
+            return "—" if valor is None else f"{valor:.0f}" if valor == int(valor) else f"{valor:.1f}"
+
+        linhas += [
+            "### Com e sem CTA na imagem",
+            "",
+            "| | Stories | Views | Respostas | Visitas ao perfil |",
+            "|---|---|---|---|---|",
+        ]
+        for nome, dados in grupos_cta.items():
+            linhas.append(
+                f"| {nome} | {dados['n']:.0f} | {celula(dados['views'])} | "
+                f"{celula(dados['respostas'])} | {celula(dados['visitas_perfil'])} |"
+            )
+        linhas += [
+            "",
+            "Medianas. O CTA mira respostas e visitas ao perfil, não views. Com "
+            "menos de 5 stories em cada lado, a diferença ainda cabe no acaso.",
             "",
         ]
 

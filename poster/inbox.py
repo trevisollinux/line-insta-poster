@@ -64,6 +64,16 @@ DRAFTS_HEADER = """# Stories vindos da pasta do Drive — esta fila PUBLICA sozi
 # Item sem tipo veio da raiz e publica igual — só não entra na comparação de
 # qual conteúdo rende.
 #
+# CTA na imagem: escreva no item
+#
+#   cta:
+#     titulo: Caramelo ou marinho?        # opcional, fala da foto
+#     acao: Responda com a sua cor ↓      # obrigatória, diz o que fazer
+#
+# e o workflow "CTA dos stories" grava o texto na foto, troca a `url` pela
+# imagem nova e guarda a original em `url_original`. Apagar o `cta` volta a
+# foto original. Sem preço e sem urgência — a validação recusa os dois.
+#
 # Para mandar uma destas mídias ao feed, copie o item para queue/posts.yaml,
 # troque media_type, escreva a legenda e marque reviewed_price: true.
 """

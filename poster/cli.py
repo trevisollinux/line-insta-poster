@@ -9,6 +9,7 @@ Comandos
   story-metrics  captura as métricas dos stories no ar antes de expirarem
   reel-metrics   guarda views, alcance e visitas ao perfil dos Reels recentes
   watch-stories  avisa quando o dia passou sem o story esperado
+  stories-cta    grava na imagem o CTA escrito em queue/stories.yaml
 
 Códigos de saída: 0 sucesso, 1 falha (com alerta), 2 nada a fazer.
 """
@@ -19,9 +20,11 @@ import dataclasses
 import os
 import random
 import sys
+import urllib.request
 from datetime import datetime, timedelta, timezone
 
 from . import (
+    REPO_ROOT,
     audiencia,
     conta as conta_mod,
     curadoria,
@@ -704,6 +707,48 @@ def cmd_watch_queue(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_stories_cta(args: argparse.Namespace) -> int:
+    """Gera as imagens com CTA e aponta a fila de stories para elas."""
+    from . import cta as cta_mod
+
+    def ler_origem(url: str) -> bytes:
+        if args.origem_local:
+            local = os.path.join(args.origem_local, url.rsplit("/", 1)[-1])
+            if os.path.exists(local):
+                with open(local, "rb") as handle:
+                    return handle.read()
+        pedido = urllib.request.Request(url, headers={"User-Agent": "line-insta-poster"})
+        with urllib.request.urlopen(pedido, timeout=60) as resposta:
+            return resposta.read()
+
+    itens = inbox_mod.load_drafts(args.queue)
+    resultado = cta_mod.aplicar(
+        itens,
+        ler_origem=ler_origem,
+        raiz=args.raiz,
+        repo=args.repo or env_str("GITHUB_REPOSITORY") or "trevisollinux/line-insta-poster",
+        branch=args.branch,
+        forcar=args.forcar,
+    )
+    if resultado.gerados or resultado.removidos:
+        inbox_mod.write_drafts(itens, args.queue)
+
+    linhas = [
+        f"CTA gerado: {len(resultado.gerados)} · já em dia: {len(resultado.mantidos)} "
+        f"· CTA retirado: {len(resultado.removidos)} · falhas: {len(resultado.falhas)}"
+    ]
+    linhas += [f"- gerado: {i}" for i in resultado.gerados]
+    linhas += [f"- retirado: {i}" for i in resultado.removidos]
+    linhas += [f"- FALHOU {f}" for f in resultado.falhas]
+    print("\n".join(linhas))
+    write_summary("\n".join(linhas) + "\n")
+
+    # Valida a fila depois de mexer: arquivo que sai daqui inválido pararia a
+    # publicação inteira, não só o item.
+    queue_file.load_queue(args.queue)
+    return EXIT_FAIL if resultado.falhas else EXIT_OK
+
+
 def cmd_inbox(args: argparse.Namespace) -> int:
     """Importa o que a curadoria humana largou na pasta do Drive."""
     webhook = env_str("IG_ALERT_WEBHOOK")
@@ -1161,6 +1206,20 @@ def build_parser() -> argparse.ArgumentParser:
     watch.add_argument("--report", default="", help="corpo da issue neste caminho")
     watch.add_argument("--title-file", default="", help="título da issue neste caminho")
     watch.set_defaults(func=cmd_watch_stories)
+
+    stories_cta = sub.add_parser(
+        "stories-cta", help="grava na imagem o CTA escrito na fila de stories"
+    )
+    stories_cta.add_argument("--queue", default=inbox_mod.DRAFTS_PATH)
+    stories_cta.add_argument("--raiz", default=REPO_ROOT, help="raiz deste repositório")
+    stories_cta.add_argument("--repo", default="", help="owner/repo que serve as imagens")
+    stories_cta.add_argument("--branch", default="main")
+    stories_cta.add_argument(
+        "--origem-local", default="",
+        help="pasta com as fotos originais (pelo nome do arquivo), em vez de baixar",
+    )
+    stories_cta.add_argument("--forcar", action="store_true", help="gera tudo de novo")
+    stories_cta.set_defaults(func=cmd_stories_cta)
 
     inbox = sub.add_parser("inbox", help="importa fotos novas da pasta do Drive")
     inbox.add_argument("--folder-id", default="", help="pasta do Drive (ou GDRIVE_FOLDER_ID)")

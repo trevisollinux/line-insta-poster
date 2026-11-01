@@ -113,6 +113,34 @@ alcança pixel. Story dura 24h e dá para apagar pelo app.
 Para mandar uma foto do Drive ao feed, copie o item para `queue/posts.yaml`,
 troque o `media_type`, escreva a legenda e marque `reviewed_price: true`.
 
+## CTA nos stories
+
+A Graph API publica story **sem sticker nenhum** — nem link, nem enquete, nem
+texto. Então o chamado para a ação vai gravado na própria foto:
+
+```yaml
+- id: 2026-09-19-img-...
+  media_type: STORIES
+  url: ...
+  cta:
+    titulo: Caramelo ou marinho?       # opcional — fala da foto
+    acao: Responda com a sua cor ↓     # obrigatória — diz o que fazer
+```
+
+Editou a fila em `main` (pelo celular, inclusive)? O workflow *CTA dos
+stories* gera a imagem 1080×1920 em `media/stories-cta/`, troca a `url` e
+guarda a foto limpa em `url_original`. Apagar o `cta` volta a foto original.
+Na mão: `python -m poster.cli stories-cta`.
+
+- **Ação preferida: responder o story.** A resposta cai no direct, onde a
+  venda acontece. A segunda é "Toque em @line_store", que vira visita ao perfil.
+- **Sem preço e sem urgência.** Texto gravado no pixel não envelhece com a
+  loja, e o story repete a cada 14 dias. A validação recusa preço e os termos
+  de `queue/exclusoes.yaml`.
+- **Só foto.** Vídeo não recebe texto por cima.
+- **Mede-se.** O estado grava qual story saiu com CTA, e o resumo semanal
+  compara respostas e visitas ao perfil com e sem CTA.
+
 ## Formato da fila
 
 ```yaml
