@@ -69,6 +69,7 @@ DRAFTS_HEADER = """# Stories vindos da pasta do Drive — esta fila PUBLICA sozi
 #   cta:
 #     titulo: Caramelo ou marinho?        # opcional, fala da foto
 #     acao: Responda com a sua cor ↓      # obrigatória, diz o que fazer
+#     layout: faixa                       # opcional: foto inteira, texto embaixo
 #
 # e o workflow "CTA dos stories" grava o texto na foto, troca a `url` pela
 # imagem nova e guarda a original em `url_original`. Apagar o `cta` volta a

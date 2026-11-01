@@ -67,6 +67,28 @@ class DesenhoTest(unittest.TestCase):
         abaixo = saida.crop((0, cta.BASE_SEGURA + 30, 1080, 1920))
         self.assertLess(abaixo.convert("L").getextrema()[1], 60)
 
+    def test_faixa_nao_cobre_a_foto(self):
+        """No layout faixa, o texto fica abaixo da foto, nunca por cima dela."""
+        branca = foto(cor=(255, 255, 255))
+        saida = Image.open(io.BytesIO(
+            cta.renderizar(branca, cta.Cta("Responda ↓", "Título", layout="faixa"))
+        )).convert("L")
+        # a foto inteira (branca) aparece; o texto começa abaixo dela
+        linhas_brancas = [y for y in range(0, 1920, 10) if saida.getpixel((540, y)) > 245]
+        self.assertTrue(linhas_brancas)
+        self.assertLess(max(linhas_brancas), cta.BASE_SEGURA - 200)
+
+    def test_layout_invalido(self):
+        self.assertTrue(cta.problemas_do_cta({"acao": "Responda", "layout": "lado"}))
+
+    def test_layout_sobre_nao_muda_assinatura_antiga(self):
+        self.assertEqual(
+            cta.Cta("R", "T").assinatura("x"), cta.Cta("R", "T", layout="sobre").assinatura("x")
+        )
+        self.assertNotEqual(
+            cta.Cta("R", "T").assinatura("x"), cta.Cta("R", "T", layout="faixa").assinatura("x")
+        )
+
     def test_sem_titulo(self):
         saida = cta.renderizar(foto(), cta.Cta("Toque em @line_store"))
         self.assertTrue(saida.startswith(b"\xff\xd8"))

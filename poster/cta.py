@@ -56,6 +56,7 @@ COR_PILULA = (244, 237, 227)
 COR_PILULA_TEXTO = (52, 33, 22)
 COR_SOMBRA = (22, 15, 10)
 
+LAYOUTS = ("sobre", "faixa")
 TITULO_MAX = 60
 ACAO_MAX = 40
 # Muda quando o desenho muda: força renderizar de novo o que já foi gravado.
@@ -70,10 +71,18 @@ class CtaError(ValueError):
 class Cta:
     acao: str
     titulo: str = ""
+    # "sobre": texto em cima da foto, que ocupa a tela toda.
+    # "faixa": a foto inteira em cima e o texto numa faixa própria embaixo —
+    # para colagem e foto com a bolsa na parte de baixo, onde o texto cobriria
+    # justamente o produto (story de 01/11, apagado por isso).
+    layout: str = "sobre"
 
     def assinatura(self, origem: str) -> str:
         """Muda quando o texto, a foto de origem ou o desenho mudam."""
-        base = "\x1f".join((VERSAO_DESENHO, origem, self.titulo, self.acao))
+        partes = [VERSAO_DESENHO, origem, self.titulo, self.acao]
+        if self.layout != "sobre":  # não muda a assinatura do que já existe
+            partes.append(self.layout)
+        base = "\x1f".join(partes)
         return hashlib.sha256(base.encode("utf-8")).hexdigest()[:12]
 
 
@@ -82,7 +91,7 @@ def problemas_do_cta(bruto) -> list[str]:
     if not isinstance(bruto, dict):
         return ["cta deve ser um mapa com `acao` (e `titulo`, opcional)"]
     problemas: list[str] = []
-    desconhecidos = set(bruto) - {"acao", "titulo"}
+    desconhecidos = set(bruto) - {"acao", "titulo", "layout"}
     if desconhecidos:
         problemas.append(f"cta com campo desconhecido: {', '.join(sorted(desconhecidos))}")
     acao = str(bruto.get("acao") or "").strip()
@@ -91,6 +100,8 @@ def problemas_do_cta(bruto) -> list[str]:
         problemas.append("cta.acao é obrigatória — é ela que diz o que fazer")
     if len(acao) > ACAO_MAX:
         problemas.append(f"cta.acao com {len(acao)} caracteres (máx. {ACAO_MAX}, cabe numa linha)")
+    if str(bruto.get("layout") or "sobre") not in LAYOUTS:
+        problemas.append(f"cta.layout deve ser {' ou '.join(LAYOUTS)}")
     if len(titulo) > TITULO_MAX:
         problemas.append(f"cta.titulo com {len(titulo)} caracteres (máx. {TITULO_MAX})")
 
@@ -115,7 +126,11 @@ def ler_cta(bruto) -> Cta:
     problemas = problemas_do_cta(bruto)
     if problemas:
         raise CtaError("; ".join(problemas))
-    return Cta(acao=str(bruto["acao"]).strip(), titulo=str(bruto.get("titulo") or "").strip())
+    return Cta(
+        acao=str(bruto["acao"]).strip(),
+        titulo=str(bruto.get("titulo") or "").strip(),
+        layout=str(bruto.get("layout") or "sobre"),
+    )
 
 
 def _fonte(caminho: str, tamanho: int) -> ImageFont.FreeTypeFont:
@@ -134,6 +149,21 @@ def enquadrar(foto: Image.Image) -> Image.Image:
     fundo = Image.blend(fundo, Image.new("RGB", fundo.size, COR_SOMBRA), 0.25)
     frente = ImageOps.contain(foto, (LARGURA, ALTURA), Image.LANCZOS)
     fundo.paste(frente, ((LARGURA - frente.width) // 2, (ALTURA - frente.height) // 2))
+    return fundo
+
+
+def enquadrar_faixa(foto: Image.Image, altura_livre: int) -> Image.Image:
+    """Foto inteira acima de `altura_livre`; abaixo, fundo escuro para o texto."""
+    foto = ImageOps.exif_transpose(foto).convert("RGB")
+    fundo = ImageOps.fit(foto, (LARGURA, ALTURA), Image.LANCZOS)
+    fundo = fundo.filter(ImageFilter.GaussianBlur(50))
+    fundo = Image.blend(fundo, Image.new("RGB", fundo.size, COR_SOMBRA), 0.72)
+    # Começa abaixo da barra de progresso e do @, que cobrem o topo da tela.
+    topo, margem = 170, 40
+    frente = ImageOps.contain(foto, (LARGURA - 2 * margem, altura_livre - topo), Image.LANCZOS)
+    x = (LARGURA - frente.width) // 2
+    y = topo + (altura_livre - topo - frente.height) // 2
+    fundo.paste(frente, (x, y))
     return fundo
 
 
@@ -182,7 +212,6 @@ def _espacado(desenho, xy, texto, fonte, cor, espaco) -> None:
 
 def desenhar(foto: Image.Image, cta: Cta) -> Image.Image:
     """Devolve a imagem 1080x1920 com o CTA gravado."""
-    base = enquadrar(foto).convert("RGBA")
 
     # Botão: tamanho fixo de fonte, encolhe só se a frase não couber.
     tamanho = 42
@@ -214,8 +243,12 @@ def desenhar(foto: Image.Image, cta: Cta) -> Image.Image:
     fonte_marca = _fonte(FONTE_MARCA, 26)
     marca_y = (titulo_y if linhas else pil_y) - 58
 
-    inicio_degrade = max(TOPO_SEGURO, marca_y - 420)
-    base = Image.alpha_composite(base, _degrade(inicio_degrade))
+    if cta.layout == "faixa":
+        base = enquadrar_faixa(foto, marca_y - 30).convert("RGBA")
+    else:
+        base = enquadrar(foto).convert("RGBA")
+        inicio_degrade = max(TOPO_SEGURO, marca_y - 420)
+        base = Image.alpha_composite(base, _degrade(inicio_degrade))
     desenho = ImageDraw.Draw(base)
 
     marca, espaco = "LINE STORE", 9
