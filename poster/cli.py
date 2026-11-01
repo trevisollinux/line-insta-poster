@@ -102,6 +102,20 @@ def cmd_publish(args: argparse.Namespace) -> int:
         return EXIT_FAIL
 
     published = state.load_state(args.state)
+    # A seleção enxerga este estado; o registro da publicação relê o arquivo.
+    published_selecao = published
+
+    # Item escolhido à mão: publica ele e só ele, mesmo já tendo saído e mesmo
+    # dentro da janela de repetição. É disparo humano, de propósito — a fila
+    # automática continua com as regras dela.
+    if args.item:
+        items = [i for i in items if i.id == args.item]
+        if not items:
+            alert(f"item '{args.item}' não está na fila {args.queue}", webhook=config.alert_webhook)
+            return EXIT_FAIL
+        published_selecao = [e for e in published if e.item_id != args.item]
+        args.repetir_apos_dias = 0
+
     seed = env_str("IG_SELECTION_SEED")
     formatos = tuple(t for t in (args.media_type or "").upper().split(",") if t)
 
@@ -146,7 +160,7 @@ def cmd_publish(args: argparse.Namespace) -> int:
     for _ in range(max(1, args.tentativas)):
         selection = select_next(
             items,
-            published,
+            published_selecao,
             mode=config.selection_mode,
             rng=random.Random(seed) if seed else None,
             media_types=formatos or None,
@@ -1088,6 +1102,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--media-type",
         default="",
         help="publica só este formato (REELS, STORIES, CAROUSEL, IMAGE)",
+    )
+    publish.add_argument(
+        "--item", default="",
+        help="publica este id da fila, mesmo já publicado (disparo manual)",
     )
     publish.add_argument("--falhas", default=falhas_mod.FALHAS_PATH)
     publish.add_argument(
