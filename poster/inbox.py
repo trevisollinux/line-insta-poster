@@ -39,6 +39,11 @@ IGNORADAS_PATH = os.path.join(REPO_ROOT, "queue", "pastas_ignoradas.yaml")
 # Subpasta cujo conteúdo vai para o feed em vez do story.
 PASTA_FEED = "feed"
 
+# Subpasta de material para arte (montagem, sequência de stories): a foto é
+# importada e hospedada, mas entra na fila como `manual: true` — nunca vai ao
+# ar sozinha, crua, antes de a arte ficar pronta.
+PASTA_MONTAGEM = "montagem"
+
 # A linha que a Lélia escreve na primeira linha da legenda para dizer que o
 # preço está conferido. Sem ela o post fica parado na fila.
 #
@@ -295,7 +300,9 @@ def draft(arquivo: DriveFile, url: str) -> dict:
         "origem": f"Drive: {arquivo.name}",
     }
     tipo = slugify(arquivo.pasta) if arquivo.pasta else ""
-    if tipo:
+    if tipo == PASTA_MONTAGEM:
+        item["manual"] = True
+    elif tipo:
         item["tipo"] = tipo
     return item
 
