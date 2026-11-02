@@ -25,6 +25,7 @@ Dentro da pasta compartilhada, existem estas:
 | **Cliente** | vira story · cliente usando, peça recebida, foto que cliente mandou |
 | **Produto** | vira story · a peça sozinha, detalhe, catálogo |
 | **Promoção** | vira story · preço, desconto, últimas peças |
+| **Montagem** | **não vai ao ar sozinha** · foto para o Claude transformar em arte (pergunta + desenho da bolsa). Fica guardada até a arte ficar pronta |
 | (fora das pastas) | vira story normalmente, só não entra na comparação |
 
 As quatro primeiras existem por um motivo só: descobrir **que tipo de foto
