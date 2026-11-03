@@ -350,3 +350,15 @@
   media_type: STORIES
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-11-02-vid-20261102-131717-449-19ahEY.mp4
   origem: 'Drive: VID_20261102_131717_449.mp4'
+- id: 2026-11-03-juniper-1-pergunta
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-arte/2026-11-03-juniper-1-pergunta.jpg
+  origem: 'Arte: foto Photoroom-20260112_180423862 + pergunta (sequência Juniper, 1 de 2)'
+  tipo: produto
+  manual: true
+- id: 2026-11-03-juniper-2-detalhes
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-arte/2026-11-03-juniper-2-detalhes.jpg
+  origem: 'Arte: ilustração da Juniper com detalhes (sequência, 2 de 2)'
+  tipo: produto
+  manual: true
