@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-11-02T23:13:09+00:00",
+  "updated_at": "2026-11-03T14:58:37+00:00",
   "published": [
     {
       "item_id": "teste-stories-line-baguete",
@@ -880,6 +880,16 @@
       "published_at": "2026-11-02T23:13:09+00:00",
       "permalink": "https://www.instagram.com/stories/line_store/4021843463129300340",
       "tipo": "",
+      "cta": ""
+    },
+    {
+      "item_id": "2026-11-03-juniper-1-pergunta",
+      "media_id": "18128225941884470",
+      "container_id": "18650540701043967",
+      "media_type": "STORIES",
+      "published_at": "2026-11-03T14:58:37+00:00",
+      "permalink": "https://www.instagram.com/stories/line_store/4022319318737841868",
+      "tipo": "produto",
       "cta": ""
     }
   ]
