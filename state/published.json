@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-11-04T20:24:40+00:00",
+  "updated_at": "2026-11-04T20:25:34+00:00",
   "published": [
     {
       "item_id": "teste-stories-line-baguete",
@@ -939,6 +939,16 @@
       "media_type": "STORIES",
       "published_at": "2026-11-04T20:24:39+00:00",
       "permalink": "https://www.instagram.com/stories/line_store/4023208210697412109",
+      "tipo": "produto",
+      "cta": ""
+    },
+    {
+      "item_id": "2026-11-04-heart-2-detalhes",
+      "media_id": "17948920434348293",
+      "container_id": "18650954794043967",
+      "media_type": "STORIES",
+      "published_at": "2026-11-04T20:25:33+00:00",
+      "permalink": "https://www.instagram.com/stories/line_store/4023209169029601688",
       "tipo": "produto",
       "cta": ""
     }
