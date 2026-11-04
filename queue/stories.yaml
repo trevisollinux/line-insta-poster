@@ -362,3 +362,15 @@
   origem: 'Arte: ilustração da Juniper com detalhes (sequência, 2 de 2)'
   tipo: produto
   manual: true
+- id: 2026-11-04-heart-1-pergunta
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-arte/2026-11-04-heart-1-pergunta.jpg
+  origem: 'Arte: foto Photoroom-20260313_161215875 + pergunta (sequência Heart Bag, 1 de 2)'
+  tipo: produto
+  manual: true
+- id: 2026-11-04-heart-2-detalhes
+  media_type: STORIES
+  url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-arte/2026-11-04-heart-2-detalhes.jpg
+  origem: 'Arte: ilustração da Heart Bag com detalhes (sequência, 2 de 2)'
+  tipo: produto
+  manual: true
