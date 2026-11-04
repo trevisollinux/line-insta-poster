@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-11-04T20:25:34+00:00",
+  "updated_at": "2026-11-04T21:28:57+00:00",
   "published": [
     {
       "item_id": "teste-stories-line-baguete",
@@ -951,6 +951,16 @@
       "permalink": "https://www.instagram.com/stories/line_store/4023209169029601688",
       "tipo": "produto",
       "cta": ""
+    },
+    {
+      "item_id": "2026-09-29-photoroom-20260312-134532440-16Mn18",
+      "media_id": "18146638300610044",
+      "container_id": "18650975509043967",
+      "media_type": "STORIES",
+      "published_at": "2026-11-04T21:28:57+00:00",
+      "permalink": "https://www.instagram.com/stories/line_store/4023240551809512536",
+      "tipo": "",
+      "cta": "Responda e escolha a sua ↓"
     }
   ]
 }
