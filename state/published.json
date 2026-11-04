@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-11-03T21:15:17+00:00",
+  "updated_at": "2026-11-04T18:50:40+00:00",
   "published": [
     {
       "item_id": "teste-stories-line-baguete",
@@ -921,6 +921,16 @@
       "permalink": "https://www.instagram.com/stories/line_store/4022509057373005935",
       "tipo": "",
       "cta": ""
+    },
+    {
+      "item_id": "2026-09-19-img-20260913-194822-461-1cvRAE",
+      "media_id": "18377845222243080",
+      "container_id": "18650923348043967",
+      "media_type": "STORIES",
+      "published_at": "2026-11-04T18:50:39+00:00",
+      "permalink": "https://www.instagram.com/stories/line_store/4023160879411129807",
+      "tipo": "",
+      "cta": "Toque em @line_store e veja as cores"
     }
   ]
 }
