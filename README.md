@@ -98,7 +98,7 @@ Pelo celular: aba **Actions** → *Publicar no Instagram* → *Run workflow*.
 | `queue/stories.yaml` | fotos da pasta do Drive | **sozinha**, um story por execução |
 
 Quando a fila de stories não tem foto nova, o workflow automático **repete** um
-story que já saiu há pelo menos 14 dias, começando pelo que mais levou gente ao
+story que já saiu há pelo menos 21 dias, começando pelo que mais levou gente ao
 perfil (média das vezes em que saiu). Foto nova do Drive sempre passa na frente.
 Detalhes e limites em `poster/repeticao.py`.
 
@@ -141,7 +141,7 @@ Na mão: `python -m poster.cli stories-cta`.
 - **Ação preferida: responder o story.** A resposta cai no direct, onde a
   venda acontece. A segunda é "Toque em @line_store", que vira visita ao perfil.
 - **Sem preço e sem urgência.** Texto gravado no pixel não envelhece com a
-  loja, e o story repete a cada 14 dias. A validação recusa preço e os termos
+  loja, e o story pode repetir depois de 21 dias. A validação recusa preço e os termos
   de `queue/exclusoes.yaml`.
 - **Só foto.** Vídeo não recebe texto por cima.
 - **Mede-se.** O estado grava qual story saiu com CTA, e o resumo semanal
