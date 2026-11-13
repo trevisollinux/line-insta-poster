@@ -22,11 +22,16 @@
 # imagem nova e guarda a original em `url_original`. Apagar o `cta` volta a
 # foto original. Sem preço e sem urgência — a validação recusa os dois.
 #
+# Fotos que parecem a mesma (mesma sessão, segundos de diferença; a arte feita
+# a partir de uma foto da fila) ganham o mesmo `grupo:`. Na repetição o
+# intervalo vale para o grupo: saiu uma, as outras esperam o prazo inteiro.
+#
 # Para mandar uma destas mídias ao feed, copie o item para queue/posts.yaml,
 # troque media_type, escreva a legenda e marque reviewed_price: true.
 
 - id: 2026-09-19-img-20260812-083523-923-1wfosR
   media_type: STORIES
+  grupo: sessao-1208-0835
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260812-083523-923-1wfosR-891d7d6ccba1.jpg
   origem: 'Drive: IMG_20260812_083523_923.jpg'
   cta:
@@ -37,6 +42,7 @@
   cta_render: 891d7d6ccba1
 - id: 2026-09-19-img-20260812-083519-097-1fMJiL
   media_type: STORIES
+  grupo: sessao-1208-0835
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260812-083519-097-1fMJiL-02419154fb66.jpg
   origem: 'Drive: IMG_20260812_083519_097.jpg'
   cta:
@@ -47,6 +53,7 @@
   cta_render: 02419154fb66
 - id: 2026-09-19-img-20260816-170125-643-1RsObi
   media_type: STORIES
+  grupo: sessao-1608-1701
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260816-170125-643-1RsObi-bf6e57454b20.jpg
   origem: 'Drive: IMG_20260816_170125_643.jpg'
   cta:
@@ -57,6 +64,7 @@
   cta_render: bf6e57454b20
 - id: 2026-09-19-img-20260816-170135-099-1UvgV4
   media_type: STORIES
+  grupo: sessao-1608-1701
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-19-img-20260816-170135-099-1UvgV4-d265d463f577.jpg
   origem: 'Drive: IMG_20260816_170135_099.jpg'
   cta:
@@ -119,6 +127,7 @@
   origem: 'Drive: VID_20260920_162934_980.mp4'
 - id: 2026-09-23-img-20260923-161646-1HW7tS
   media_type: STORIES
+  grupo: sessao-2309-1615
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161646-1HW7tS-74f136a609e2.jpg
   origem: 'Drive: IMG_20260923_161646.png'
   cta:
@@ -137,6 +146,7 @@
   cta_render: c4d644fd36f4
 - id: 2026-09-23-img-20260923-161603-1K_tir
   media_type: STORIES
+  grupo: sessao-2309-1615
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161603-1K_tir-5e36c4fd1312.jpg
   origem: 'Drive: IMG_20260923_161603.jpg'
   cta:
@@ -147,6 +157,7 @@
   cta_render: 5e36c4fd1312
 - id: 2026-09-23-img-20260923-161611-1rR5Sz
   media_type: STORIES
+  grupo: sessao-2309-1615
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161611-1rR5Sz-1349d404e7c0.jpg
   origem: 'Drive: IMG_20260923_161611.jpg'
   cta:
@@ -157,6 +168,7 @@
   cta_render: 1349d404e7c0
 - id: 2026-09-23-img-20260923-161542-1yMZeU
   media_type: STORIES
+  grupo: sessao-2309-1615
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161542-1yMZeU-d9210fb9097f.jpg
   origem: 'Drive: IMG_20260923_161542.png'
   cta:
@@ -167,14 +179,17 @@
   cta_render: d9210fb9097f
 - id: 2026-09-23-vid-20260918-182149-677-1x75Kh
   media_type: STORIES
+  grupo: video-1809-1821
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-vid-20260918-182149-677-1x75Kh.mp4
   origem: 'Drive: VID_20260918_182149_677.mp4'
 - id: 2026-09-23-vid-20260918-182154-465-1pki9j
   media_type: STORIES
+  grupo: video-1809-1821
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-store-media@main/inbox/2026-09-23-vid-20260918-182154-465-1pki9j.mp4
   origem: 'Drive: VID_20260918_182154_465.mp4'
 - id: 2026-09-23-img-20260923-161110-1qt_4h
   media_type: STORIES
+  grupo: satchel-2309-1611
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161110-1qt_4h-5f5a90778fa1.jpg
   origem: 'Drive: IMG_20260923_161110.jpg'
   cta:
@@ -184,6 +199,7 @@
   cta_render: 5f5a90778fa1
 - id: 2026-09-23-img-20260923-161122-1IDzH2
   media_type: STORIES
+  grupo: satchel-2309-1611
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161122-1IDzH2-59c529433b71.jpg
   origem: 'Drive: IMG_20260923_161122.jpg'
   cta:
@@ -194,6 +210,7 @@
   cta_render: 59c529433b71
 - id: 2026-09-23-img-20260923-161137-1vsjqy
   media_type: STORIES
+  grupo: satchel-2309-1611
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-23-img-20260923-161137-1vsjqy-0e4e6d3a0daf.jpg
   origem: 'Drive: IMG_20260923_161137.jpg'
   cta:
@@ -208,6 +225,7 @@
   origem: 'Drive: VID_20260929_071102_659.mp4'
 - id: 2026-09-29-photoroom-20260313-161215875-1CQUm7
   media_type: STORIES
+  grupo: heart-1303
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-photoroom-20260313-161215875-1CQUm7-f36492846035.jpg
   origem: 'Drive: Photoroom-20260313_161215875.png'
   cta:
@@ -253,6 +271,7 @@
   cta_render: 121cba64b15d
 - id: 2026-09-29-img-20260923-161542-1w_Onm
   media_type: STORIES
+  grupo: sessao-2309-1615
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-img-20260923-161542-1w_Onm-d6d57ad64687.jpg
   origem: 'Drive: IMG_20260923_161542.png'
   cta:
@@ -263,6 +282,7 @@
   cta_render: d6d57ad64687
 - id: 2026-09-29-story-sex-26-12-2025-12-09-44-14jr1i
   media_type: STORIES
+  grupo: story-sex-2612
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-story-sex-26-12-2025-12-09-44-14jr1i-7b9840b2da0d.jpg
   origem: 'Drive: Story_sex._26_12_2025_12_09_44.png'
   cta:
@@ -273,6 +293,7 @@
   cta_render: 7b9840b2da0d
 - id: 2026-09-29-story-sex-26-12-2025-12-02-21-1MD25U
   media_type: STORIES
+  grupo: story-sex-2612
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-cta/2026-09-29-story-sex-26-12-2025-12-02-21-1MD25U-6e46c1277c02.jpg
   origem: 'Drive: Story_sex._26_12_2025_12_02_21.png'
   cta:
@@ -336,12 +357,14 @@
   cta_render: 822353d56cad
 - id: 2026-11-01-satchel-classica-1-pergunta
   media_type: STORIES
+  grupo: satchel-2309-1611
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-arte/2026-11-01-satchel-classica-1-pergunta.jpg
   origem: 'Arte: foto IMG_20260923_161137 + pergunta (sequência Satchel Clássica, 1 de 2)'
   tipo: produto
   manual: true
 - id: 2026-11-01-satchel-classica-2-detalhes
   media_type: STORIES
+  grupo: satchel-2309-1611
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-arte/2026-11-01-satchel-classica-2-detalhes.jpg
   origem: 'Arte: ilustração da Satchel Clássica com detalhes (sequência, 2 de 2)'
   tipo: produto
@@ -364,12 +387,14 @@
   manual: true
 - id: 2026-11-04-heart-1-pergunta
   media_type: STORIES
+  grupo: heart-1303
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-arte/2026-11-04-heart-1-pergunta.jpg
   origem: 'Arte: foto Photoroom-20260313_161215875 + pergunta (sequência Heart Bag, 1 de 2)'
   tipo: produto
   manual: true
 - id: 2026-11-04-heart-2-detalhes
   media_type: STORIES
+  grupo: heart-1303
   url: https://cdn.jsdelivr.net/gh/trevisollinux/line-insta-poster@main/media/stories-arte/2026-11-04-heart-2-detalhes.jpg
   origem: 'Arte: ilustração da Heart Bag com detalhes (sequência, 2 de 2)'
   tipo: produto

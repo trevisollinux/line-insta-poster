@@ -296,7 +296,15 @@ que saiu há pelo menos 21 dias, na ordem:
 3. sem nenhuma medição, por último — o mais antigo primeiro.
 
 Foto nova sempre passa na frente: a repetição só é consultada quando a seleção
-normal não acha nada. O log e o resumo do run marcam `— repetição`.
+normal não acha nada.
+
+**Grupos.** Fotos que o seguidor enxerga como a mesma — tiradas na mesma
+sessão com segundos de diferença, ou a arte feita a partir de uma foto da
+fila — levam o mesmo `grupo:` em `queue/stories.yaml`. O intervalo então conta
+a partir da última vez que *qualquer* foto do grupo saiu, inclusive artes
+`manual`. Antes disso, cada arquivo tinha o próprio relógio e a mesma bolsa no
+mesmo cenário voltava a cada dois ou três dias. Foto nova do Drive entra sem
+grupo: se for da mesma sessão de outra, marque à mão. O log e o resumo do run marcam `— repetição`.
 
 O intervalo começou em 21 dias e foi baixado para 14 no mesmo dia: com 21, a
 primeira liberação só vinha em 10/10 e o perfil ficaria uma semana sem story.

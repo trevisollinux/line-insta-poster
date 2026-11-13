@@ -80,6 +80,10 @@ DRAFTS_HEADER = """# Stories vindos da pasta do Drive — esta fila PUBLICA sozi
 # imagem nova e guarda a original em `url_original`. Apagar o `cta` volta a
 # foto original. Sem preço e sem urgência — a validação recusa os dois.
 #
+# Fotos que parecem a mesma (mesma sessão, segundos de diferença; a arte feita
+# a partir de uma foto da fila) ganham o mesmo `grupo:`. Na repetição o
+# intervalo vale para o grupo: saiu uma, as outras esperam o prazo inteiro.
+#
 # Para mandar uma destas mídias ao feed, copie o item para queue/posts.yaml,
 # troque media_type, escreva a legenda e marque reviewed_price: true.
 """

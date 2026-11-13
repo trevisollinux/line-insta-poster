@@ -92,6 +92,11 @@ class QueueItem:
     # uma sequência ("veja no próximo story"): sozinho, fora de ordem ou numa
     # repetição avulsa, ele promete um próximo story que não vem.
     manual: bool = False
+    # Fotos que o seguidor enxerga como a mesma (mesma sessão, mesma bolsa no
+    # mesmo cenário, a arte feita a partir de uma delas). Na repetição, o
+    # intervalo vale para o grupo: saiu uma, nenhuma das outras volta antes do
+    # prazo. Vazio = o item é um grupo de um só.
+    grupo: str = ""
     raw: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
 
     @property
@@ -197,6 +202,7 @@ def _parse_item(entry: dict[str, Any], label: str) -> QueueItem:
         tipo=str(entry.get("tipo") or "").strip(),
         cta=cta_texto,
         manual=entry.get("manual") is True,
+        grupo=str(entry.get("grupo") or "").strip(),
         urls=tuple(urls),
         caption=caption,
         reviewed_price=reviewed_price is True,
