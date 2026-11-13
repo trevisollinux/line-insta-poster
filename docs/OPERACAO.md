@@ -287,19 +287,31 @@ de reprise envelhece — o aviso é o lembrete de subir foto no Drive.
 
 ### Repetição quando acaba foto nova
 
-Desde 07/10 os workflows automático e de recuperação passam
-`repetir_apos_dias: '14'`. Sem foto nova elegível, o publish repete um story
-que saiu há pelo menos 14 dias, na ordem:
+Desde 12/11 os workflows automático e de recuperação passam
+`repetir_apos_dias: '21'`. Sem foto nova elegível, o publish repete um story
+que saiu há pelo menos 21 dias, na ordem:
 
 1. mais visitas ao perfil (média das vezes em que o item saiu);
 2. mais visualizações, para desempatar;
 3. sem nenhuma medição, por último — o mais antigo primeiro.
 
 Foto nova sempre passa na frente: a repetição só é consultada quando a seleção
-normal não acha nada. O log e o resumo do run marcam `— repetição`.
+normal não acha nada.
+
+**Grupos.** Fotos que o seguidor enxerga como a mesma — tiradas na mesma
+sessão com segundos de diferença, ou a arte feita a partir de uma foto da
+fila — levam o mesmo `grupo:` em `queue/stories.yaml`. O intervalo então conta
+a partir da última vez que *qualquer* foto do grupo saiu, inclusive artes
+`manual`. Antes disso, cada arquivo tinha o próprio relógio e a mesma bolsa no
+mesmo cenário voltava a cada dois ou três dias. Foto nova do Drive entra sem
+grupo: se for da mesma sessão de outra, marque à mão. O log e o resumo do run marcam `— repetição`.
 
 O intervalo começou em 21 dias e foi baixado para 14 no mesmo dia: com 21, a
 primeira liberação só vinha em 10/10 e o perfil ficaria uma semana sem story.
+Voltou a 21 em 12/11: com 14, o mesmo grupo de umas 30 fotos girava em ciclo
+fixo de duas semanas (dez delas já tinham saído 4 vezes) e os stories ficaram
+com cara de reprise. Com o acervo de 46 fotos e 2 stories por dia, 21 dias fica
+no limite — dias sem foto nova elegível podem sair sem story automático.
 Para mudar o intervalo, troque o número nos dois workflows. Para desligar, `'0'`.
 
 ### Testar o alarme

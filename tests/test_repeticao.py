@@ -135,6 +135,47 @@ class SelecionarTest(unittest.TestCase):
 
         self.assertEqual([i.id for i in selecao.eligible], ["s"])
 
+    def test_grupo_conta_a_ultima_vez_de_qualquer_foto_do_grupo(self):
+        # "a" saiu há 30 dias, mas a irmã "b" (mesma sessão) saiu há 5: o
+        # seguidor viu a mesma cena há 5 dias, então nenhuma das duas volta.
+        fila = parse_queue([{**story("a"), "grupo": "sessao"},
+                            {**story("b"), "grupo": "sessao"}, story("c")])
+        publicados = [saiu("a", 30), saiu("b", 5), saiu("c", 30)]
+
+        selecao = selecionar(fila, publicados, [], apos_dias=21, now=AGORA)
+
+        self.assertEqual([i.id for i in selecao.eligible], ["c"])
+        motivos = {p.item_id: p.reason for p in selecao.skipped}
+        self.assertIn("repete só a partir de 2026-11-05", motivos["a"])
+        self.assertIn("grupo 'sessao'", motivos["a"])
+
+    def test_grupo_vencido_libera_as_fotos(self):
+        fila = parse_queue([{**story("a"), "grupo": "sessao"},
+                            {**story("b"), "grupo": "sessao"}])
+        publicados = [saiu("a", 40), saiu("b", 25)]
+
+        selecao = selecionar(fila, publicados, [], apos_dias=21, now=AGORA)
+
+        self.assertEqual({i.id for i in selecao.eligible}, {"a", "b"})
+
+    def test_arte_manual_do_grupo_tambem_trava(self):
+        # A arte nunca repete sozinha, mas leva a foto ao ar do mesmo jeito.
+        fila = parse_queue([{**story("foto"), "grupo": "satchel"},
+                            {**story("arte"), "grupo": "satchel", "manual": True}])
+        publicados = [saiu("foto", 30), saiu("arte", 3)]
+
+        selecao = selecionar(fila, publicados, [], apos_dias=21, now=AGORA)
+
+        self.assertIsNone(selecao.item)
+
+    def test_sem_grupo_cada_foto_tem_o_proprio_relogio(self):
+        publicados = [saiu("a", 30), saiu("b", 5)]
+
+        selecao = selecionar(self.fila("a", "b"), publicados, [],
+                             apos_dias=21, now=AGORA)
+
+        self.assertEqual([i.id for i in selecao.eligible], ["a"])
+
     def test_intervalo_zero_e_erro(self):
         with self.assertRaises(ValueError):
             selecionar(self.fila("a"), [], [], apos_dias=0, now=AGORA)

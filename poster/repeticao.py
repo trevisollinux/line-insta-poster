@@ -6,8 +6,11 @@ saiu é melhor que silêncio, desde que:
 
 1. **Foto nova sempre ganha.** A repetição só é consultada quando a seleção
    normal não achou nada. Ela não compete com o Drive; tapa o buraco.
-2. **Há um intervalo mínimo** desde a última vez que o item saiu (14 dias no
-   workflow), para o seguidor não reconhecer a foto da semana passada.
+2. **Há um intervalo mínimo** desde a última vez que o item saiu (21 dias no
+   workflow), para o seguidor não reconhecer a foto da semana passada. Item
+   com `grupo` conta a partir da última vez que QUALQUER foto do grupo saiu:
+   cinco fotos da mesma sessão, cada uma com o próprio relógio, punham a mesma
+   bolsa no mesmo cenário no ar a cada dois ou três dias (nov/2026).
 3. **Repete primeiro o que levou gente ao perfil.** Visualização engana — um
    story com 174 views levou 9 pessoas ao perfil, outro com 260 levou 5 (ver
    docs/CONTEXTO.md, seção 6). Visita ao perfil é o que vira venda, então ela
@@ -102,6 +105,18 @@ def selecionar(
     travados = bloqueados or {}
     notas = notas_por_item(published, metricas)
 
+    # Última saída de cada grupo, contando todos os membros — inclusive os
+    # `manual`, que nunca repetem sozinhos mas põem a foto no ar do mesmo jeito.
+    ultima_do_grupo: dict[str, datetime] = {}
+    for membro in items:
+        if not membro.grupo:
+            continue
+        quando = last_published_at(published, membro.id) or membro.last_published
+        if quando and (
+            membro.grupo not in ultima_do_grupo or quando > ultima_do_grupo[membro.grupo]
+        ):
+            ultima_do_grupo[membro.grupo] = quando
+
     candidatos: list[tuple[QueueItem, datetime]] = []
     pulados: list[Skipped] = []
     for item in items:
@@ -115,11 +130,13 @@ def selecionar(
         ultima = last_published_at(published, item.id) or item.last_published
         if ultima is None:
             continue
-        liberado = ultima + timedelta(days=apos_dias)
+        relogio = max(ultima, ultima_do_grupo.get(item.grupo, ultima))
+        liberado = relogio + timedelta(days=apos_dias)
         if liberado > now:
-            pulados.append(
-                Skipped(item.id, f"repete só a partir de {liberado.date().isoformat()}")
-            )
+            motivo = f"repete só a partir de {liberado.date().isoformat()}"
+            if relogio > ultima:
+                motivo += f" (outra foto do grupo '{item.grupo}' saiu depois)"
+            pulados.append(Skipped(item.id, motivo))
             continue
         candidatos.append((item, ultima))
 
