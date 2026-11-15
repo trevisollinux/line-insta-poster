@@ -1,0 +1,90 @@
+# Respostas automáticas no direct do @line_store.
+#
+# Lido pelo servidor de DM (`python -m poster.cli dm-servir`) ao subir: editar
+# aqui e fazer deploy de novo. O CI valida o arquivo a cada push.
+#
+# Simular sem rede nenhuma:
+#   python -m poster.cli dm-simular comentario "quero o cupom"
+#   python -m poster.cli dm-simular botao cupom
+#
+# ─── Regras ────────────────────────────────────────────────────────────────
+#
+# * O bot só responde quando a mensagem tem uma das `palavras`. Todo o resto
+#   (pergunta de preço, resposta ao CTA do story, pedido) fica para gente.
+#   Maiúscula e acento não importam; "quero" não casa com "queroseno".
+# * O primeiro gatilho que casar, na ordem do arquivo, vence.
+# * `TROCAR` em qualquer texto impede o servidor de subir — é o marcador de
+#   exemplo não preenchido. Cupom de mentira para cliente é pior que nada.
+#
+# ─── Gatilhos ──────────────────────────────────────────────────────────────
+#
+#   onde: comentario   comentário em post/reel. A DM sai como "resposta
+#                      privada" (única forma de escrever para quem nunca falou
+#                      no direct). Vale 1 por comentário, até 7 dias depois.
+#         story        resposta a um story
+#         dm           mensagem no direct
+#   palavras:          obrigatório
+#   posts:             (só comentario) ids de mídia; vazio = todos os posts
+#   resposta_publica:  (só comentario) respostas no próprio comentário, uma
+#                      sorteada por vez — repetir a mesma frase a Meta
+#                      trata como spam
+#   passo:             primeira mensagem
+#
+# ─── Passos ────────────────────────────────────────────────────────────────
+#
+#   texto:        até 640 caracteres com botões, 1000 sem
+#   botoes:       até 3. Cada um tem `titulo` (até 20 caracteres) e
+#                 `vai_para: <passo>` OU `url: https://...`
+#   uma_vez:      true = cada pessoa recebe este passo uma vez só (cupom)
+#   se_repetido:  texto para quem já recebeu (sem ele, o bot fica quieto)
+#
+# A validade do cupom ("24h") é configurada na loja virtual — o texto aqui
+# só avisa.
+
+gatilhos:
+  - nome: comentario-cupom
+    onde: comentario
+    palavras: [cupom, eu quero, quero cupom]
+    resposta_publica:
+      - Te chamei no direct! 💌
+      - Olha o direct 😉
+      - Mandei no seu direct ✨
+    passo: boas-vindas
+
+  - nome: story-cupom
+    onde: story
+    palavras: [cupom]
+    passo: cupom
+
+  - nome: dm-cupom
+    onde: dm
+    palavras: [cupom]
+    passo: cupom
+
+passos:
+  boas-vindas:
+    texto: |-
+      Oi! Que bom te ver por aqui 🤎
+
+      Separamos um presente especial para você.
+
+      Quer dar uma olhada? ✨
+    botoes:
+      - titulo: Claro, quero sim!
+        vai_para: cupom
+
+  cupom:
+    texto: |-
+      Use o cupom TROCAR para ter TROCAR% OFF na sua primeira compra. 🎁
+
+      É um mimo nosso. Esperamos que goste!
+
+      O cupom fica disponível pelas próximas 24h, está bem?
+
+      Para usá-lo agora, clique no botão abaixo. 👇
+    botoes:
+      - titulo: Quero meu cupom!
+        url: https://TROCAR
+    uma_vez: true
+    se_repetido: |-
+      Você já pegou o seu cupom 😉 É o TROCAR, só usar no carrinho.

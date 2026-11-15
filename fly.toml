@@ -1,0 +1,34 @@
+# Deploy do servidor de DM no Fly.io (docs/DM.md, seção "Hospedagem").
+# `fly launch --no-deploy` gera o nome do app; ajuste `app` e `primary_region`.
+app = "line-store-dm"
+primary_region = "gru"
+
+[build]
+
+[env]
+  DM_DB = "/data/dm.sqlite3"
+  PORT = "8080"
+
+[mounts]
+  source = "dm_dados"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Sempre uma máquina no ar: a Meta desiste de webhook que demora, e
+  # acordar a máquina a cada comentário custaria segundos.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/saude"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
