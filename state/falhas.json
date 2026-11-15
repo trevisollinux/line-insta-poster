@@ -1,11 +1,5 @@
 {
-  "falhas": {
-    "2026-11-13-img-20261113-132544-1RXIDo": {
-      "em": "2026-11-14T20:03:50+00:00",
-      "tentativas": 1,
-      "ultimo_erro": "item '2026-11-13-img-20261113-132544-1RXIDo' não publicado: POST /17841401318995903/media → HTTP 400: Only photo or video can be accepted as media type. (code=9004, subcode=2207052)"
-    }
-  },
-  "updated_at": "2026-11-14T20:05:00+00:00",
+  "falhas": {},
+  "updated_at": "2026-11-15T17:57:12+00:00",
   "version": 1
 }
