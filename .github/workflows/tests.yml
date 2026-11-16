@@ -28,3 +28,13 @@ jobs:
 
       - name: Validar a fila versionada
         run: python -m poster.cli validate
+
+      - name: Validar os fluxos de DM
+        run: python -m poster.cli dm-validar
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Testar o Worker de DM
+        run: cd worker && npm test

@@ -221,6 +221,9 @@ resolvidos. É o primeiro arquivo a ler para continuar de onde parou.
   token, secrets e o teste sem plateia.
 - [`docs/OPERACAO.md`](docs/OPERACAO.md) — runbook: o que fazer quando falha,
   limites da API, migração para resumable.
+- [`docs/DM.md`](docs/DM.md) — respostas automáticas no direct (comentário,
+  story e DM com palavra-chave → mensagem com botões e cupom). Único pedaço que
+  roda fora do Actions: um Cloudflare Worker que recebe o webhook (`worker/`).
 
 ## Testes
 

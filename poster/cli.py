@@ -10,6 +10,9 @@ Comandos
   reel-metrics   guarda views, alcance e visitas ao perfil dos Reels recentes
   watch-stories  avisa quando o dia passou sem o story esperado
   stories-cta    grava na imagem o CTA escrito em queue/stories.yaml
+  dm-validar     valida dm/fluxos.yaml (respostas automáticas no direct)
+  dm-simular     mostra o que o bot de DM responderia, sem rede
+  dm-exportar    gera o JSON dos fluxos para o Cloudflare Worker
 
 Códigos de saída: 0 sucesso, 1 falha (com alerta), 2 nada a fazer.
 """
@@ -1293,6 +1296,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     curate.add_argument("--branch", default="main")
     curate.set_defaults(func=cmd_curate)
+
+    from .dm import cli as dm_cli
+
+    dm_cli.registrar(sub)
     return parser
 
 

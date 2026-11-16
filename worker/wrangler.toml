@@ -1,0 +1,19 @@
+# Cloudflare Worker das respostas automáticas no direct (docs/DM.md).
+#
+# O deploy é feito pelo workflow "Deploy do bot de DM", não à mão: ele gera
+# src/fluxos.json, troca o id do D1 abaixo pelo da variável DM_D1_ID do
+# repositório, aplica o schema e envia os secrets.
+name = "line-store-dm"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "line-store-dm"
+database_id = "DM_D1_ID"
+
+[triggers]
+crons = ["17 6 * * *"]  # limpeza diária dos ids de evento antigos
+
+[observability]
+enabled = true

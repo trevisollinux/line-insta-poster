@@ -1,0 +1,427 @@
+{
+  "fluxos": {
+    "gatilhos": [
+      {
+        "nome": "comentario-cupom",
+        "onde": "comentario",
+        "palavras": [
+          "cupom",
+          "eu quero"
+        ],
+        "resposta_publica": [
+          "Te chamei no direct!",
+          "Olha o direct"
+        ],
+        "passo": "boas-vindas"
+      },
+      {
+        "nome": "comentario-post-x",
+        "onde": "comentario",
+        "palavras": [
+          "link"
+        ],
+        "posts": [
+          "m1"
+        ],
+        "passo": "cupom"
+      },
+      {
+        "nome": "dm-cupom",
+        "onde": "dm",
+        "palavras": [
+          "cupom"
+        ],
+        "passo": "cupom"
+      },
+      {
+        "nome": "story-cupom",
+        "onde": "story",
+        "palavras": [
+          "cupom"
+        ],
+        "passo": "cupom"
+      }
+    ],
+    "passos": {
+      "boas-vindas": {
+        "texto": "Temos um presente.",
+        "botoes": [
+          {
+            "titulo": "Claro, quero sim!",
+            "vai_para": "cupom"
+          }
+        ]
+      },
+      "cupom": {
+        "texto": "Use LINE10.",
+        "botoes": [
+          {
+            "titulo": "Quero meu cupom!",
+            "url": "https://loja.example/"
+          }
+        ],
+        "uma_vez": true,
+        "se_repetido": "Você já pegou: LINE10."
+      },
+      "so-texto": {
+        "texto": "Sem botão.",
+        "uma_vez": true
+      }
+    }
+  },
+  "decisoes": [
+    {
+      "nome": "comentario com palavra",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "comentario",
+        "texto": "EU QUERO o cúpom!!",
+        "comentario_id": "c1"
+      },
+      "entregues": [],
+      "esperado": [
+        {
+          "tipo": "enviar",
+          "destinatario": {
+            "comment_id": "c1"
+          },
+          "mensagem": {
+            "attachment": {
+              "type": "template",
+              "payload": {
+                "template_type": "button",
+                "text": "Temos um presente.",
+                "buttons": [
+                  {
+                    "type": "postback",
+                    "title": "Claro, quero sim!",
+                    "payload": "passo:cupom"
+                  }
+                ]
+              }
+            }
+          },
+          "alternativa": {
+            "text": "Temos um presente.",
+            "quick_replies": [
+              {
+                "content_type": "text",
+                "title": "Claro, quero sim!",
+                "payload": "passo:cupom"
+              }
+            ]
+          }
+        },
+        {
+          "tipo": "responder_comentario",
+          "comentario_id": "c1",
+          "texto": "Te chamei no direct!"
+        }
+      ]
+    },
+    {
+      "nome": "comentario sem palavra",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "comentario",
+        "texto": "que linda",
+        "comentario_id": "c1"
+      },
+      "entregues": [],
+      "esperado": []
+    },
+    {
+      "nome": "fronteira de palavra",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "comentario",
+        "texto": "eu queroseno",
+        "comentario_id": "c1"
+      },
+      "entregues": [],
+      "esperado": []
+    },
+    {
+      "nome": "filtro por post casa",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "comentario",
+        "texto": "me passa o link",
+        "comentario_id": "c2",
+        "media_id": "m1"
+      },
+      "entregues": [],
+      "esperado": [
+        {
+          "tipo": "enviar",
+          "destinatario": {
+            "comment_id": "c2"
+          },
+          "mensagem": {
+            "attachment": {
+              "type": "template",
+              "payload": {
+                "template_type": "button",
+                "text": "Use LINE10.",
+                "buttons": [
+                  {
+                    "type": "web_url",
+                    "url": "https://loja.example/",
+                    "title": "Quero meu cupom!"
+                  }
+                ]
+              }
+            }
+          },
+          "alternativa": {
+            "text": "Use LINE10.\n\nQuero meu cupom!: https://loja.example/"
+          },
+          "registrar": [
+            "u1",
+            "cupom"
+          ]
+        }
+      ]
+    },
+    {
+      "nome": "filtro por post nao casa",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "comentario",
+        "texto": "me passa o link",
+        "comentario_id": "c2",
+        "media_id": "m2"
+      },
+      "entregues": [],
+      "esperado": []
+    },
+    {
+      "nome": "dm com palavra",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "dm",
+        "texto": "tem Cupom?"
+      },
+      "entregues": [],
+      "esperado": [
+        {
+          "tipo": "enviar",
+          "destinatario": {
+            "id": "u1"
+          },
+          "mensagem": {
+            "attachment": {
+              "type": "template",
+              "payload": {
+                "template_type": "button",
+                "text": "Use LINE10.",
+                "buttons": [
+                  {
+                    "type": "web_url",
+                    "url": "https://loja.example/",
+                    "title": "Quero meu cupom!"
+                  }
+                ]
+              }
+            }
+          },
+          "alternativa": {
+            "text": "Use LINE10.\n\nQuero meu cupom!: https://loja.example/"
+          },
+          "registrar": [
+            "u1",
+            "cupom"
+          ]
+        }
+      ]
+    },
+    {
+      "nome": "dm de preco fica para gente",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "dm",
+        "texto": "quanto custa a caramelo?"
+      },
+      "entregues": [],
+      "esperado": []
+    },
+    {
+      "nome": "story com palavra",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "story",
+        "texto": "quero cupom"
+      },
+      "entregues": [],
+      "esperado": [
+        {
+          "tipo": "enviar",
+          "destinatario": {
+            "id": "u1"
+          },
+          "mensagem": {
+            "attachment": {
+              "type": "template",
+              "payload": {
+                "template_type": "button",
+                "text": "Use LINE10.",
+                "buttons": [
+                  {
+                    "type": "web_url",
+                    "url": "https://loja.example/",
+                    "title": "Quero meu cupom!"
+                  }
+                ]
+              }
+            }
+          },
+          "alternativa": {
+            "text": "Use LINE10.\n\nQuero meu cupom!: https://loja.example/"
+          },
+          "registrar": [
+            "u1",
+            "cupom"
+          ]
+        }
+      ]
+    },
+    {
+      "nome": "story sem palavra",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "story",
+        "texto": "amei"
+      },
+      "entregues": [],
+      "esperado": []
+    },
+    {
+      "nome": "botao",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "botao",
+        "passo": "cupom"
+      },
+      "entregues": [],
+      "esperado": [
+        {
+          "tipo": "enviar",
+          "destinatario": {
+            "id": "u1"
+          },
+          "mensagem": {
+            "attachment": {
+              "type": "template",
+              "payload": {
+                "template_type": "button",
+                "text": "Use LINE10.",
+                "buttons": [
+                  {
+                    "type": "web_url",
+                    "url": "https://loja.example/",
+                    "title": "Quero meu cupom!"
+                  }
+                ]
+              }
+            }
+          },
+          "alternativa": {
+            "text": "Use LINE10.\n\nQuero meu cupom!: https://loja.example/"
+          },
+          "registrar": [
+            "u1",
+            "cupom"
+          ]
+        }
+      ]
+    },
+    {
+      "nome": "botao de passo inexistente",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "botao",
+        "passo": "velho"
+      },
+      "entregues": [],
+      "esperado": []
+    },
+    {
+      "nome": "uma vez repetido",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "dm",
+        "texto": "cupom"
+      },
+      "entregues": [
+        [
+          "u1",
+          "cupom"
+        ]
+      ],
+      "esperado": [
+        {
+          "tipo": "enviar",
+          "destinatario": {
+            "id": "u1"
+          },
+          "mensagem": {
+            "text": "Você já pegou: LINE10."
+          }
+        }
+      ]
+    },
+    {
+      "nome": "uma vez sem se_repetido",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "botao",
+        "passo": "so-texto"
+      },
+      "entregues": [
+        [
+          "u1",
+          "so-texto"
+        ]
+      ],
+      "esperado": []
+    },
+    {
+      "nome": "passo sem botao",
+      "evento": {
+        "id": "e1",
+        "usuario": "u1",
+        "tipo": "botao",
+        "passo": "so-texto"
+      },
+      "entregues": [],
+      "esperado": [
+        {
+          "tipo": "enviar",
+          "destinatario": {
+            "id": "u1"
+          },
+          "mensagem": {
+            "text": "Sem botão."
+          },
+          "registrar": [
+            "u1",
+            "so-texto"
+          ]
+        }
+      ]
+    }
+  ]
+}
