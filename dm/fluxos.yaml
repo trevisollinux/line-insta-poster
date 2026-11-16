@@ -1,7 +1,7 @@
 # Respostas automáticas no direct do @line_store.
 #
-# Lido pelo servidor de DM (`python -m poster.cli dm-servir`) ao subir: editar
-# aqui e fazer deploy de novo. O CI valida o arquivo a cada push.
+# Levar para `main` publica o bot de novo (workflow "Deploy do bot de DM",
+# docs/DM.md). O CI valida o arquivo a cada push.
 #
 # Simular sem rede nenhuma:
 #   python -m poster.cli dm-simular comentario "quero o cupom"
@@ -13,7 +13,7 @@
 #   (pergunta de preço, resposta ao CTA do story, pedido) fica para gente.
 #   Maiúscula e acento não importam; "quero" não casa com "queroseno".
 # * O primeiro gatilho que casar, na ordem do arquivo, vence.
-# * `TROCAR` em qualquer texto impede o servidor de subir — é o marcador de
+# * `TROCAR` em qualquer texto impede o deploy — é o marcador de
 #   exemplo não preenchido. Cupom de mentira para cliente é pior que nada.
 #
 # ─── Gatilhos ──────────────────────────────────────────────────────────────

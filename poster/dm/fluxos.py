@@ -28,7 +28,7 @@ MAX_TITULO_BOTAO = 20
 
 # Texto de exemplo que ninguém trocou. Mandar "TROCAR" como cupom para um
 # cliente queima mais confiança do que não responder: o arquivo valida (o CI
-# fica verde), mas o servidor se recusa a enviar de verdade enquanto houver um.
+# fica verde), mas o `dm-exportar` (o deploy) se recusa enquanto houver um.
 MARCADOR_PENDENTE = "TROCAR"
 
 PREFIXO_PAYLOAD = "passo:"
@@ -282,3 +282,33 @@ def montar_alternativa(passo: Passo) -> dict:
     if rapidas:
         mensagem["quick_replies"] = rapidas
     return mensagem
+
+
+def exportar(fluxos: Fluxos) -> dict:
+    """JSON que o Worker lê: palavras já normalizadas, mensagens já montadas.
+
+    O Worker não sabe ler YAML nem montar template — toda regra de formato fica
+    deste lado, num lugar só, coberta pelos testes em Python.
+    """
+    return {
+        "gatilhos": [
+            {
+                "nome": g.nome,
+                "onde": g.onde,
+                "passo": g.passo,
+                "palavras": [normalizar(p) for p in g.palavras],
+                "posts": list(g.posts),
+                "resposta_publica": list(g.resposta_publica),
+            }
+            for g in fluxos.gatilhos
+        ],
+        "passos": {
+            p.id: {
+                "mensagem": montar_mensagem(p),
+                "alternativa": montar_alternativa(p) if p.botoes else None,
+                "uma_vez": p.uma_vez,
+                "repetido": montar_mensagem(p, repetido=True) if p.se_repetido else None,
+            }
+            for p in fluxos.passos.values()
+        },
+    }

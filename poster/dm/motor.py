@@ -1,5 +1,9 @@
 """Decide o que responder a cada evento. Não toca a rede.
 
+Esta é a versão de referência, usada em `dm-simular`. Quem decide em produção
+é `worker/src/motor.js`; `tests/dm_casos.json` roda nas duas e garante que
+concordam.
+
 A regra mais importante está no que o motor **não** faz: mensagem que não casa
 com nenhum gatilho não recebe resposta. O direct da loja é onde se vende, e
 quem responde "quanto custa a caramelo?" é gente. O bot só entra quando alguém
@@ -12,8 +16,24 @@ from dataclasses import dataclass
 from typing import Callable
 
 from .estado import Estado
-from .eventos import Evento
 from .fluxos import Fluxos, Passo, montar_alternativa, montar_mensagem
+
+
+@dataclass(frozen=True)
+class Evento:
+    """Já traduzido do webhook (no Worker, `worker/src/motor.js`)."""
+
+    tipo: str  # "comentario" | "story" | "dm" | "botao"
+    id: str
+    usuario: str
+    texto: str = ""
+    comentario_id: str = ""
+    media_id: str = ""
+    passo: str = ""  # destino do botão tocado
+
+    @property
+    def onde(self) -> str:
+        return self.tipo
 
 
 @dataclass(frozen=True)
@@ -36,6 +56,19 @@ class Acao:
         botoes = corpo.get("attachment", {}).get("payload", {}).get("buttons", [])
         extra = f" [botões: {', '.join(b['title'] for b in botoes)}]" if botoes else ""
         return f"DM para {self.destinatario}: {texto!r}{extra}"
+
+    def como_dict(self) -> dict:
+        """Forma comparável com o Worker (casos compartilhados nos testes)."""
+        bruto = {
+            "tipo": self.tipo,
+            "destinatario": self.destinatario,
+            "mensagem": self.mensagem,
+            "alternativa": self.alternativa,
+            "comentario_id": self.comentario_id,
+            "texto": self.texto,
+            "registrar": list(self.registrar) if self.registrar else None,
+        }
+        return {k: v for k, v in bruto.items() if v}
 
 
 def decidir(

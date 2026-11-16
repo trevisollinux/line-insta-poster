@@ -1,18 +1,18 @@
 """Respostas automáticas no direct — o "ManyChat" da loja.
 
-Diferente do resto do projeto, isto **não roda no GitHub Actions**: a Meta avisa
-de cada comentário e mensagem por webhook, em tempo real, e o cron daqui atrasa
-horas. Precisa de um processo sempre no ar (`python -m poster.cli dm-servir`).
+Duas metades:
 
-    dm/fluxos.yaml   ← o que responder, e quando (é onde você trabalha)
-    fluxos.py        lê e valida o YAML
-    eventos.py       traduz o JSON do webhook em eventos simples
-    motor.py         decide o que fazer com cada evento (sem rede)
-    envio.py         manda pela Send API
-    estado.py        SQLite: evento já visto, cupom já entregue
-    servidor.py      HTTP: verificação da Meta, assinatura, fila de trabalho
+- **Aqui, em Python:** `dm/fluxos.yaml` é lido, validado (CI), simulado
+  (`dm-simular`) e exportado em JSON já montado (`dm-exportar`).
+- **`worker/`, em JavaScript:** o Cloudflare Worker que recebe o webhook da
+  Meta em tempo real, decide com o JSON exportado e responde pela Send API.
+  O GitHub Actions não serve para isso: o cron daqui atrasa horas.
+
+    fluxos.py   lê, valida e exporta o YAML
+    motor.py    decisão de referência (simulação); o Worker faz o mesmo em JS
+    estado.py   memória da simulação; em produção é o D1
+    cli.py      dm-validar, dm-simular, dm-exportar, dm-token-pagina
 
 O que a API pública NÃO permite, e por isso não está aqui: mandar DM para quem
-acabou de seguir. A Meta não emite evento de "novo seguidor" — o gatilho do
-ManyChat usa uma integração exclusiva. Ver `docs/DM.md`.
+acabou de seguir. A Meta não emite evento de "novo seguidor". Ver `docs/DM.md`.
 """

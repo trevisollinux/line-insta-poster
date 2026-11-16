@@ -1,0 +1,9 @@
+{
+  "name": "line-store-dm",
+  "private": true,
+  "type": "module",
+  "description": "Respostas automáticas no direct do Instagram (docs/DM.md)",
+  "scripts": {
+    "test": "node --test --no-warnings test/*.test.js"
+  }
+}

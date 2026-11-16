@@ -12,7 +12,7 @@ Comandos
   stories-cta    grava na imagem o CTA escrito em queue/stories.yaml
   dm-validar     valida dm/fluxos.yaml (respostas automáticas no direct)
   dm-simular     mostra o que o bot de DM responderia, sem rede
-  dm-servir      sobe o servidor do webhook de DM (fora do Actions)
+  dm-exportar    gera o JSON dos fluxos para o Cloudflare Worker
 
 Códigos de saída: 0 sucesso, 1 falha (com alerta), 2 nada a fazer.
 """

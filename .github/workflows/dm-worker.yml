@@ -1,0 +1,122 @@
+name: Deploy do bot de DM
+
+# Publica o Cloudflare Worker das respostas automáticas no direct (docs/DM.md).
+# Roda quando os fluxos ou o código do bot mudam em main, ou na mão.
+#
+# Pula sem falhar (aviso no resumo) enquanto:
+#   - os secrets da Cloudflare não existirem — o bot ainda não foi ligado;
+#   - dm/fluxos.yaml tiver TROCAR — cupom de exemplo não vai para cliente.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dm/**'
+      - 'worker/**'
+      - 'poster/dm/**'
+      - '.github/workflows/dm-worker.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dm-worker
+  cancel-in-progress: false
+
+env:
+  WRANGLER: npx --yes wrangler@4.156.2
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Conferir a configuração da Cloudflare
+        id: config
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DM_D1_ID: ${{ vars.DM_D1_ID }}
+        run: |
+          faltando=""
+          [ -z "$CLOUDFLARE_API_TOKEN" ] && faltando="$faltando secret CLOUDFLARE_API_TOKEN,"
+          [ -z "$CLOUDFLARE_ACCOUNT_ID" ] && faltando="$faltando secret CLOUDFLARE_ACCOUNT_ID,"
+          [ -z "$DM_D1_ID" ] && faltando="$faltando variável DM_D1_ID,"
+          if [ -n "$faltando" ]; then
+            echo "pronto=false" >> "$GITHUB_OUTPUT"
+            echo "### Bot de DM — deploy pulado" >> "$GITHUB_STEP_SUMMARY"
+            echo "Falta:${faltando%,}. Ver docs/DM.md, seção Ligar." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "pronto=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar PyYAML
+        run: pip install --quiet 'PyYAML>=6.0'
+
+      - name: Exportar os fluxos
+        id: fluxos
+        run: |
+          set +e
+          python -m poster.cli dm-exportar --saida worker/src/fluxos.json > "$RUNNER_TEMP/exportar.txt"
+          codigo=$?
+          cat "$RUNNER_TEMP/exportar.txt"
+          echo "codigo=$codigo" >> "$GITHUB_OUTPUT"
+          # 2 = ainda tem TROCAR: aviso, não falha.
+          if [ "$codigo" = "2" ]; then
+            echo "### Bot de DM — deploy pulado" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            cat "$RUNNER_TEMP/exportar.txt" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          exit $codigo
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Testar o Worker
+        run: cd worker && npm test
+
+      - name: Publicar
+        if: steps.config.outputs.pronto == 'true' && steps.fluxos.outputs.codigo == '0'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DM_D1_ID: ${{ vars.DM_D1_ID }}
+        run: |
+          cd worker
+          sed -i "s/database_id = \"DM_D1_ID\"/database_id = \"${DM_D1_ID}\"/" wrangler.toml
+          # Schema idempotente (CREATE IF NOT EXISTS): aplicar sempre é seguro.
+          $WRANGLER d1 execute line-store-dm --remote --file schema.sql
+          $WRANGLER deploy
+
+      - name: Enviar os secrets do Worker
+        if: steps.config.outputs.pronto == 'true' && steps.fluxos.outputs.codigo == '0'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          IG_PAGE_ACCESS_TOKEN: ${{ secrets.IG_PAGE_ACCESS_TOKEN }}
+          DM_VERIFY_TOKEN: ${{ secrets.DM_VERIFY_TOKEN }}
+          IG_ALERT_WEBHOOK: ${{ secrets.IG_ALERT_WEBHOOK }}
+          DM_DRY_RUN: ${{ vars.DM_DRY_RUN }}
+        run: |
+          cd worker
+          # Só manda o que tem valor: secret vazio apagaria um que já existe lá.
+          python3 - > "$RUNNER_TEMP/secrets.json" <<'PY'
+          import json, os
+          nomes = ["IG_USER_ID", "META_APP_SECRET", "IG_PAGE_ACCESS_TOKEN",
+                   "DM_VERIFY_TOKEN", "IG_ALERT_WEBHOOK", "DM_DRY_RUN"]
+          print(json.dumps({n: os.environ[n] for n in nomes if os.environ.get(n)}))
+          PY
+          $WRANGLER secret bulk "$RUNNER_TEMP/secrets.json"
+          rm -f "$RUNNER_TEMP/secrets.json"
+          echo "### Bot de DM publicado" >> "$GITHUB_STEP_SUMMARY"
