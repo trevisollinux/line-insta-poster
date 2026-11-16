@@ -52,11 +52,17 @@ jobs:
           fi
           # O Database ID do D1 é um UUID (com hífens); o Account ID são 32
           # caracteres sem hífen. Trocar um pelo outro dá "code: 7003" lá na
-          # frente, sem dizer qual dos dois está errado.
+          # frente, sem dizer qual dos dois está errado (aconteceu no 1º deploy).
           if ! echo "$DM_D1_ID" | grep -Eq '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'; then
             echo "::error::A variável DM_D1_ID não parece um Database ID do D1 (formato"
             echo "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx). Não é o Account ID: pegue em"
             echo "Cloudflare → Storage & Databases → D1 → line-store-dm → Database ID."
+            exit 1
+          fi
+          if ! echo "$CLOUDFLARE_ACCOUNT_ID" | grep -Eq '^[0-9a-f]{32}$'; then
+            echo "::error::O secret CLOUDFLARE_ACCOUNT_ID não parece um Account ID (32 letras"
+            echo "e números, sem hífen — é o trecho logo depois de dash.cloudflare.com/ na URL"
+            echo "do painel). Se ele tem hífens, é o Database ID do D1 no lugar errado."
             exit 1
           fi
           if [ "$DM_D1_ID" = "$CLOUDFLARE_ACCOUNT_ID" ]; then
