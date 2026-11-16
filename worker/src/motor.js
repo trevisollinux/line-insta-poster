@@ -38,6 +38,26 @@ export function gatilhoPara(fluxos, onde, texto, mediaId = "") {
   return null;
 }
 
+// ─── Exclusão de dados ─────────────────────────────────────────────────────
+//
+// Quem manda uma destas frases no direct tem os dados apagados na hora
+// (política em site/privacidade.html). Vale antes de qualquer fluxo, e fica
+// só no Worker: é sobre o banco, não sobre o que responder.
+
+const FRASES_EXCLUSAO = [
+  "apagar meus dados", "apague meus dados", "excluir meus dados", "exclua meus dados",
+  "delete my data",
+].map(normalizar);
+
+export function pedeExclusao(texto) {
+  const normal = normalizar(texto);
+  return FRASES_EXCLUSAO.some((frase) => contemPalavra(normal, frase));
+}
+
+export const CONFIRMACAO_EXCLUSAO =
+  "Pronto: apagamos os dados que o atendimento automático da LINE STORE guardava " +
+  "sobre você. Se precisar de algo mais, é só responder aqui.";
+
 // ─── Webhook → eventos ─────────────────────────────────────────────────────
 //
 // Mensagens, story e botões vêm em entry[].messaging[]; comentários em

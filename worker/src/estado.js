@@ -51,6 +51,26 @@ export class EstadoD1 {
     return r.meta.changes === 1;
   }
 
+  // Pedido de exclusão (site/privacidade.html): some tudo que liga a pessoa ao bot.
+  // `vistos` guarda só id de evento, sem quem mandou — não identifica ninguém.
+  async apagarUsuario(usuario) {
+    const r = await this.db
+      .prepare("DELETE FROM entregues WHERE usuario = ?")
+      .bind(usuario)
+      .run();
+    return r.meta.changes;
+  }
+
+  // Retenção máxima prometida na política de privacidade. Depois disso a
+  // pessoa pode receber o cupom de novo — custo aceito.
+  async limparEntregues(dias = 365) {
+    const r = await this.db
+      .prepare("DELETE FROM entregues WHERE em < ?")
+      .bind(agora() - dias * 86400)
+      .run();
+    return r.meta.changes;
+  }
+
   // Reentrega acontece em minutos; id de mês passado é peso morto.
   async limparVistos(dias = 30) {
     const r = await this.db
