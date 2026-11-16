@@ -7,6 +7,7 @@ import sys
 
 from ..config import env_str
 from ..graph import GraphClient, GraphError
+from ..token import token_info
 from . import fluxos as fluxos_mod
 from .estado import Estado
 from .motor import Evento, decidir
@@ -80,31 +81,78 @@ def cmd_exportar(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+# Sem estas no token, o Worker sobe mas toda DM volta com erro de permissão.
+ESCOPOS_DM = ("instagram_manage_messages", "instagram_manage_comments")
+
+
+class SemPagina(RuntimeError):
+    pass
+
+
+def token_da_pagina(user_token: str, ig_user_id: str, client=None) -> tuple[str, str]:
+    """(nome da Página, token da Página) ligada à conta do Instagram.
+
+    Derivado de um token de usuário de longa duração, o da Página não expira —
+    e continua valendo quando a renovação mensal troca o token de usuário.
+    """
+    client = client or GraphClient(user_token)
+    resposta = client.get(
+        "me/accounts", {"fields": "id,name,access_token,instagram_business_account"}
+    )
+    for pagina in resposta.get("data") or []:
+        if (pagina.get("instagram_business_account") or {}).get("id") == ig_user_id:
+            return str(pagina.get("name") or pagina.get("id")), str(pagina.get("access_token"))
+    raise SemPagina(f"nenhuma Página deste token está ligada ao Instagram {ig_user_id}")
+
+
+def inscrever_pagina(pagina_token: str, client=None) -> str:
+    """Inscreve a Página no app para os webhooks chegarem. Idempotente.
+
+    Devolve "" se deu certo, ou a mensagem de erro. Erro de permissão aqui é
+    o sinal de que falta `pages_manage_metadata` (docs/DM.md, passo 1).
+    """
+    client = client or GraphClient(pagina_token)
+    try:
+        pagina_id = client.get("me", {"fields": "id"}).get("id")
+        resposta = client.post(f"{pagina_id}/subscribed_apps", {"subscribed_fields": "feed"})
+    except GraphError as exc:
+        return str(exc)
+    return "" if resposta.get("success") else f"resposta inesperada: {resposta}"
+
+
+def escopos_faltando(user_token: str, info_fn=None) -> list[str] | None:
+    """Escopos de DM que o token não tem; None se não deu para conferir."""
+    app_id, app_secret = env_str("META_APP_ID"), env_str("META_APP_SECRET")
+    if not app_id or not app_secret:
+        return None
+    try:
+        info = (info_fn or token_info)(user_token, app_id, app_secret)
+    except GraphError:
+        return None
+    return [e for e in ESCOPOS_DM if e not in info.scopes]
+
+
 def cmd_token_pagina(args: argparse.Namespace) -> int:
-    """Troca o token de usuário pelo da Página ligada à conta do Instagram."""
     token, ig_user_id = env_str("IG_ACCESS_TOKEN"), env_str("IG_USER_ID")
     if not token or not ig_user_id:
         print("defina IG_ACCESS_TOKEN e IG_USER_ID", file=sys.stderr)
         return EXIT_FAIL
-    try:
-        resposta = GraphClient(token).get(
-            "me/accounts", {"fields": "id,name,access_token,instagram_business_account"}
+    faltando = escopos_faltando(token)
+    if faltando:
+        print(
+            f"aviso: o token não tem {', '.join(faltando)} — gere de novo com as "
+            "permissões de DM (docs/DM.md, passo 2)",
+            file=sys.stderr,
         )
-    except GraphError as exc:
-        print(f"falha ao listar as Páginas: {exc}", file=sys.stderr)
+    try:
+        nome, pagina_token = token_da_pagina(token, ig_user_id)
+    except (GraphError, SemPagina) as exc:
+        print(f"token da Página não obtido: {exc}", file=sys.stderr)
         return EXIT_FAIL
-    for pagina in resposta.get("data") or []:
-        if (pagina.get("instagram_business_account") or {}).get("id") == ig_user_id:
-            print(f"Página: {pagina.get('name')} ({pagina.get('id')})", file=sys.stderr)
-            print(
-                "Token abaixo — vai no secret IG_PAGE_ACCESS_TOKEN. Não cole em issue "
-                "nem em log.",
-                file=sys.stderr,
-            )
-            print(pagina.get("access_token", ""))
-            return EXIT_OK
-    print(f"nenhuma Página deste token está ligada ao Instagram {ig_user_id}", file=sys.stderr)
-    return EXIT_FAIL
+    print(f"Página: {nome}", file=sys.stderr)
+    print("Token abaixo — não cole em issue nem em log.", file=sys.stderr)
+    print(pagina_token)
+    return EXIT_OK
 
 
 def registrar(sub) -> None:
@@ -128,5 +176,5 @@ def registrar(sub) -> None:
     )
     exportar.set_defaults(func=cmd_exportar)
 
-    pagina = sub.add_parser("dm-token-pagina", help="imprime o token da Página para o Worker")
+    pagina = sub.add_parser("dm-token-pagina", help="imprime o token da Página (diagnóstico)")
     pagina.set_defaults(func=cmd_token_pagina)

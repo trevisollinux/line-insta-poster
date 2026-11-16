@@ -103,9 +103,9 @@ conteúdo no Instagram*, adicionar:
 - `pages_manage_metadata` — inscrever a Página no webhook
 
 `pages_manage_metadata` **não aparece** no caso de uso do Instagram: é
-permissão de Página. Antes de ir atrás dela, teste o passo 6 sem ela — se o
-`subscribed_apps` responder `success: true`, ela não faz falta. Se der erro
-de permissão (#200 ou #10), adicione o caso de uso **Gerenciar tudo na sua
+permissão de Página. Antes de ir atrás dela, faça o deploy sem ela — se o run
+não mostrar o warning "Página não inscrita no app", ela não faz falta. Se
+mostrar, com erro de permissão (#200 ou #10), adicione o caso de uso **Gerenciar tudo na sua
 Página** (*Casos de uso → Adicionar caso de uso*), que a traz.
 
 Para clientes de verdade é preciso **acesso avançado** (App Review: vídeo do
@@ -116,16 +116,31 @@ No Instagram da loja: *Configurações → Mensagens e respostas a stories →
 Ferramentas conectadas → Permitir acesso a mensagens*. Sem isso a Send API
 recusa mesmo com permissão.
 
-### 2. Token da Página
+### 2. Token: o mesmo da publicação
 
-Com um `IG_ACCESS_TOKEN` gerado no Graph API Explorer **depois** de adicionar
-as permissões novas:
+As permissões de um token ficam gravadas quando ele é gerado — não dá para
+"dar mais permissão" a um token existente. Mas não precisa de um token
+separado: gere **uma vez** um novo `IG_ACCESS_TOKEN` com as permissões de
+antes **mais** as de DM, e o deploy tira dele o token da Página sozinho.
 
-```bash
-IG_ACCESS_TOKEN=... IG_USER_ID=... python -m poster.cli dm-token-pagina
-```
+1. Graph API Explorer → app → *Get User Access Token*, marcando **todas**:
+   - as da publicação (`docs/SETUP.md` 2.2): `instagram_basic`,
+     `instagram_content_publish`, `pages_show_list`, `pages_read_engagement`,
+     `business_management`, `instagram_manage_insights`
+   - as de DM: `instagram_manage_messages`, `instagram_manage_comments`
+     (e `pages_manage_metadata`, se aparecer)
 
-Imprime o token da Página ligada ao Instagram. Não cole em issue nem em log.
+   Esquecer uma da publicação **quebra a publicação** no próximo cron.
+2. Troque por um de ~60 dias como no `docs/SETUP.md` 2.4 (ou ⓘ → *Open in
+   Access Token Tool* → *Extend Access Token*).
+3. Substitua o secret `IG_ACCESS_TOKEN` por ele.
+
+A renovação mensal mantém as permissões, e o token da Página derivado não
+expira. O deploy avisa (warning no run) se faltar permissão de DM no token.
+
+Quer um token só para o bot? Crie o secret `IG_PAGE_ACCESS_TOKEN` — se ele
+existir, o deploy usa ele em vez de derivar. `python -m poster.cli
+dm-token-pagina` imprime um, para diagnóstico.
 
 ### 3. Cloudflare (conta grátis)
 
@@ -149,13 +164,12 @@ Imprime o token da Página ligada ao Instagram. Não cole em issue nem em log.
 |---|---|---|
 | Secret | `CLOUDFLARE_API_TOKEN` | token do passo 3.5 |
 | Secret | `CLOUDFLARE_ACCOUNT_ID` | passo 3.4 |
-| Secret | `IG_PAGE_ACCESS_TOKEN` | passo 2 |
 | Secret | `DM_VERIFY_TOKEN` | uma frase qualquer, longa (vai no passo 6) |
 | Variable | `DM_D1_ID` | Database ID do passo 3.3 |
 | Variable | `DM_DRY_RUN` | `true` no começo (só registra, não envia) |
 
-`IG_USER_ID`, `META_APP_SECRET` e `IG_ALERT_WEBHOOK` já existem (são da
-publicação) e o deploy reaproveita.
+`IG_ACCESS_TOKEN`, `IG_USER_ID`, `META_APP_ID`, `META_APP_SECRET` e
+`IG_ALERT_WEBHOOK` já existem (são da publicação) e o deploy reaproveita.
 
 Para desligar o dry-run, mude `DM_DRY_RUN` para `false` e rode o workflow —
 **não apague** a variável: o deploy só envia o que tem valor, e o `true`
@@ -180,12 +194,9 @@ do Facebook → 3. Configurar webhooks*:
 - Certificado de cliente: desligado
 - Depois de salvar, assine `messages`, `messaging_postbacks` e `comments`
 
-E inscrever a Página no app (uma vez):
-
-```bash
-curl -X POST "https://graph.facebook.com/v21.0/<PAGE_ID>/subscribed_apps" \
-  -d "subscribed_fields=feed" -d "access_token=<IG_PAGE_ACCESS_TOKEN>"
-```
+A inscrição da Página no app (`subscribed_apps`), que faz os eventos
+chegarem, o deploy faz sozinho a cada execução. Se ela falhar, o run mostra um
+warning — com erro de permissão, é o `pages_manage_metadata` que falta.
 
 ### 7. Teste
 
@@ -198,7 +209,7 @@ que o bot *mandaria* aparece nos logs: Cloudflare → Workers & Pages →
 | Nome | |
 |---|---|
 | `IG_USER_ID` | id da conta Instagram (ignora eventos da própria loja) |
-| `IG_PAGE_ACCESS_TOKEN` | token da Página (`dm-token-pagina`) |
+| `IG_PAGE_ACCESS_TOKEN` | token da Página, derivado do `IG_ACCESS_TOKEN` no deploy |
 | `META_APP_SECRET` | confere a assinatura de cada webhook |
 | `DM_VERIFY_TOKEN` | frase combinada com a Meta no cadastro do webhook |
 | `DM_DRY_RUN` | `true` = só registra nos logs o que mandaria |

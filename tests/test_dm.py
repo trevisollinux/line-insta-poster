@@ -206,5 +206,63 @@ class ExportarTest(unittest.TestCase):
         self.assertEqual((codigo, existe), (0, True))
 
 
+class TokenDaPaginaTest(unittest.TestCase):
+    def test_escolhe_a_pagina_ligada_ao_instagram(self):
+        from tests.support import FakeClient
+
+        client = FakeClient(
+            {
+                ("GET", "me/accounts"): {
+                    "data": [
+                        {"name": "Outra", "access_token": "X",
+                         "instagram_business_account": {"id": "9"}},
+                        {"name": "LINE STORE", "access_token": "PAGINA"},
+                        {"name": "LINE STORE", "access_token": "CERTO",
+                         "instagram_business_account": {"id": "1"}},
+                    ]
+                }
+            }
+        )
+        self.assertEqual(dm_cli.token_da_pagina("u", "1", client=client), ("LINE STORE", "CERTO"))
+
+    def test_sem_pagina_ligada(self):
+        from tests.support import FakeClient
+
+        client = FakeClient({("GET", "me/accounts"): {"data": []}})
+        with self.assertRaises(dm_cli.SemPagina):
+            dm_cli.token_da_pagina("u", "1", client=client)
+
+    def test_inscrever_pagina(self):
+        from tests.support import FakeClient
+
+        from poster.graph import GraphError
+
+        ok = FakeClient(
+            {("GET", "me"): {"id": "p1"}, ("POST", "p1/subscribed_apps"): {"success": True}}
+        )
+        self.assertEqual(dm_cli.inscrever_pagina("t", client=ok), "")
+        self.assertEqual(ok.chamadas[1][2], {"subscribed_fields": "feed"})
+
+        sem = FakeClient(
+            {("GET", "me"): {"id": "p1"},
+             ("POST", "p1/subscribed_apps"): GraphError("(#200) permissão", status=403)}
+        )
+        self.assertIn("permissão", dm_cli.inscrever_pagina("t", client=sem))
+
+    def test_escopos_faltando(self):
+        from unittest import mock
+
+        class Info:
+            scopes = ("instagram_basic", "instagram_manage_messages")
+
+        with mock.patch.dict(os.environ, {"META_APP_ID": "a", "META_APP_SECRET": "b"}):
+            self.assertEqual(
+                dm_cli.escopos_faltando("u", info_fn=lambda *a: Info()),
+                ["instagram_manage_comments"],
+            )
+        with mock.patch.dict(os.environ, {"META_APP_ID": "", "META_APP_SECRET": ""}):
+            self.assertIsNone(dm_cli.escopos_faltando("u", info_fn=lambda *a: Info()))
+
+
 if __name__ == "__main__":
     unittest.main()

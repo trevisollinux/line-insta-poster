@@ -103,20 +103,49 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          META_APP_ID: ${{ secrets.META_APP_ID }}
           META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          # O mesmo token da publicação. Se o secret IG_PAGE_ACCESS_TOKEN
+          # existir, ele vence; senão o token da Página sai deste aqui.
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
           IG_PAGE_ACCESS_TOKEN: ${{ secrets.IG_PAGE_ACCESS_TOKEN }}
           DM_VERIFY_TOKEN: ${{ secrets.DM_VERIFY_TOKEN }}
           IG_ALERT_WEBHOOK: ${{ secrets.IG_ALERT_WEBHOOK }}
           DM_DRY_RUN: ${{ vars.DM_DRY_RUN }}
         run: |
-          cd worker
           # Só manda o que tem valor: secret vazio apagaria um que já existe lá.
           python3 - > "$RUNNER_TEMP/secrets.json" <<'PY'
-          import json, os
-          nomes = ["IG_USER_ID", "META_APP_SECRET", "IG_PAGE_ACCESS_TOKEN",
-                   "DM_VERIFY_TOKEN", "IG_ALERT_WEBHOOK", "DM_DRY_RUN"]
-          print(json.dumps({n: os.environ[n] for n in nomes if os.environ.get(n)}))
+          import json, os, sys
+          from poster.dm.cli import escopos_faltando, inscrever_pagina, token_da_pagina
+
+          valores = {n: os.environ.get(n, "") for n in [
+              "IG_USER_ID", "META_APP_SECRET", "IG_PAGE_ACCESS_TOKEN",
+              "DM_VERIFY_TOKEN", "IG_ALERT_WEBHOOK", "DM_DRY_RUN"]}
+
+          if not valores["IG_PAGE_ACCESS_TOKEN"] and os.environ.get("IG_ACCESS_TOKEN"):
+              usuario = os.environ["IG_ACCESS_TOKEN"]
+              faltando = escopos_faltando(usuario)
+              if faltando:
+                  print(f"::warning::IG_ACCESS_TOKEN sem {', '.join(faltando)}: o bot "
+                        "sobe, mas as DMs vão falhar. Gere o token de novo com as "
+                        "permissões de DM (docs/DM.md, passo 2).", file=sys.stderr)
+              nome, token = token_da_pagina(usuario, valores["IG_USER_ID"])
+              print(f"::add-mask::{token}", file=sys.stderr)
+              print(f"token da Página derivado de IG_ACCESS_TOKEN ({nome})", file=sys.stderr)
+              valores["IG_PAGE_ACCESS_TOKEN"] = token
+
+          if valores["IG_PAGE_ACCESS_TOKEN"]:
+              erro = inscrever_pagina(valores["IG_PAGE_ACCESS_TOKEN"])
+              if erro:
+                  print(f"::warning::Página não inscrita no app ({erro}). Se for "
+                        "permissão, falta pages_manage_metadata (docs/DM.md, passo 1).",
+                        file=sys.stderr)
+              else:
+                  print("Página inscrita no app", file=sys.stderr)
+
+          print(json.dumps({n: v for n, v in valores.items() if v}))
           PY
+          cd worker
           $WRANGLER secret bulk "$RUNNER_TEMP/secrets.json"
           rm -f "$RUNNER_TEMP/secrets.json"
           echo "### Bot de DM publicado" >> "$GITHUB_STEP_SUMMARY"
