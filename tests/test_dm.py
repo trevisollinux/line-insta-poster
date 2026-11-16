@@ -184,18 +184,24 @@ class ExportarTest(unittest.TestCase):
         self.assertIn("attachment", cupom["mensagem"])
         self.assertIn("https://loja.example/", cupom["alternativa"]["text"])
 
-    def rodar(self, *extra):
+    def rodar(self, *extra, trocar=True):
+        dados = json.loads(json.dumps(BASE))
+        if trocar:
+            dados["passos"]["cupom"]["texto"] = "Use o cupom TROCAR."
         with tempfile.TemporaryDirectory() as pasta:
+            fonte = os.path.join(pasta, "fluxos.yaml")
+            with open(fonte, "w", encoding="utf-8") as handle:
+                json.dump(dados, handle)  # JSON é YAML válido
             saida = os.path.join(pasta, "fluxos.json")
             parser = __import__("poster.cli", fromlist=["build_parser"]).build_parser()
-            args = parser.parse_args(["dm-exportar", "--saida", saida, *extra])
+            args = parser.parse_args(["dm-exportar", "--fluxos", fonte, "--saida", saida, *extra])
             with contextlib.redirect_stdout(io.StringIO()) as out:
                 codigo = args.func(args)
             existe = os.path.exists(saida)
         return codigo, existe, out.getvalue()
 
     def test_recusa_exportar_com_trocar(self):
-        # O arquivo versionado tem TROCAR: o deploy para aqui, sem falhar o CI.
+        # Com TROCAR o deploy para aqui, sem falhar o CI.
         codigo, existe, saida = self.rodar()
         self.assertEqual(codigo, dm_cli.EXIT_NOTHING)
         self.assertFalse(existe)
@@ -203,6 +209,10 @@ class ExportarTest(unittest.TestCase):
 
     def test_permitir_pendente_exporta(self):
         codigo, existe, _ = self.rodar("--permitir-pendente")
+        self.assertEqual((codigo, existe), (0, True))
+
+    def test_sem_pendente_exporta(self):
+        codigo, existe, _ = self.rodar(trocar=False)
         self.assertEqual((codigo, existe), (0, True))
 
 
