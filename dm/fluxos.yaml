@@ -42,17 +42,18 @@
 # só avisa.
 
 # ─── TESTE ─────────────────────────────────────────────────────────────────
-# Fluxo de teste: só dispara com "testebot", que nenhum cliente escreve por
-# acaso. Para testar, com uma conta que tenha papel no app:
-#   1. comente "testebot" num post      → DM com botão + resposta no comentário
+# Fluxo de teste: dispara com "e aí, qual é a boa?" (acento, maiúscula e
+# pontuação não importam). Enquanto o app não tiver acesso avançado, só quem
+# tem papel no app dispara. Para testar, com uma dessas contas:
+#   1. comente "e aí, qual é a boa?"    → DM com botão + resposta no comentário
 #   2. toque "Próximo passo"            → segunda mensagem, com link
-#   3. mande "testebot" no direct       → "já recebeu" (testa o uma_vez)
+#   3. mande "qual é a boa" no direct   → "já recebeu" (testa o uma_vez)
 # Com DM_DRY_RUN=true nada é enviado: o que sairia aparece nos logs do Worker.
 
 gatilhos:
   - nome: teste-comentario
     onde: comentario
-    palavras: [testebot]
+    palavras: [e aí qual é a boa, qual é a boa]
     resposta_publica:
       - "[teste] Te chamei no direct 🤖"
       - "[teste] Olha o direct 🤖"
@@ -60,12 +61,12 @@ gatilhos:
 
   - nome: teste-story
     onde: story
-    palavras: [testebot]
+    palavras: [e aí qual é a boa, qual é a boa]
     passo: teste-fim
 
   - nome: teste-dm
     onde: dm
-    palavras: [testebot]
+    palavras: [e aí qual é a boa, qual é a boa]
     passo: teste-fim
 
 passos:
