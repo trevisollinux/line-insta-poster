@@ -50,6 +50,19 @@ jobs:
             echo "Falta:${faltando%,}. Ver docs/DM.md, seção Ligar." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
+          # O Database ID do D1 é um UUID (com hífens); o Account ID são 32
+          # caracteres sem hífen. Trocar um pelo outro dá "code: 7003" lá na
+          # frente, sem dizer qual dos dois está errado.
+          if ! echo "$DM_D1_ID" | grep -Eq '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'; then
+            echo "::error::A variável DM_D1_ID não parece um Database ID do D1 (formato"
+            echo "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx). Não é o Account ID: pegue em"
+            echo "Cloudflare → Storage & Databases → D1 → line-store-dm → Database ID."
+            exit 1
+          fi
+          if [ "$DM_D1_ID" = "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::DM_D1_ID está igual ao CLOUDFLARE_ACCOUNT_ID — use o Database ID do D1."
+            exit 1
+          fi
           echo "pronto=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-python@v5
