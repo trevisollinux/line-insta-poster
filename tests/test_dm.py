@@ -239,8 +239,20 @@ class TokenDaPaginaTest(unittest.TestCase):
         from tests.support import FakeClient
 
         client = FakeClient({("GET", "me/accounts"): {"data": []}})
-        with self.assertRaises(dm_cli.SemPagina):
+        with self.assertRaises(dm_cli.SemPagina) as ctx:
             dm_cli.token_da_pagina("u", "1", client=client)
+        self.assertIn("marque a Página", str(ctx.exception))
+
+        client = FakeClient(
+            {("GET", "me/accounts"): {"data": [
+                {"name": "Outra", "instagram_business_account": {"id": "9"}},
+                {"name": "LINE STORE"},
+            ]}}
+        )
+        with self.assertRaises(dm_cli.SemPagina) as ctx:
+            dm_cli.token_da_pagina("u", "1", client=client)
+        self.assertIn("Outra (com Instagram ligado); LINE STORE (sem Instagram ligado)",
+                      str(ctx.exception))
 
     def test_inscrever_pagina(self):
         from tests.support import FakeClient

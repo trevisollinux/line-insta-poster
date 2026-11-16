@@ -99,10 +99,27 @@ def token_da_pagina(user_token: str, ig_user_id: str, client=None) -> tuple[str,
     resposta = client.get(
         "me/accounts", {"fields": "id,name,access_token,instagram_business_account"}
     )
-    for pagina in resposta.get("data") or []:
+    paginas = resposta.get("data") or []
+    for pagina in paginas:
         if (pagina.get("instagram_business_account") or {}).get("id") == ig_user_id:
             return str(pagina.get("name") or pagina.get("id")), str(pagina.get("access_token"))
-    raise SemPagina(f"nenhuma Página deste token está ligada ao Instagram {ig_user_id}")
+    # O diagnóstico diz o que o token enxerga — nomes de Página não são segredo.
+    if not paginas:
+        visto = (
+            "o token não enxerga nenhuma Página. Ao gerar o token, na janela do "
+            "Facebook, marque a Página da loja (não só a conta do Instagram)"
+        )
+    else:
+        descricoes = [
+            f"{p.get('name') or p.get('id')} "
+            f"({'com' if p.get('instagram_business_account') else 'sem'} Instagram ligado)"
+            for p in paginas
+        ]
+        visto = (
+            f"o token enxerga {len(paginas)} Página(s): {'; '.join(descricoes)} — "
+            "nenhuma ligada ao IG_USER_ID"
+        )
+    raise SemPagina(f"token da Página não encontrado: {visto}")
 
 
 def inscrever_pagina(pagina_token: str, client=None) -> str:

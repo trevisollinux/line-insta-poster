@@ -148,10 +148,17 @@ jobs:
                   print(f"::warning::IG_ACCESS_TOKEN sem {', '.join(faltando)}: o bot "
                         "sobe, mas as DMs vão falhar. Gere o token de novo com as "
                         "permissões de DM (docs/DM.md, passo 2).", file=sys.stderr)
-              nome, token = token_da_pagina(usuario, valores["IG_USER_ID"])
-              print(f"::add-mask::{token}", file=sys.stderr)
-              print(f"token da Página derivado de IG_ACCESS_TOKEN ({nome})", file=sys.stderr)
-              valores["IG_PAGE_ACCESS_TOKEN"] = token
+              try:
+                  nome, token = token_da_pagina(usuario, valores["IG_USER_ID"])
+              except Exception as exc:
+                  # Sem o token da Página o bot não envia, mas o resto (inclusive a
+                  # verificação do webhook pela Meta) funciona: segue com aviso.
+                  print(f"::warning::{exc}. As DMs não vão sair até isso ser "
+                        "resolvido (docs/DM.md, passo 2).", file=sys.stderr)
+              else:
+                  print(f"::add-mask::{token}", file=sys.stderr)
+                  print(f"token da Página derivado de IG_ACCESS_TOKEN ({nome})", file=sys.stderr)
+                  valores["IG_PAGE_ACCESS_TOKEN"] = token
 
           if valores["IG_PAGE_ACCESS_TOKEN"]:
               erro = inscrever_pagina(valores["IG_PAGE_ACCESS_TOKEN"])
