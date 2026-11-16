@@ -87,6 +87,12 @@ conteúdo no Instagram*, adicionar:
 - `instagram_manage_comments` — receber comentários e responder
 - `pages_manage_metadata` — inscrever a Página no webhook
 
+`pages_manage_metadata` **não aparece** no caso de uso do Instagram: é
+permissão de Página. Antes de ir atrás dela, teste o passo 4 sem ela — se o
+`subscribed_apps` responder `success: true`, ela não faz falta. Se der erro
+de permissão (#200 ou #10), adicione o caso de uso **Gerenciar tudo na sua
+Página** (*Casos de uso → Adicionar caso de uso*), que a traz.
+
 Para clientes de verdade é preciso **acesso avançado** (App Review: vídeo do
 fluxo, política de privacidade). Enquanto não sai, o webhook só dispara para
 quem tem papel no app (admin/testador) — ótimo para testar.
