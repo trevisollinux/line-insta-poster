@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-11-16T23:49:56+00:00",
+  "updated_at": "2026-11-17T03:26:07+00:00",
   "published": [
     {
       "item_id": "teste-stories-line-baguete",
@@ -1209,6 +1209,16 @@
       "media_type": "STORIES",
       "published_at": "2026-11-16T23:49:56+00:00",
       "permalink": "https://www.instagram.com/stories/line_store/4032009336985298872",
+      "tipo": "",
+      "cta": ""
+    },
+    {
+      "item_id": "2026-11-16-img-20261115-202426-575-1Vel2z",
+      "media_id": "18046286936835513",
+      "container_id": "18655409698043967",
+      "media_type": "STORIES",
+      "published_at": "2026-11-17T03:26:06+00:00",
+      "permalink": "https://www.instagram.com/stories/line_store/4032117630509814037",
       "tipo": "",
       "cta": ""
     }
