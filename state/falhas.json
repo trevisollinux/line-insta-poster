@@ -1,11 +1,5 @@
 {
-  "falhas": {
-    "2026-11-16-lv-0-20261115202301-17W85Z": {
-      "em": "2026-11-17T19:59:15+00:00",
-      "tentativas": 1,
-      "ultimo_erro": "item '2026-11-16-lv-0-20261115202301-17W85Z' não publicado: POST /17841401318995903/media_publish → HTTP 400: The requested resource does not exist (code=24, subcode=2207006)"
-    }
-  },
-  "updated_at": "2026-11-18T19:32:03+00:00",
+  "falhas": {},
+  "updated_at": "2026-11-18T22:41:19+00:00",
   "version": 1
 }
