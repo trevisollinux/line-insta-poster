@@ -182,5 +182,43 @@ test("limpeza agendada", async () => {
   await env.DB.prepare("UPDATE vistos SET em = 0").bind().run();
   await estado.marcarVisto("novo");
   await criarApp(fluxos, { log: (m) => logs.push(m) }).scheduled({}, env);
-  assert.deepEqual(logs, ["limpeza: 1 eventos antigos removidos"]);
+  assert.deepEqual(logs, ["limpeza: 1 eventos e 0 entregas antigas removidos"]);
+});
+
+test("apagar meus dados: apaga as entregas e confirma, antes de qualquer fluxo", async () => {
+  const estado = new EstadoD1(d1Falso());
+  await estado.registrarEntrega("u1", "cupom");
+  await estado.registrarEntrega("u2", "cupom");
+  const { e, fetchFn } = enviador({ "me/messages": OK });
+  // "cupom" também casaria com o fluxo — a exclusão tem que vencer
+  await processar(
+    { tipo: "dm", id: "x1", usuario: "u1", texto: "Quero APAGAR meus dados, e o cupom" },
+    fluxos, estado, e,
+  );
+  assert.equal(await estado.jaEntregue("u1", "cupom"), false);
+  assert.equal(await estado.jaEntregue("u2", "cupom"), true);
+  assert.equal(fetchFn.chamadas.length, 1);
+  assert.match(JSON.parse(fetchFn.chamadas[0].params.message).text, /apagamos os dados/);
+});
+
+test("exclusão só vale no direct, não em comentário público", async () => {
+  const estado = new EstadoD1(d1Falso());
+  await estado.registrarEntrega("u1", "cupom");
+  const { e } = enviador({ "me/messages": OK, "c1/replies": [200, {}] });
+  await processar(
+    { tipo: "comentario", id: "c1", usuario: "u1", texto: "apagar meus dados", comentario_id: "c1" },
+    fluxos, estado, e, primeiro,
+  );
+  assert.equal(await estado.jaEntregue("u1", "cupom"), true);
+});
+
+test("limpeza remove entregas com mais de um ano", async () => {
+  const env = ambiente();
+  const estado = new EstadoD1(env.DB);
+  await estado.registrarEntrega("velho", "cupom");
+  await env.DB.prepare("UPDATE entregues SET em = 0").bind().run();
+  await estado.registrarEntrega("novo", "cupom");
+  await criarApp(fluxos, { log: (m) => logs.push(m) }).scheduled({}, env);
+  assert.equal(await estado.jaEntregue("velho", "cupom"), false);
+  assert.equal(await estado.jaEntregue("novo", "cupom"), true);
 });

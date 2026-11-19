@@ -4,7 +4,7 @@
 // usuário da publicação. O de Página derivado de um token de usuário de longa
 // duração não expira — o Worker não depende da renovação mensal do secret.
 
-import { decidir } from "./motor.js";
+import { CONFIRMACAO_EXCLUSAO, decidir, pedeExclusao } from "./motor.js";
 
 export const JANELA_ALERTA = 3600; // sem permissão, TODA mensagem falha
 const TRANSITORIOS = new Set([1, 2, 4, 17, 32, 341, 613]);
@@ -125,6 +125,14 @@ export class Enviador {
 // Deduplica, decide e executa. Devolve as ações tentadas.
 export async function processar(evento, fluxos, estado, enviador, sortear) {
   if (!(await estado.marcarVisto(evento.id))) return [];
+  if (evento.tipo === "dm" && pedeExclusao(evento.texto)) {
+    await estado.apagarUsuario(evento.usuario);
+    const acao = {
+      tipo: "enviar", destinatario: { id: evento.usuario }, mensagem: { text: CONFIRMACAO_EXCLUSAO },
+    };
+    await enviador.executar(acao, estado);
+    return [acao];
+  }
   const acoes = await decidir(evento, fluxos, estado, sortear);
   for (const acao of acoes) {
     const ok = await enviador.executar(acao, estado);

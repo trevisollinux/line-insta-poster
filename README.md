@@ -224,6 +224,8 @@ resolvidos. É o primeiro arquivo a ler para continuar de onde parou.
 - [`docs/DM.md`](docs/DM.md) — respostas automáticas no direct (comentário,
   story e DM com palavra-chave → mensagem com botões e cupom). Único pedaço que
   roda fora do Actions: um Cloudflare Worker que recebe o webhook (`worker/`).
+- [`docs/APP-REVIEW.md`](docs/APP-REVIEW.md) — pedir à Meta acesso avançado
+  para o bot de DM funcionar com qualquer pessoa (textos e roteiro do vídeo).
 
 ## Testes
 

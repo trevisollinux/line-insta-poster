@@ -54,8 +54,9 @@ export function criarApp(fluxos, { fetchFn, log, sortear } = {}) {
       try {
         await processar(evento, fluxos, estado, enviador, sortear);
       } catch (erro) {
-        // um evento ruim não derruba os outros
-        (log || console.error)(`erro tratando ${JSON.stringify(evento)}: ${erro}`);
+        // Um evento ruim não derruba os outros. Sem o texto da pessoa no log:
+        // a política de privacidade promete que ele não é guardado.
+        (log || console.error)(`erro tratando ${evento.tipo} ${evento.id}: ${erro}`);
       }
     }
   }
@@ -99,10 +100,13 @@ export function criarApp(fluxos, { fetchFn, log, sortear } = {}) {
       return texto(200);
     },
 
-    // Cron diário (wrangler.toml): limpa ids de evento antigos.
+    // Cron diário (wrangler.toml): ids de evento com mais de 30 dias e
+    // entregas com mais de 1 ano (retenção da política de privacidade).
     async scheduled(_evento, env) {
-      const removidos = await new EstadoD1(env.DB).limparVistos();
-      (log || console.log)(`limpeza: ${removidos} eventos antigos removidos`);
+      const estado = new EstadoD1(env.DB);
+      const vistos = await estado.limparVistos();
+      const entregues = await estado.limparEntregues();
+      (log || console.log)(`limpeza: ${vistos} eventos e ${entregues} entregas antigas removidos`);
     },
   };
 }

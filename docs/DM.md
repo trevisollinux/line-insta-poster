@@ -216,6 +216,19 @@ que o bot *mandaria* aparece nos logs: Cloudflare → Workers & Pages →
 | `IG_ALERT_WEBHOOK` | mesmo canal de alerta da publicação |
 | `DB` | o D1 (configurado no `wrangler.toml` pelo deploy) |
 
+## Privacidade e exclusão de dados
+
+- Quem manda **`apagar meus dados`** (ou `excluir meus dados`, `delete my
+  data`) no direct tem tudo o que o bot guardava apagado na hora e recebe a
+  confirmação. Vale antes de qualquer fluxo; em comentário público não vale.
+- O texto das mensagens não é gravado, nem nos logs.
+- Retenção: quem recebeu qual passo, até 12 meses; ids de evento, 30 dias
+  (limpeza diária pelo cron do Worker).
+- Política pública em `site/privacidade.html` (GitHub Pages). Mudou o que o
+  bot guarda? Atualize a página no mesmo PR.
+
+Para liberar o bot para todo mundo (App Review): `docs/APP-REVIEW.md`.
+
 ## Regras da Meta que limitam o bot
 
 - **Janela de 24h:** só se escreve para quem interagiu nas últimas 24h. O bot
