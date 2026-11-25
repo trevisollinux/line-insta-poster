@@ -1,5 +1,11 @@
 {
-  "falhas": {},
-  "updated_at": "2026-11-24T21:29:46+00:00",
+  "falhas": {
+    "2026-10-20-sem-titulo-2026-10-19-21-13-06-1v08SY": {
+      "em": "2026-11-25T00:05:28+00:00",
+      "tentativas": 1,
+      "ultimo_erro": "container 18657785677043967 terminou como ERROR. Error: Media upload has failed with error code 2207076"
+    }
+  },
+  "updated_at": "2026-11-25T00:05:28+00:00",
   "version": 1
 }
